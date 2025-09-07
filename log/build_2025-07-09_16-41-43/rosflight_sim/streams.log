@@ -1,0 +1,92 @@
+[0.013s] Invoking command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --build /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim -- -j16 -l16
+[0.072s] Consolidate compiler generated dependencies of target rosflight_sil_manager
+[0.072s] Consolidate compiler generated dependencies of target standalone_viz_transcriber
+[0.075s] Consolidate compiler generated dependencies of target standalone_time_manager
+[0.078s] Consolidate compiler generated dependencies of target fixedwing_forces_and_moments
+[0.079s] Consolidate compiler generated dependencies of target standalone_dynamics
+[0.079s] Consolidate compiler generated dependencies of target multirotor_forces_and_moments
+[0.080s] Consolidate compiler generated dependencies of target standalone_sensors
+[0.094s] [  5%] Built target rosflight_sil_manager
+[0.095s] Consolidate compiler generated dependencies of target rosflight_firmware
+[0.098s] [ 11%] Built target standalone_viz_transcriber
+[0.100s] [ 19%] Built target standalone_time_manager
+[0.103s] [ 50%] Built target standalone_dynamics
+[0.103s] [ 52%] Built target standalone_sensors
+[0.103s] [ 52%] Built target multirotor_forces_and_moments
+[0.103s] [ 52%] Built target fixedwing_forces_and_moments
+[0.120s] [ 88%] Built target rosflight_firmware
+[0.169s] Consolidate compiler generated dependencies of target sil_board
+[0.197s] [100%] Built target sil_board
+[0.213s] Invoked command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --build /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim -- -j16 -l16
+[0.226s] Invoking command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --install /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim
+[0.235s] -- Install configuration: "Release"
+[0.235s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.sh
+[0.235s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.dsv
+[0.235s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/librosflight_firmware.a
+[0.236s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rosflight_sil_manager
+[0.236s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/sil_board
+[0.236s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params
+[0.236s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/aerosonde_dynamics.yaml
+[0.237s] -- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/custom_multirotor_dynamics.yaml
+[0.237s] -- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_mixing_matrix_params.yaml
+[0.238s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/fixedwing_firmware.yaml
+[0.238s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/params.md
+[0.238s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_motor_params.yaml
+[0.238s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_dynamics.yaml
+[0.239s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/anaconda_dynamics.yaml
+[0.239s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_firmware.yaml
+[0.239s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim
+[0.239s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/udp_board.hpp
+[0.239s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sensor_interface.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/dynamics_interface.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board_ros.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/rosflight_sil.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/forces_and_moments_interface.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board.hpp
+[0.240s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/time_manager_interface.hpp
+[0.241s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch
+[0.241s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_init_firmware.launch.py
+[0.241s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_init_firmware.launch.py
+[0.241s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rc.py
+[0.241s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/vimfly.py
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/package_run_dependencies/rosflight_sim
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/parent_prefix_path/rosflight_sim
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.sh
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.dsv
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.sh
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.dsv
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.bash
+[0.242s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.sh
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.zsh
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.dsv
+[0.243s] -- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.dsv
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/packages/rosflight_sim
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport.cmake
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport-release.cmake
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/ament_cmake_export_targets-extras.cmake
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig.cmake
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig-version.cmake
+[0.243s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.xml
+[0.243s] Gazebo not found, skipping rosflight_sim
+[0.244s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_viz_transcriber
+[0.244s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_time_manager
+[0.244s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/multirotor_forces_and_moments
+[0.245s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/fixedwing_forces_and_moments
+[0.245s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_sensors
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_dynamics
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/standalone_sim.launch.py
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_standalone.launch.py
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/common_nodes_standalone.launch.py
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_standalone.launch.py
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params
+[0.246s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/standalone_sim_params.yaml
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config/standalone_sim.rviz
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/multirotor.dae
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.png
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.dae
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource
+[0.247s] -- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource/logo.png
+[0.247s] Invoked command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --install /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim

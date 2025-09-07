@@ -1,0 +1,911 @@
+{
+	"folders": [
+		{
+			"name": "Unreal_QuadSim",
+			"path": "."
+		},
+		{
+			"name": "UE5",
+			"path": "/home/ninonick0426/UnrealEngine"
+		}
+	],
+	"settings": {
+		"typescript.tsc.autoDetect": "off",
+		"npm.autoDetect": "off",
+		"terminal.integrated.env.linux": {
+			"PATH": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64:${env:PATH}",
+			"DOTNET_ROOT": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64",
+			"DOTNET_HOST_PATH": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64/dotnet",
+			"DOTNET_MULTILEVEL_LOOKUP": "0",
+			"DOTNET_ROLL_FORWARD": "LatestMajor"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools",
+			"ms-dotnettools.csharp"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Unreal_QuadSim Linux Debug Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Debug Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim Linux Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Debug Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux DebugGame Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim Linux DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux DebugGame Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Development Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Development Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim Linux Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Development Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Test Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Test Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim Linux Test Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Test Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Shipping Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Shipping Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim Linux Shipping Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim Linux Shipping Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"Linux",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Debug Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Debug Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim LinuxArm64 Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Debug Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 DebugGame Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim LinuxArm64 DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 DebugGame Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Development Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Development Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim LinuxArm64 Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Development Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Test Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Test Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim LinuxArm64 Test Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Test Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Test",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Shipping Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Shipping Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSim LinuxArm64 Shipping Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSim LinuxArm64 Shipping Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSim",
+					"LinuxArm64",
+					"Shipping",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Debug Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Debug Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSimEditor Linux Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Debug Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Debug",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux DebugGame Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSimEditor Linux DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux DebugGame Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"DebugGame",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Development Build",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Development Rebuild",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"Unreal_QuadSimEditor Linux Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"label": "Unreal_QuadSimEditor Linux Development Clean",
+				"group": "build",
+				"command": "Engine/Build/BatchFiles/Linux/Build.sh",
+				"args": [
+					"Unreal_QuadSimEditor",
+					"Linux",
+					"Development",
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-waitmutex",
+					"-clean"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "/home/ninonick0426/UnrealEngine"
+				}
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Launch Unreal_QuadSim (Debug)",
+				"request": "launch",
+				"program": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Binaries/Linux/UnrealGame-Linux-Debug",
+				"preLaunchTask": "Unreal_QuadSim Linux Debug Build",
+				"args": [
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSim (DebugGame)",
+				"request": "launch",
+				"program": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Binaries/Linux/UnrealGame-Linux-DebugGame",
+				"preLaunchTask": "Unreal_QuadSim Linux DebugGame Build",
+				"args": [
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSim (Development)",
+				"request": "launch",
+				"program": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Binaries/Linux/UnrealGame",
+				"preLaunchTask": "Unreal_QuadSim Linux Development Build",
+				"args": [
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSim (Test)",
+				"request": "launch",
+				"program": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Binaries/Linux/UnrealGame-Linux-Test",
+				"preLaunchTask": "Unreal_QuadSim Linux Test Build",
+				"args": [
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSim (Shipping)",
+				"request": "launch",
+				"program": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Binaries/Linux/UnrealGame-Linux-Shipping",
+				"preLaunchTask": "Unreal_QuadSim Linux Shipping Build",
+				"args": [
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSimEditor (Debug)",
+				"request": "launch",
+				"program": "/home/ninonick0426/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Linux-Debug",
+				"preLaunchTask": "Unreal_QuadSimEditor Linux Debug Build",
+				"args": [
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject"
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSimEditor (DebugGame)",
+				"request": "launch",
+				"program": "/home/ninonick0426/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Linux-DebugGame",
+				"preLaunchTask": "Unreal_QuadSimEditor Linux DebugGame Build",
+				"args": [
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject"
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Launch Unreal_QuadSimEditor (Development)",
+				"request": "launch",
+				"program": "/home/ninonick0426/UnrealEngine/Engine/Binaries/Linux/UnrealEditor",
+				"preLaunchTask": "Unreal_QuadSimEditor Linux Development Build",
+				"args": [
+					"/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject"
+				],
+				"cwd": "/home/ninonick0426/UnrealEngine",
+				"type": "cppdbg",
+				"visualizerFile": "/home/ninonick0426/UnrealEngine/Engine/Extras/VisualStudioDebugging/Unreal.natvis",
+				"showDisplayString": true,
+				"sourceFileMap": {
+					"/UEVFS/Unreal_QuadSim": "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim",
+					"/UEVFS/Root": "/home/ninonick0426/UnrealEngine"
+				}
+			},
+			{
+				"name": "Generate Project Files",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "UnrealBuildTool Linux Development Build",
+				"program": "/home/ninonick0426/UnrealEngine/Engine/Build/BatchFiles/RunUBT.bat",
+				"args": [
+					"-projectfiles",
+					"-vscode",
+					"-project=/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Unreal_QuadSim.uproject",
+					"-game",
+					"-engine",
+					"-dotnet"
+				],
+				"env": {
+					"PATH": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64:${env:PATH}",
+					"DOTNET_ROOT": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64",
+					"DOTNET_HOST_PATH": "/home/ninonick0426/UnrealEngine/Engine/Binaries/ThirdParty/DotNet/8.0.300/linux-x64/dotnet",
+					"DOTNET_MULTILEVEL_LOOKUP": "0",
+					"DOTNET_ROLL_FORWARD": "LatestMajor"
+				},
+				"console": "internalConsole",
+				"internalConsoleOptions": "openOnSessionStart",
+				"stopAtEntry": false,
+				"cwd": "/home/ninonick0426/UnrealEngine"
+			}
+		]
+	}
+}

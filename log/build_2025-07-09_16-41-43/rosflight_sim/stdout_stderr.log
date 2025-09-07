@@ -1,0 +1,88 @@
+Consolidate compiler generated dependencies of target rosflight_sil_manager
+Consolidate compiler generated dependencies of target standalone_viz_transcriber
+Consolidate compiler generated dependencies of target standalone_time_manager
+Consolidate compiler generated dependencies of target fixedwing_forces_and_moments
+Consolidate compiler generated dependencies of target standalone_dynamics
+Consolidate compiler generated dependencies of target multirotor_forces_and_moments
+Consolidate compiler generated dependencies of target standalone_sensors
+[  5%] Built target rosflight_sil_manager
+Consolidate compiler generated dependencies of target rosflight_firmware
+[ 11%] Built target standalone_viz_transcriber
+[ 19%] Built target standalone_time_manager
+[ 50%] Built target standalone_dynamics
+[ 52%] Built target standalone_sensors
+[ 52%] Built target multirotor_forces_and_moments
+[ 52%] Built target fixedwing_forces_and_moments
+[ 88%] Built target rosflight_firmware
+Consolidate compiler generated dependencies of target sil_board
+[100%] Built target sil_board
+-- Install configuration: "Release"
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.sh
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.dsv
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/librosflight_firmware.a
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rosflight_sil_manager
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/sil_board
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/aerosonde_dynamics.yaml
+-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/custom_multirotor_dynamics.yaml
+-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_mixing_matrix_params.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/fixedwing_firmware.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/params.md
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_motor_params.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_dynamics.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/anaconda_dynamics.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_firmware.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/udp_board.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sensor_interface.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/dynamics_interface.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board_ros.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/rosflight_sil.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/forces_and_moments_interface.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/time_manager_interface.hpp
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_init_firmware.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_init_firmware.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rc.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/vimfly.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/package_run_dependencies/rosflight_sim
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/parent_prefix_path/rosflight_sim
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.sh
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.dsv
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.sh
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.dsv
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.bash
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.sh
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.zsh
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.dsv
+-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.dsv
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/packages/rosflight_sim
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport.cmake
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport-release.cmake
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/ament_cmake_export_targets-extras.cmake
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig.cmake
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig-version.cmake
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.xml
+Gazebo not found, skipping rosflight_sim
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_viz_transcriber
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_time_manager
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/multirotor_forces_and_moments
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/fixedwing_forces_and_moments
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_sensors
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_dynamics
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/standalone_sim.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_standalone.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/common_nodes_standalone.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_standalone.launch.py
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/standalone_sim_params.yaml
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config/standalone_sim.rviz
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/multirotor.dae
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.png
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.dae
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource
+-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource/logo.png

@@ -1,0 +1,213 @@
+[0.117s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--packages-select', 'rosflight_sim', '--base-paths', '/home/ninonick0426/ros2_ws/src', '--allow-overriding', 'rosflight_sim']
+[0.117s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=16, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['/home/ninonick0426/ros2_ws/src'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['rosflight_sim'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=['rosflight_sim'], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x74c78c859630>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x74c78c947070>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x74c78c947070>>)
+[0.317s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.317s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.318s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.318s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.318s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.318s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/ninonick0426/ros2_ws/src'
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['ignore', 'ignore_ament_install']
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'ignore'
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'ignore_ament_install'
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['colcon_pkg']
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'colcon_pkg'
+[0.318s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['colcon_meta']
+[0.319s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'colcon_meta'
+[0.319s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['ros']
+[0.319s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'ros'
+[0.334s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['cmake', 'python']
+[0.334s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'cmake'
+[0.334s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'python'
+[0.334s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extensions ['python_setup_py']
+[0.334s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src) by extension 'python_setup_py'
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extensions ['ignore', 'ignore_ament_install']
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extension 'ignore'
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extension 'ignore_ament_install'
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extensions ['colcon_pkg']
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extension 'colcon_pkg'
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extensions ['colcon_meta']
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extension 'colcon_meta'
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extensions ['ros']
+[0.335s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/eigen_stl_containers) by extension 'ros'
+[0.339s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/eigen_stl_containers' with type 'ros.ament_cmake' and name 'eigen_stl_containers'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['ignore', 'ignore_ament_install']
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'ignore'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'ignore_ament_install'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['colcon_pkg']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'colcon_pkg'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['colcon_meta']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'colcon_meta'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['ros']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'ros'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['cmake', 'python']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'cmake'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'python'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extensions ['python_setup_py']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs) by extension 'python_setup_py'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware) by extensions ['ignore', 'ignore_ament_install']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware) by extension 'ignore'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware) ignored
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extensions ['ignore', 'ignore_ament_install']
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extension 'ignore'
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extension 'ignore_ament_install'
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extensions ['colcon_pkg']
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extension 'colcon_pkg'
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extensions ['colcon_meta']
+[0.342s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extension 'colcon_meta'
+[0.343s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extensions ['ros']
+[0.343s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs) by extension 'ros'
+[0.344s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs' with type 'ros.ament_cmake' and name 'rosflight_gcs'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extensions ['ignore', 'ignore_ament_install']
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extension 'ignore'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extension 'ignore_ament_install'
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extensions ['colcon_pkg']
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extension 'colcon_pkg'
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extensions ['colcon_meta']
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extension 'colcon_meta'
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extensions ['ros']
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io) by extension 'ros'
+[0.347s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io' with type 'ros.ament_cmake' and name 'rosflight_io'
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extensions ['ignore', 'ignore_ament_install']
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extension 'ignore'
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extension 'ignore_ament_install'
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extensions ['colcon_pkg']
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extension 'colcon_pkg'
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extensions ['colcon_meta']
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extension 'colcon_meta'
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extensions ['ros']
+[0.347s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs) by extension 'ros'
+[0.348s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs' with type 'ros.ament_cmake' and name 'rosflight_msgs'
+[0.348s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extensions ['ignore', 'ignore_ament_install']
+[0.348s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extension 'ignore'
+[0.348s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extension 'ignore_ament_install'
+[0.348s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extensions ['colcon_pkg']
+[0.348s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extension 'colcon_pkg'
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extensions ['colcon_meta']
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extension 'colcon_meta'
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extensions ['ros']
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs) by extension 'ros'
+[0.349s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs' with type 'ros.ament_cmake' and name 'rosflight_pkgs'
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extensions ['ignore', 'ignore_ament_install']
+[0.349s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extension 'ignore'
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extension 'ignore_ament_install'
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extensions ['colcon_pkg']
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extension 'colcon_pkg'
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extensions ['colcon_meta']
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extension 'colcon_meta'
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extensions ['ros']
+[0.350s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins) by extension 'ros'
+[0.350s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins' with type 'ros.ament_python' and name 'rosflight_rqt_plugins'
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extensions ['ignore', 'ignore_ament_install']
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extension 'ignore'
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extension 'ignore_ament_install'
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extensions ['colcon_pkg']
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extension 'colcon_pkg'
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extensions ['colcon_meta']
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extension 'colcon_meta'
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extensions ['ros']
+[0.351s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim) by extension 'ros'
+[0.353s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim' with type 'ros.ament_cmake' and name 'rosflight_sim'
+[0.353s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extensions ['ignore', 'ignore_ament_install']
+[0.353s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extension 'ignore'
+[0.353s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extension 'ignore_ament_install'
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extensions ['colcon_pkg']
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extension 'colcon_pkg'
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extensions ['colcon_meta']
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extension 'colcon_meta'
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extensions ['ros']
+[0.354s] Level 1:colcon.colcon_core.package_identification:_identify(/home/ninonick0426/ros2_ws/src/unreal_sim_config) by extension 'ros'
+[0.355s] DEBUG:colcon.colcon_core.package_identification:Package '/home/ninonick0426/ros2_ws/src/unreal_sim_config' with type 'ros.ament_cmake' and name 'unreal_sim_config'
+[0.355s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'eigen_stl_containers' in '/home/ninonick0426/ros2_ws/src/eigen_stl_containers'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rosflight_msgs' in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_msgs'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rosflight_rqt_plugins' in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_rqt_plugins'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rosflight_io' in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_io'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rosflight_gcs' in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_gcs'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'unreal_sim_config' in '/home/ninonick0426/ros2_ws/src/unreal_sim_config'
+[0.403s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rosflight_pkgs' in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_pkgs'
+[0.404s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.404s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.406s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 8 installed packages in /home/ninonick0426/ros2_ws/install
+[0.408s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 273 installed packages in /opt/ros/humble
+[0.409s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_args' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_target' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_clean_cache' from command line to 'False'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_clean_first' from command line to 'False'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'cmake_force_configure' from command line to 'False'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'ament_cmake_args' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'catkin_cmake_args' from command line to 'None'
+[0.446s] Level 5:colcon.colcon_core.verb:set package 'rosflight_sim' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.446s] DEBUG:colcon.colcon_core.verb:Building package 'rosflight_sim' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim', 'merge_install': False, 'path': '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim', 'symlink_install': False, 'test_result_base': None}
+[0.446s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.448s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.448s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim' with build type 'ament_cmake'
+[0.448s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim'
+[0.451s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.451s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.451s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.454s] WARNING:colcon.colcon_core.shell:The following packages are in the workspace but haven't been built:
+- rosflight_msgs
+They are being used from the following locations instead:
+- /home/ninonick0426/ros2_ws/install/rosflight_msgs
+To suppress this warning ignore these packages in the workspace:
+--packages-ignore rosflight_msgs
+[0.462s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --build /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim -- -j16 -l16
+[0.661s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --build /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim -- -j16 -l16
+[0.675s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --install /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim
+[0.693s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rosflight_sim)
+[0.696s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble /usr/bin/cmake --install /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim
+[0.698s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim' for CMake module files
+[0.698s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim' for CMake config files
+[0.699s] Level 1:colcon.colcon_core.shell:create_environment_hook('rosflight_sim', 'cmake_prefix_path')
+[0.699s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.ps1'
+[0.700s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.dsv'
+[0.700s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.sh'
+[0.701s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib'
+[0.701s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/bin'
+[0.701s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/pkgconfig/rosflight_sim.pc'
+[0.701s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/python3.10/site-packages'
+[0.702s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/bin'
+[0.702s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.ps1'
+[0.703s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.dsv'
+[0.704s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.sh'
+[0.705s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.bash'
+[0.706s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.zsh'
+[0.706s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/colcon-core/packages/rosflight_sim)
+[0.707s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rosflight_sim)
+[0.708s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim' for CMake module files
+[0.708s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim' for CMake config files
+[0.709s] Level 1:colcon.colcon_core.shell:create_environment_hook('rosflight_sim', 'cmake_prefix_path')
+[0.709s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.ps1'
+[0.710s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.dsv'
+[0.710s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/hook/cmake_prefix_path.sh'
+[0.711s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib'
+[0.711s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/bin'
+[0.711s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/pkgconfig/rosflight_sim.pc'
+[0.711s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/python3.10/site-packages'
+[0.711s] Level 1:colcon.colcon_core.environment:checking '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/bin'
+[0.712s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.ps1'
+[0.712s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.dsv'
+[0.713s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.sh'
+[0.713s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.bash'
+[0.714s] INFO:colcon.colcon_core.shell:Creating package script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.zsh'
+[0.714s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/colcon-core/packages/rosflight_sim)
+[0.715s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[0.715s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[0.715s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[0.715s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[0.721s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[0.722s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[0.722s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[0.744s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[0.744s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/local_setup.ps1'
+[0.745s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/_local_setup_util_ps1.py'
+[0.747s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/setup.ps1'
+[0.748s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/local_setup.sh'
+[0.749s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/_local_setup_util_sh.py'
+[0.749s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/setup.sh'
+[0.751s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/local_setup.bash'
+[0.752s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/setup.bash'
+[0.753s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/local_setup.zsh'
+[0.754s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/setup.zsh'

@@ -1,0 +1,14 @@
+/Intermediate
+/.vscode
+/.claude
+/Saved
+/.idea
+/DerivedDataCache
+/log
+/Plugins/QuadSimPlugin/Intermediate
+/Plugins/UnrealImGui/Intermediate
+/Plugins/rclUE/docs
+/Plugins/rclUE/Intermediate
+/Plugins/UnrealRosFlight/ThirdParty
+/Plugins/UnrealRosFlight/Intermediate
+

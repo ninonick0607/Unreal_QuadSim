@@ -1,0 +1,937 @@
+[0.000000] (-) TimerEvent: {}
+[0.000250] (-) JobUnselected: {'identifier': 'eigen_stl_containers'}
+[0.000606] (-) JobUnselected: {'identifier': 'rosflight_gcs'}
+[0.000643] (-) JobUnselected: {'identifier': 'rosflight_io'}
+[0.001085] (-) JobUnselected: {'identifier': 'rosflight_msgs'}
+[0.001338] (-) JobUnselected: {'identifier': 'rosflight_pkgs'}
+[0.001409] (-) JobUnselected: {'identifier': 'rosflight_rqt_plugins'}
+[0.001434] (-) JobUnselected: {'identifier': 'unreal_sim_config'}
+[0.001454] (rosflight_sim) JobQueued: {'identifier': 'rosflight_sim', 'dependencies': OrderedDict([('rosflight_msgs', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_msgs')])}
+[0.001480] (rosflight_sim) JobStarted: {'identifier': 'rosflight_sim'}
+[0.011273] (rosflight_sim) JobProgress: {'identifier': 'rosflight_sim', 'progress': 'cmake'}
+[0.011809] (rosflight_sim) Command: {'cmd': ['/usr/bin/cmake', '/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_sim', '-DCMAKE_INSTALL_PREFIX=/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim'], 'cwd': '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('ANTHROPIC_MODEL', 'claude-opus-4-20250514'), ('USER', 'ninonick0426'), ('CLAUDE_CODE_ENTRYPOINT', 'cli'), ('GIT_EDITOR', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/ninonick0426/ros2_ws/install/rosflight_sim/lib:/home/ninonick0426/ros2_ws/install/rosflight_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/ninonick0426'), ('DESKTOP_SESSION', 'ubuntu'), ('NVM_BIN', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin'), ('NVM_INC', '/home/ninonick0426/.nvm/versions/node/v18.20.8/include/node'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '7433'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('NVM_DIR', '/home/ninonick0426/.nvm'), ('COLCON_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'ninonick0426'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'ninonick0426'), ('TERM', 'xterm-256color'), ('OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE', 'delta'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin:/opt/ros/humble/bin:/home/ninonick0426/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/nico-ubuntu22:@/tmp/.ICE-unix/2961,unix/nico-ubuntu22:/tmp/.ICE-unix/2961'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/0e8aead8_662f_42d3_bea7_edc8ad71a4e3'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('RMW_IMPLEMENTATION', 'rmw_fastrtps_cpp'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.142'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '36'), ('AMENT_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CLAUDECODE', '1'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('NVM_CD_FLAGS', ''), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins/lib/python3.10/site-packages:/home/ninonick0426/ros2_ws/install/rosflight_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble')]), 'shell': False}
+[0.099515] (-) TimerEvent: {}
+[0.126547] (rosflight_sim) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.4.0\n'}
+[0.199621] (-) TimerEvent: {}
+[0.211182] (rosflight_sim) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.4.0\n'}
+[0.223734] (rosflight_sim) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.299717] (-) TimerEvent: {}
+[0.307209] (rosflight_sim) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.315258] (rosflight_sim) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.315505] (rosflight_sim) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.315955] (rosflight_sim) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.319311] (rosflight_sim) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.399841] (-) TimerEvent: {}
+[0.414155] (rosflight_sim) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.422228] (rosflight_sim) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.422592] (rosflight_sim) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.422893] (rosflight_sim) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.427161] (rosflight_sim) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.499969] (-) TimerEvent: {}
+[0.600200] (-) TimerEvent: {}
+[0.670145] (rosflight_sim) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter \n'}
+[0.700301] (-) TimerEvent: {}
+[0.800517] (-) TimerEvent: {}
+[0.805462] (rosflight_sim) StdoutLine: {'line': b'-- Found rclcpp: 16.0.12 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.872456] (rosflight_sim) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.879110] (rosflight_sim) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.890555] (rosflight_sim) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.900603] (-) TimerEvent: {}
+[0.906320] (rosflight_sim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.928671] (rosflight_sim) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.989646] (rosflight_sim) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.994104] (rosflight_sim) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[1.000714] (-) TimerEvent: {}
+[1.100918] (-) TimerEvent: {}
+[1.117277] (rosflight_sim) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  \n'}
+[1.154279] (rosflight_sim) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include  \n'}
+[1.200996] (-) TimerEvent: {}
+[1.210083] (rosflight_sim) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[1.225777] (rosflight_sim) StdoutLine: {'line': b'-- Looking for pthread.h\n'}
+[1.301128] (-) TimerEvent: {}
+[1.318748] (rosflight_sim) StdoutLine: {'line': b'-- Looking for pthread.h - found\n'}
+[1.319066] (rosflight_sim) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[1.401243] (-) TimerEvent: {}
+[1.405880] (rosflight_sim) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[1.407047] (rosflight_sim) StdoutLine: {'line': b'-- Found Threads: TRUE  \n'}
+[1.484435] (rosflight_sim) StdoutLine: {'line': b'-- Found rclpy: 3.3.16 (/opt/ros/humble/share/rclpy/cmake)\n'}
+[1.487032] (rosflight_sim) StdoutLine: {'line': b'-- Found std_srvs: 4.9.0 (/opt/ros/humble/share/std_srvs/cmake)\n'}
+[1.501339] (-) TimerEvent: {}
+[1.503002] (rosflight_sim) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[1.544827] (rosflight_sim) StdoutLine: {'line': b'-- Found rosflight_msgs: 2.0.0 (/home/ninonick0426/ros2_ws/install/rosflight_msgs/share/rosflight_msgs/cmake)\n'}
+[1.594051] (rosflight_sim) StdoutLine: {'line': b'-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: system thread \n'}
+[1.601454] (-) TimerEvent: {}
+[1.621008] (rosflight_sim) StdoutLine: {'line': b'-- Found tf2: 0.25.13 (/opt/ros/humble/share/tf2/cmake)\n'}
+[1.636192] (rosflight_sim) StdoutLine: {'line': b'-- Found tf2_geometry_msgs: 0.25.13 (/opt/ros/humble/share/tf2_geometry_msgs/cmake)\n'}
+[1.648642] (rosflight_sim) StdoutLine: {'line': b'-- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)\n'}
+[1.650408] (rosflight_sim) StdoutLine: {'line': b'-- Found Eigen3: TRUE (found version "3.4.0") \n'}
+[1.650658] (rosflight_sim) StdoutLine: {'line': b'-- Ensuring Eigen3 include directory is part of orocos-kdl CMake target\n'}
+[1.701548] (-) TimerEvent: {}
+[1.781698] (rosflight_sim) StdoutLine: {'line': b'-- Found visualization_msgs: 4.9.0 (/opt/ros/humble/share/visualization_msgs/cmake)\n'}
+[1.801697] (-) TimerEvent: {}
+[1.901925] (-) TimerEvent: {}
+[1.915627] (rosflight_sim) StdoutLine: {'line': b'-- Configuring done\n'}
+[1.968652] (rosflight_sim) StdoutLine: {'line': b'-- Generating done\n'}
+[1.987687] (rosflight_sim) StdoutLine: {'line': b'-- Build files have been written to: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim\n'}
+[2.002031] (-) TimerEvent: {}
+[2.008095] (rosflight_sim) CommandEnded: {'returncode': 0}
+[2.008976] (rosflight_sim) JobProgress: {'identifier': 'rosflight_sim', 'progress': 'build'}
+[2.010433] (rosflight_sim) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim', '--', '-j16', '-l16'], 'cwd': '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('ANTHROPIC_MODEL', 'claude-opus-4-20250514'), ('USER', 'ninonick0426'), ('CLAUDE_CODE_ENTRYPOINT', 'cli'), ('GIT_EDITOR', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/ninonick0426/ros2_ws/install/rosflight_sim/lib:/home/ninonick0426/ros2_ws/install/rosflight_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/ninonick0426'), ('DESKTOP_SESSION', 'ubuntu'), ('NVM_BIN', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin'), ('NVM_INC', '/home/ninonick0426/.nvm/versions/node/v18.20.8/include/node'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '7433'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('NVM_DIR', '/home/ninonick0426/.nvm'), ('COLCON_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'ninonick0426'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'ninonick0426'), ('TERM', 'xterm-256color'), ('OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE', 'delta'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin:/opt/ros/humble/bin:/home/ninonick0426/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/nico-ubuntu22:@/tmp/.ICE-unix/2961,unix/nico-ubuntu22:/tmp/.ICE-unix/2961'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/0e8aead8_662f_42d3_bea7_edc8ad71a4e3'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('RMW_IMPLEMENTATION', 'rmw_fastrtps_cpp'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.142'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '36'), ('AMENT_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CLAUDECODE', '1'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('NVM_CD_FLAGS', ''), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins/lib/python3.10/site-packages:/home/ninonick0426/ros2_ws/install/rosflight_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble')]), 'shell': False}
+[2.084473] (rosflight_sim) StdoutLine: {'line': b'[  8%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_time_manager.dir/src/standalone_time_manager.cpp.o\n'}
+[2.084721] (rosflight_sim) StdoutLine: {'line': b'[  8%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_viz_transcriber.dir/src/standalone_viz_transcriber.cpp.o\n'}
+[2.084829] (rosflight_sim) StdoutLine: {'line': b'[  8%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/estimator.cpp.o\n'}
+[2.084941] (rosflight_sim) StdoutLine: {'line': b'[ 11%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_time_manager.dir/__/__/src/time_manager_interface.cpp.o\n'}
+[2.085043] (rosflight_sim) StdoutLine: {'line': b'[ 16%] Building CXX object simulators/standalone_sim/CMakeFiles/multirotor_forces_and_moments.dir/src/multirotor_forces_and_moments.cpp.o\n'}
+[2.086742] (rosflight_sim) StdoutLine: {'line': b'[ 16%] Building CXX object CMakeFiles/rosflight_sil_manager.dir/src/rosflight_sil.cpp.o\n'}
+[2.087473] (rosflight_sim) StdoutLine: {'line': b'[ 19%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/mixer.cpp.o\n'}
+[2.087604] (rosflight_sim) StdoutLine: {'line': b'[ 22%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/controller.cpp.o\n'}
+[2.087698] (rosflight_sim) StdoutLine: {'line': b'[ 27%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_dynamics.dir/__/__/src/dynamics_interface.cpp.o\n'}
+[2.088167] (rosflight_sim) StdoutLine: {'line': b'[ 27%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_sensors.dir/__/__/src/sensor_interface.cpp.o\n'}
+[2.088324] (rosflight_sim) StdoutLine: {'line': b'[ 30%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/rosflight.cpp.o\n'}
+[2.088473] (rosflight_sim) StdoutLine: {'line': b'[ 33%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/param.cpp.o\n'}
+[2.088576] (rosflight_sim) StdoutLine: {'line': b'[ 36%] Building CXX object simulators/standalone_sim/CMakeFiles/multirotor_forces_and_moments.dir/__/__/src/forces_and_moments_interface.cpp.o\n'}
+[2.092795] (rosflight_sim) StdoutLine: {'line': b'[ 38%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_dynamics.dir/src/standalone_dynamics.cpp.o\n'}
+[2.095434] (rosflight_sim) StdoutLine: {'line': b'[ 41%] Building CXX object simulators/standalone_sim/CMakeFiles/standalone_sensors.dir/src/standalone_sensors.cpp.o\n'}
+[2.095626] (rosflight_sim) StdoutLine: {'line': b'[ 44%] Building CXX object simulators/standalone_sim/CMakeFiles/fixedwing_forces_and_moments.dir/__/__/src/forces_and_moments_interface.cpp.o\n'}
+[2.102658] (-) TimerEvent: {}
+[2.203789] (-) TimerEvent: {}
+[2.305169] (-) TimerEvent: {}
+[2.407827] (-) TimerEvent: {}
+[2.509096] (-) TimerEvent: {}
+[2.609343] (-) TimerEvent: {}
+[2.709663] (-) TimerEvent: {}
+[2.809969] (-) TimerEvent: {}
+[2.910396] (-) TimerEvent: {}
+[3.011927] (-) TimerEvent: {}
+[3.112222] (-) TimerEvent: {}
+[3.212514] (-) TimerEvent: {}
+[3.312810] (-) TimerEvent: {}
+[3.413095] (-) TimerEvent: {}
+[3.515351] (-) TimerEvent: {}
+[3.615638] (-) TimerEvent: {}
+[3.716150] (-) TimerEvent: {}
+[3.817505] (-) TimerEvent: {}
+[3.917787] (-) TimerEvent: {}
+[4.019192] (-) TimerEvent: {}
+[4.119560] (-) TimerEvent: {}
+[4.219848] (-) TimerEvent: {}
+[4.320142] (-) TimerEvent: {}
+[4.420666] (-) TimerEvent: {}
+[4.440388] (rosflight_sim) StdoutLine: {'line': b'[ 47%] Building CXX object simulators/standalone_sim/CMakeFiles/fixedwing_forces_and_moments.dir/src/fixedwing_forces_and_moments.cpp.o\n'}
+[4.475815] (rosflight_sim) StdoutLine: {'line': b'[ 50%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/state_manager.cpp.o\n'}
+[4.499508] (rosflight_sim) StdoutLine: {'line': b'[ 52%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/rc.cpp.o\n'}
+[4.520544] (-) TimerEvent: {}
+[4.540310] (rosflight_sim) StdoutLine: {'line': b'[ 55%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/command_manager.cpp.o\n'}
+[4.623417] (-) TimerEvent: {}
+[4.723694] (-) TimerEvent: {}
+[4.823970] (-) TimerEvent: {}
+[4.924254] (-) TimerEvent: {}
+[5.024527] (-) TimerEvent: {}
+[5.124792] (-) TimerEvent: {}
+[5.225083] (-) TimerEvent: {}
+[5.325355] (-) TimerEvent: {}
+[5.426318] (-) TimerEvent: {}
+[5.526590] (-) TimerEvent: {}
+[5.629160] (-) TimerEvent: {}
+[5.729455] (-) TimerEvent: {}
+[5.829732] (-) TimerEvent: {}
+[5.929964] (-) TimerEvent: {}
+[6.030221] (-) TimerEvent: {}
+[6.130494] (-) TimerEvent: {}
+[6.230772] (-) TimerEvent: {}
+[6.331057] (-) TimerEvent: {}
+[6.431331] (-) TimerEvent: {}
+[6.532968] (-) TimerEvent: {}
+[6.612236] (rosflight_sim) StdoutLine: {'line': b'[ 58%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/sensors.cpp.o\n'}
+[6.633117] (-) TimerEvent: {}
+[6.733390] (-) TimerEvent: {}
+[6.767683] (rosflight_sim) StdoutLine: {'line': b'[ 61%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/src/comm_manager.cpp.o\n'}
+[6.835600] (-) TimerEvent: {}
+[6.884583] (rosflight_sim) StdoutLine: {'line': b'[ 63%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/comms/mavlink/mavlink.cpp.o\n'}
+[6.937171] (-) TimerEvent: {}
+[7.037442] (-) TimerEvent: {}
+[7.137717] (-) TimerEvent: {}
+[7.237976] (-) TimerEvent: {}
+[7.339081] (-) TimerEvent: {}
+[7.439368] (-) TimerEvent: {}
+[7.542172] (-) TimerEvent: {}
+[7.642957] (-) TimerEvent: {}
+[7.743232] (-) TimerEvent: {}
+[7.843526] (-) TimerEvent: {}
+[7.943889] (-) TimerEvent: {}
+[8.046151] (-) TimerEvent: {}
+[8.146541] (-) TimerEvent: {}
+[8.246809] (-) TimerEvent: {}
+[8.347096] (-) TimerEvent: {}
+[8.447471] (-) TimerEvent: {}
+[8.550973] (-) TimerEvent: {}
+[8.587724] (rosflight_sim) StdoutLine: {'line': b'[ 66%] Building CXX object CMakeFiles/rosflight_firmware.dir/home/ninonick0426/ros2_ws/src/rosflight_ros_pkgs/rosflight_firmware/lib/turbomath/turbomath.cpp.o\n'}
+[8.651094] (-) TimerEvent: {}
+[8.751363] (-) TimerEvent: {}
+[8.852618] (-) TimerEvent: {}
+[8.952914] (-) TimerEvent: {}
+[9.053216] (-) TimerEvent: {}
+[9.153492] (-) TimerEvent: {}
+[9.253782] (-) TimerEvent: {}
+[9.356113] (-) TimerEvent: {}
+[9.456399] (-) TimerEvent: {}
+[9.556660] (-) TimerEvent: {}
+[9.660239] (-) TimerEvent: {}
+[9.760516] (-) TimerEvent: {}
+[9.860802] (-) TimerEvent: {}
+[9.961096] (-) TimerEvent: {}
+[10.061366] (-) TimerEvent: {}
+[10.161642] (-) TimerEvent: {}
+[10.261929] (-) TimerEvent: {}
+[10.362207] (-) TimerEvent: {}
+[10.462487] (-) TimerEvent: {}
+[10.562765] (-) TimerEvent: {}
+[10.663261] (-) TimerEvent: {}
+[10.763947] (-) TimerEvent: {}
+[10.864218] (-) TimerEvent: {}
+[10.964512] (-) TimerEvent: {}
+[11.064783] (-) TimerEvent: {}
+[11.165053] (-) TimerEvent: {}
+[11.265735] (-) TimerEvent: {}
+[11.365961] (-) TimerEvent: {}
+[11.467966] (-) TimerEvent: {}
+[11.568248] (-) TimerEvent: {}
+[11.668682] (-) TimerEvent: {}
+[11.769920] (-) TimerEvent: {}
+[11.870198] (-) TimerEvent: {}
+[11.970474] (-) TimerEvent: {}
+[12.070927] (-) TimerEvent: {}
+[12.171341] (-) TimerEvent: {}
+[12.271979] (-) TimerEvent: {}
+[12.372283] (-) TimerEvent: {}
+[12.474603] (-) TimerEvent: {}
+[12.575498] (-) TimerEvent: {}
+[12.675784] (-) TimerEvent: {}
+[12.778999] (-) TimerEvent: {}
+[12.879281] (-) TimerEvent: {}
+[12.979561] (-) TimerEvent: {}
+[13.079847] (-) TimerEvent: {}
+[13.086199] (rosflight_sim) StdoutLine: {'line': b'[ 69%] Linking CXX executable rosflight_sil_manager\n'}
+[13.179991] (-) TimerEvent: {}
+[13.280302] (-) TimerEvent: {}
+[13.380587] (-) TimerEvent: {}
+[13.391087] (rosflight_sim) StdoutLine: {'line': b'[ 69%] Built target rosflight_sil_manager\n'}
+[13.480705] (-) TimerEvent: {}
+[13.581003] (-) TimerEvent: {}
+[13.681496] (-) TimerEvent: {}
+[13.783742] (-) TimerEvent: {}
+[13.883969] (-) TimerEvent: {}
+[13.986425] (-) TimerEvent: {}
+[14.087088] (-) TimerEvent: {}
+[14.187446] (-) TimerEvent: {}
+[14.290958] (-) TimerEvent: {}
+[14.391227] (-) TimerEvent: {}
+[14.491571] (-) TimerEvent: {}
+[14.592091] (-) TimerEvent: {}
+[14.692470] (-) TimerEvent: {}
+[14.740214] (rosflight_sim) StdoutLine: {'line': b'[ 72%] Linking CXX executable standalone_time_manager\n'}
+[14.792734] (-) TimerEvent: {}
+[14.892995] (-) TimerEvent: {}
+[14.993287] (-) TimerEvent: {}
+[15.025698] (rosflight_sim) StdoutLine: {'line': b'[ 72%] Built target standalone_time_manager\n'}
+[15.093418] (-) TimerEvent: {}
+[15.193919] (-) TimerEvent: {}
+[15.294313] (-) TimerEvent: {}
+[15.394640] (-) TimerEvent: {}
+[15.494945] (-) TimerEvent: {}
+[15.595218] (-) TimerEvent: {}
+[15.695502] (-) TimerEvent: {}
+[15.795816] (-) TimerEvent: {}
+[15.896741] (-) TimerEvent: {}
+[15.997053] (-) TimerEvent: {}
+[16.097338] (-) TimerEvent: {}
+[16.197590] (-) TimerEvent: {}
+[16.297882] (-) TimerEvent: {}
+[16.398162] (-) TimerEvent: {}
+[16.498454] (-) TimerEvent: {}
+[16.598731] (-) TimerEvent: {}
+[16.698985] (-) TimerEvent: {}
+[16.799299] (-) TimerEvent: {}
+[16.899616] (-) TimerEvent: {}
+[16.999895] (-) TimerEvent: {}
+[17.100162] (-) TimerEvent: {}
+[17.200627] (-) TimerEvent: {}
+[17.300904] (-) TimerEvent: {}
+[17.401158] (-) TimerEvent: {}
+[17.501475] (-) TimerEvent: {}
+[17.601752] (-) TimerEvent: {}
+[17.702621] (-) TimerEvent: {}
+[17.802897] (-) TimerEvent: {}
+[17.903175] (-) TimerEvent: {}
+[18.003466] (-) TimerEvent: {}
+[18.103759] (-) TimerEvent: {}
+[18.204025] (-) TimerEvent: {}
+[18.304276] (-) TimerEvent: {}
+[18.342258] (rosflight_sim) StdoutLine: {'line': b'[ 75%] Linking CXX static library librosflight_firmware.a\n'}
+[18.404406] (-) TimerEvent: {}
+[18.505034] (-) TimerEvent: {}
+[18.532436] (rosflight_sim) StdoutLine: {'line': b'[ 75%] Built target rosflight_firmware\n'}
+[18.563614] (rosflight_sim) StdoutLine: {'line': b'[ 80%] Building CXX object CMakeFiles/sil_board.dir/src/sil_board_ros.cpp.o\n'}
+[18.563974] (rosflight_sim) StdoutLine: {'line': b'[ 80%] Building CXX object CMakeFiles/sil_board.dir/src/sil_board.cpp.o\n'}
+[18.564965] (rosflight_sim) StdoutLine: {'line': b'[ 83%] Building CXX object CMakeFiles/sil_board.dir/src/udp_board.cpp.o\n'}
+[18.605169] (-) TimerEvent: {}
+[18.705615] (-) TimerEvent: {}
+[18.805915] (-) TimerEvent: {}
+[18.906168] (-) TimerEvent: {}
+[19.006427] (-) TimerEvent: {}
+[19.106696] (-) TimerEvent: {}
+[19.207166] (-) TimerEvent: {}
+[19.307528] (-) TimerEvent: {}
+[19.407799] (-) TimerEvent: {}
+[19.508073] (-) TimerEvent: {}
+[19.608482] (-) TimerEvent: {}
+[19.708754] (-) TimerEvent: {}
+[19.809068] (-) TimerEvent: {}
+[19.909444] (-) TimerEvent: {}
+[20.010003] (-) TimerEvent: {}
+[20.110365] (-) TimerEvent: {}
+[20.210600] (-) TimerEvent: {}
+[20.310997] (-) TimerEvent: {}
+[20.411348] (-) TimerEvent: {}
+[20.511618] (-) TimerEvent: {}
+[20.611925] (-) TimerEvent: {}
+[20.712222] (-) TimerEvent: {}
+[20.812501] (-) TimerEvent: {}
+[20.912782] (-) TimerEvent: {}
+[21.013049] (-) TimerEvent: {}
+[21.113852] (-) TimerEvent: {}
+[21.214221] (-) TimerEvent: {}
+[21.314761] (-) TimerEvent: {}
+[21.415053] (-) TimerEvent: {}
+[21.515325] (-) TimerEvent: {}
+[21.615857] (-) TimerEvent: {}
+[21.716144] (-) TimerEvent: {}
+[21.817076] (-) TimerEvent: {}
+[21.918144] (-) TimerEvent: {}
+[22.018439] (-) TimerEvent: {}
+[22.118711] (-) TimerEvent: {}
+[22.219010] (-) TimerEvent: {}
+[22.319269] (-) TimerEvent: {}
+[22.420078] (-) TimerEvent: {}
+[22.520349] (-) TimerEvent: {}
+[22.622758] (-) TimerEvent: {}
+[22.723051] (-) TimerEvent: {}
+[22.749381] (rosflight_sim) StdoutLine: {'line': b'[ 86%] Linking CXX executable standalone_dynamics\n'}
+[22.824604] (-) TimerEvent: {}
+[22.925166] (-) TimerEvent: {}
+[23.025446] (-) TimerEvent: {}
+[23.126627] (-) TimerEvent: {}
+[23.128112] (rosflight_sim) StdoutLine: {'line': b'[ 86%] Built target standalone_dynamics\n'}
+[23.225880] (-) TimerEvent: {}
+[23.326155] (-) TimerEvent: {}
+[23.426453] (-) TimerEvent: {}
+[23.437332] (rosflight_sim) StdoutLine: {'line': b'[ 88%] Linking CXX executable standalone_viz_transcriber\n'}
+[23.526569] (-) TimerEvent: {}
+[23.626824] (-) TimerEvent: {}
+[23.727131] (-) TimerEvent: {}
+[23.771605] (rosflight_sim) StdoutLine: {'line': b'[ 88%] Built target standalone_viz_transcriber\n'}
+[23.827259] (-) TimerEvent: {}
+[23.927546] (-) TimerEvent: {}
+[24.027808] (-) TimerEvent: {}
+[24.128208] (-) TimerEvent: {}
+[24.228488] (-) TimerEvent: {}
+[24.328799] (-) TimerEvent: {}
+[24.429081] (-) TimerEvent: {}
+[24.529413] (-) TimerEvent: {}
+[24.629688] (-) TimerEvent: {}
+[24.729990] (-) TimerEvent: {}
+[24.830246] (-) TimerEvent: {}
+[24.930494] (-) TimerEvent: {}
+[25.030765] (-) TimerEvent: {}
+[25.131100] (-) TimerEvent: {}
+[25.231378] (-) TimerEvent: {}
+[25.331649] (-) TimerEvent: {}
+[25.431966] (-) TimerEvent: {}
+[25.532614] (-) TimerEvent: {}
+[25.633022] (-) TimerEvent: {}
+[25.733307] (-) TimerEvent: {}
+[25.833600] (-) TimerEvent: {}
+[25.933889] (-) TimerEvent: {}
+[26.034148] (-) TimerEvent: {}
+[26.134423] (-) TimerEvent: {}
+[26.234698] (-) TimerEvent: {}
+[26.334970] (-) TimerEvent: {}
+[26.436714] (-) TimerEvent: {}
+[26.537843] (-) TimerEvent: {}
+[26.638131] (-) TimerEvent: {}
+[26.738418] (-) TimerEvent: {}
+[26.838783] (-) TimerEvent: {}
+[26.939080] (-) TimerEvent: {}
+[27.039541] (-) TimerEvent: {}
+[27.139809] (-) TimerEvent: {}
+[27.240095] (-) TimerEvent: {}
+[27.340351] (-) TimerEvent: {}
+[27.440610] (-) TimerEvent: {}
+[27.540903] (-) TimerEvent: {}
+[27.641155] (-) TimerEvent: {}
+[27.741412] (-) TimerEvent: {}
+[27.841710] (-) TimerEvent: {}
+[27.941966] (-) TimerEvent: {}
+[28.042442] (-) TimerEvent: {}
+[28.142729] (-) TimerEvent: {}
+[28.243163] (-) TimerEvent: {}
+[28.343420] (-) TimerEvent: {}
+[28.443711] (-) TimerEvent: {}
+[28.543978] (-) TimerEvent: {}
+[28.644241] (-) TimerEvent: {}
+[28.744510] (-) TimerEvent: {}
+[28.845194] (-) TimerEvent: {}
+[28.945455] (-) TimerEvent: {}
+[29.045839] (-) TimerEvent: {}
+[29.146100] (-) TimerEvent: {}
+[29.246430] (-) TimerEvent: {}
+[29.346701] (-) TimerEvent: {}
+[29.446946] (-) TimerEvent: {}
+[29.547177] (-) TimerEvent: {}
+[29.647426] (-) TimerEvent: {}
+[29.747742] (-) TimerEvent: {}
+[29.848115] (-) TimerEvent: {}
+[29.948354] (-) TimerEvent: {}
+[30.048613] (-) TimerEvent: {}
+[30.148905] (-) TimerEvent: {}
+[30.249154] (-) TimerEvent: {}
+[30.349432] (-) TimerEvent: {}
+[30.449957] (-) TimerEvent: {}
+[30.550204] (-) TimerEvent: {}
+[30.650447] (-) TimerEvent: {}
+[30.750706] (-) TimerEvent: {}
+[30.850953] (-) TimerEvent: {}
+[30.951215] (-) TimerEvent: {}
+[31.051532] (-) TimerEvent: {}
+[31.151811] (-) TimerEvent: {}
+[31.252098] (-) TimerEvent: {}
+[31.352366] (-) TimerEvent: {}
+[31.452762] (-) TimerEvent: {}
+[31.553011] (-) TimerEvent: {}
+[31.653261] (-) TimerEvent: {}
+[31.753659] (-) TimerEvent: {}
+[31.853946] (-) TimerEvent: {}
+[31.954234] (-) TimerEvent: {}
+[32.054540] (-) TimerEvent: {}
+[32.154802] (-) TimerEvent: {}
+[32.255072] (-) TimerEvent: {}
+[32.355391] (-) TimerEvent: {}
+[32.455696] (-) TimerEvent: {}
+[32.555989] (-) TimerEvent: {}
+[32.656256] (-) TimerEvent: {}
+[32.756587] (-) TimerEvent: {}
+[32.856856] (-) TimerEvent: {}
+[32.957122] (-) TimerEvent: {}
+[33.057378] (-) TimerEvent: {}
+[33.157646] (-) TimerEvent: {}
+[33.257918] (-) TimerEvent: {}
+[33.358177] (-) TimerEvent: {}
+[33.458456] (-) TimerEvent: {}
+[33.558723] (-) TimerEvent: {}
+[33.658960] (-) TimerEvent: {}
+[33.759222] (-) TimerEvent: {}
+[33.859493] (-) TimerEvent: {}
+[33.959764] (-) TimerEvent: {}
+[34.060016] (-) TimerEvent: {}
+[34.160244] (-) TimerEvent: {}
+[34.260481] (-) TimerEvent: {}
+[34.360728] (-) TimerEvent: {}
+[34.460980] (-) TimerEvent: {}
+[34.561247] (-) TimerEvent: {}
+[34.661550] (-) TimerEvent: {}
+[34.761805] (-) TimerEvent: {}
+[34.862071] (-) TimerEvent: {}
+[34.962313] (-) TimerEvent: {}
+[35.062550] (-) TimerEvent: {}
+[35.162909] (-) TimerEvent: {}
+[35.263182] (-) TimerEvent: {}
+[35.363451] (-) TimerEvent: {}
+[35.463913] (-) TimerEvent: {}
+[35.564172] (-) TimerEvent: {}
+[35.664439] (-) TimerEvent: {}
+[35.764666] (-) TimerEvent: {}
+[35.864897] (-) TimerEvent: {}
+[35.965121] (-) TimerEvent: {}
+[36.065373] (-) TimerEvent: {}
+[36.165635] (-) TimerEvent: {}
+[36.265939] (-) TimerEvent: {}
+[36.366120] (-) TimerEvent: {}
+[36.466374] (-) TimerEvent: {}
+[36.566646] (-) TimerEvent: {}
+[36.666935] (-) TimerEvent: {}
+[36.767229] (-) TimerEvent: {}
+[36.867504] (-) TimerEvent: {}
+[36.967748] (-) TimerEvent: {}
+[37.067956] (-) TimerEvent: {}
+[37.168281] (-) TimerEvent: {}
+[37.268724] (-) TimerEvent: {}
+[37.368969] (-) TimerEvent: {}
+[37.469257] (-) TimerEvent: {}
+[37.569508] (-) TimerEvent: {}
+[37.669762] (-) TimerEvent: {}
+[37.770030] (-) TimerEvent: {}
+[37.870431] (-) TimerEvent: {}
+[37.970679] (-) TimerEvent: {}
+[38.070938] (-) TimerEvent: {}
+[38.171201] (-) TimerEvent: {}
+[38.271470] (-) TimerEvent: {}
+[38.371707] (-) TimerEvent: {}
+[38.471949] (-) TimerEvent: {}
+[38.572158] (-) TimerEvent: {}
+[38.672393] (-) TimerEvent: {}
+[38.773209] (-) TimerEvent: {}
+[38.873519] (-) TimerEvent: {}
+[38.973809] (-) TimerEvent: {}
+[39.074135] (-) TimerEvent: {}
+[39.174404] (-) TimerEvent: {}
+[39.274659] (-) TimerEvent: {}
+[39.374977] (-) TimerEvent: {}
+[39.475275] (-) TimerEvent: {}
+[39.575510] (-) TimerEvent: {}
+[39.675802] (-) TimerEvent: {}
+[39.776095] (-) TimerEvent: {}
+[39.876359] (-) TimerEvent: {}
+[39.976618] (-) TimerEvent: {}
+[40.076893] (-) TimerEvent: {}
+[40.177138] (-) TimerEvent: {}
+[40.277445] (-) TimerEvent: {}
+[40.377708] (-) TimerEvent: {}
+[40.477962] (-) TimerEvent: {}
+[40.578221] (-) TimerEvent: {}
+[40.678452] (-) TimerEvent: {}
+[40.778674] (-) TimerEvent: {}
+[40.878922] (-) TimerEvent: {}
+[40.979201] (-) TimerEvent: {}
+[41.079429] (-) TimerEvent: {}
+[41.179813] (-) TimerEvent: {}
+[41.280113] (-) TimerEvent: {}
+[41.380396] (-) TimerEvent: {}
+[41.480689] (-) TimerEvent: {}
+[41.580909] (-) TimerEvent: {}
+[41.681118] (-) TimerEvent: {}
+[41.781359] (-) TimerEvent: {}
+[41.881707] (-) TimerEvent: {}
+[41.981920] (-) TimerEvent: {}
+[42.082140] (-) TimerEvent: {}
+[42.182550] (-) TimerEvent: {}
+[42.282762] (-) TimerEvent: {}
+[42.382942] (-) TimerEvent: {}
+[42.483164] (-) TimerEvent: {}
+[42.583428] (-) TimerEvent: {}
+[42.683694] (-) TimerEvent: {}
+[42.784034] (-) TimerEvent: {}
+[42.884284] (-) TimerEvent: {}
+[42.984632] (-) TimerEvent: {}
+[43.084891] (-) TimerEvent: {}
+[43.185149] (-) TimerEvent: {}
+[43.285380] (-) TimerEvent: {}
+[43.385641] (-) TimerEvent: {}
+[43.485952] (-) TimerEvent: {}
+[43.586228] (-) TimerEvent: {}
+[43.686517] (-) TimerEvent: {}
+[43.786770] (-) TimerEvent: {}
+[43.887033] (-) TimerEvent: {}
+[43.987335] (-) TimerEvent: {}
+[44.087591] (-) TimerEvent: {}
+[44.187882] (-) TimerEvent: {}
+[44.288161] (-) TimerEvent: {}
+[44.388451] (-) TimerEvent: {}
+[44.488751] (-) TimerEvent: {}
+[44.589023] (-) TimerEvent: {}
+[44.689280] (-) TimerEvent: {}
+[44.789534] (-) TimerEvent: {}
+[44.889843] (-) TimerEvent: {}
+[44.990134] (-) TimerEvent: {}
+[45.090409] (-) TimerEvent: {}
+[45.190668] (-) TimerEvent: {}
+[45.290934] (-) TimerEvent: {}
+[45.391202] (-) TimerEvent: {}
+[45.491519] (-) TimerEvent: {}
+[45.591824] (-) TimerEvent: {}
+[45.692110] (-) TimerEvent: {}
+[45.792391] (-) TimerEvent: {}
+[45.892641] (-) TimerEvent: {}
+[45.992897] (-) TimerEvent: {}
+[46.093131] (-) TimerEvent: {}
+[46.159859] (rosflight_sim) StdoutLine: {'line': b'[ 91%] Linking CXX executable standalone_sensors\n'}
+[46.193262] (-) TimerEvent: {}
+[46.293529] (-) TimerEvent: {}
+[46.393922] (-) TimerEvent: {}
+[46.494184] (-) TimerEvent: {}
+[46.548822] (rosflight_sim) StdoutLine: {'line': b'[ 91%] Built target standalone_sensors\n'}
+[46.594302] (-) TimerEvent: {}
+[46.694511] (-) TimerEvent: {}
+[46.794963] (-) TimerEvent: {}
+[46.895215] (-) TimerEvent: {}
+[46.995440] (-) TimerEvent: {}
+[47.095653] (-) TimerEvent: {}
+[47.195909] (-) TimerEvent: {}
+[47.296164] (-) TimerEvent: {}
+[47.396414] (-) TimerEvent: {}
+[47.496676] (-) TimerEvent: {}
+[47.596953] (-) TimerEvent: {}
+[47.697210] (-) TimerEvent: {}
+[47.797487] (-) TimerEvent: {}
+[47.897766] (-) TimerEvent: {}
+[47.998019] (-) TimerEvent: {}
+[48.098242] (-) TimerEvent: {}
+[48.198483] (-) TimerEvent: {}
+[48.298833] (-) TimerEvent: {}
+[48.399045] (-) TimerEvent: {}
+[48.499341] (-) TimerEvent: {}
+[48.599610] (-) TimerEvent: {}
+[48.699862] (-) TimerEvent: {}
+[48.800070] (-) TimerEvent: {}
+[48.900273] (-) TimerEvent: {}
+[49.000473] (-) TimerEvent: {}
+[49.100683] (-) TimerEvent: {}
+[49.200984] (-) TimerEvent: {}
+[49.301231] (-) TimerEvent: {}
+[49.401486] (-) TimerEvent: {}
+[49.501755] (-) TimerEvent: {}
+[49.602031] (-) TimerEvent: {}
+[49.702228] (-) TimerEvent: {}
+[49.802449] (-) TimerEvent: {}
+[49.902707] (-) TimerEvent: {}
+[50.002951] (-) TimerEvent: {}
+[50.103182] (-) TimerEvent: {}
+[50.203393] (-) TimerEvent: {}
+[50.303635] (-) TimerEvent: {}
+[50.403886] (-) TimerEvent: {}
+[50.504131] (-) TimerEvent: {}
+[50.604379] (-) TimerEvent: {}
+[50.704600] (-) TimerEvent: {}
+[50.804802] (-) TimerEvent: {}
+[50.905025] (-) TimerEvent: {}
+[51.005237] (-) TimerEvent: {}
+[51.105457] (-) TimerEvent: {}
+[51.205707] (-) TimerEvent: {}
+[51.305949] (-) TimerEvent: {}
+[51.406258] (-) TimerEvent: {}
+[51.506534] (-) TimerEvent: {}
+[51.606760] (-) TimerEvent: {}
+[51.706957] (-) TimerEvent: {}
+[51.807219] (-) TimerEvent: {}
+[51.907482] (-) TimerEvent: {}
+[52.007699] (-) TimerEvent: {}
+[52.107936] (-) TimerEvent: {}
+[52.208232] (-) TimerEvent: {}
+[52.308523] (-) TimerEvent: {}
+[52.408902] (-) TimerEvent: {}
+[52.430786] (rosflight_sim) StdoutLine: {'line': b'[ 94%] Linking CXX executable multirotor_forces_and_moments\n'}
+[52.508973] (-) TimerEvent: {}
+[52.609224] (-) TimerEvent: {}
+[52.709436] (-) TimerEvent: {}
+[52.752164] (rosflight_sim) StdoutLine: {'line': b'[ 94%] Built target multirotor_forces_and_moments\n'}
+[52.809558] (-) TimerEvent: {}
+[52.909771] (-) TimerEvent: {}
+[53.009952] (-) TimerEvent: {}
+[53.110166] (-) TimerEvent: {}
+[53.210405] (-) TimerEvent: {}
+[53.310672] (-) TimerEvent: {}
+[53.372753] (rosflight_sim) StdoutLine: {'line': b'[ 97%] Linking CXX executable fixedwing_forces_and_moments\n'}
+[53.410807] (-) TimerEvent: {}
+[53.511094] (-) TimerEvent: {}
+[53.611354] (-) TimerEvent: {}
+[53.711581] (-) TimerEvent: {}
+[53.732752] (rosflight_sim) StdoutLine: {'line': b'[ 97%] Built target fixedwing_forces_and_moments\n'}
+[53.811682] (-) TimerEvent: {}
+[53.911950] (-) TimerEvent: {}
+[54.012177] (-) TimerEvent: {}
+[54.112398] (-) TimerEvent: {}
+[54.212622] (-) TimerEvent: {}
+[54.312819] (-) TimerEvent: {}
+[54.413024] (-) TimerEvent: {}
+[54.513245] (-) TimerEvent: {}
+[54.613513] (-) TimerEvent: {}
+[54.713782] (-) TimerEvent: {}
+[54.814012] (-) TimerEvent: {}
+[54.914229] (-) TimerEvent: {}
+[55.014598] (-) TimerEvent: {}
+[55.114817] (-) TimerEvent: {}
+[55.215039] (-) TimerEvent: {}
+[55.315256] (-) TimerEvent: {}
+[55.415469] (-) TimerEvent: {}
+[55.515689] (-) TimerEvent: {}
+[55.615961] (-) TimerEvent: {}
+[55.716222] (-) TimerEvent: {}
+[55.816442] (-) TimerEvent: {}
+[55.916663] (-) TimerEvent: {}
+[56.016922] (-) TimerEvent: {}
+[56.117181] (-) TimerEvent: {}
+[56.217380] (-) TimerEvent: {}
+[56.317616] (-) TimerEvent: {}
+[56.417840] (-) TimerEvent: {}
+[56.518124] (-) TimerEvent: {}
+[56.618379] (-) TimerEvent: {}
+[56.718704] (-) TimerEvent: {}
+[56.819060] (-) TimerEvent: {}
+[56.919321] (-) TimerEvent: {}
+[57.019551] (-) TimerEvent: {}
+[57.119743] (-) TimerEvent: {}
+[57.219941] (-) TimerEvent: {}
+[57.320388] (-) TimerEvent: {}
+[57.420608] (-) TimerEvent: {}
+[57.520833] (-) TimerEvent: {}
+[57.621160] (-) TimerEvent: {}
+[57.721381] (-) TimerEvent: {}
+[57.821595] (-) TimerEvent: {}
+[57.921777] (-) TimerEvent: {}
+[58.022003] (-) TimerEvent: {}
+[58.122213] (-) TimerEvent: {}
+[58.222403] (-) TimerEvent: {}
+[58.322605] (-) TimerEvent: {}
+[58.422815] (-) TimerEvent: {}
+[58.523000] (-) TimerEvent: {}
+[58.623185] (-) TimerEvent: {}
+[58.723377] (-) TimerEvent: {}
+[58.823583] (-) TimerEvent: {}
+[58.923793] (-) TimerEvent: {}
+[59.024014] (-) TimerEvent: {}
+[59.124224] (-) TimerEvent: {}
+[59.224452] (-) TimerEvent: {}
+[59.324688] (-) TimerEvent: {}
+[59.424917] (-) TimerEvent: {}
+[59.525122] (-) TimerEvent: {}
+[59.625345] (-) TimerEvent: {}
+[59.725550] (-) TimerEvent: {}
+[59.825755] (-) TimerEvent: {}
+[59.925939] (-) TimerEvent: {}
+[60.026142] (-) TimerEvent: {}
+[60.126408] (-) TimerEvent: {}
+[60.226666] (-) TimerEvent: {}
+[60.326894] (-) TimerEvent: {}
+[60.427100] (-) TimerEvent: {}
+[60.527289] (-) TimerEvent: {}
+[60.627476] (-) TimerEvent: {}
+[60.727708] (-) TimerEvent: {}
+[60.827954] (-) TimerEvent: {}
+[60.928190] (-) TimerEvent: {}
+[61.028404] (-) TimerEvent: {}
+[61.128629] (-) TimerEvent: {}
+[61.228853] (-) TimerEvent: {}
+[61.329089] (-) TimerEvent: {}
+[61.429325] (-) TimerEvent: {}
+[61.529560] (-) TimerEvent: {}
+[61.629767] (-) TimerEvent: {}
+[61.729934] (-) TimerEvent: {}
+[61.830133] (-) TimerEvent: {}
+[61.930330] (-) TimerEvent: {}
+[62.030530] (-) TimerEvent: {}
+[62.130770] (-) TimerEvent: {}
+[62.231041] (-) TimerEvent: {}
+[62.331277] (-) TimerEvent: {}
+[62.431523] (-) TimerEvent: {}
+[62.531743] (-) TimerEvent: {}
+[62.631959] (-) TimerEvent: {}
+[62.732207] (-) TimerEvent: {}
+[62.832431] (-) TimerEvent: {}
+[62.932669] (-) TimerEvent: {}
+[63.032903] (-) TimerEvent: {}
+[63.133108] (-) TimerEvent: {}
+[63.233309] (-) TimerEvent: {}
+[63.333554] (-) TimerEvent: {}
+[63.433852] (-) TimerEvent: {}
+[63.534087] (-) TimerEvent: {}
+[63.634303] (-) TimerEvent: {}
+[63.734530] (-) TimerEvent: {}
+[63.834741] (-) TimerEvent: {}
+[63.934949] (-) TimerEvent: {}
+[64.035186] (-) TimerEvent: {}
+[64.135485] (-) TimerEvent: {}
+[64.235759] (-) TimerEvent: {}
+[64.335950] (-) TimerEvent: {}
+[64.436174] (-) TimerEvent: {}
+[64.536408] (-) TimerEvent: {}
+[64.636639] (-) TimerEvent: {}
+[64.736888] (-) TimerEvent: {}
+[64.837126] (-) TimerEvent: {}
+[64.937381] (-) TimerEvent: {}
+[65.037642] (-) TimerEvent: {}
+[65.137877] (-) TimerEvent: {}
+[65.238100] (-) TimerEvent: {}
+[65.338323] (-) TimerEvent: {}
+[65.438554] (-) TimerEvent: {}
+[65.538781] (-) TimerEvent: {}
+[65.639017] (-) TimerEvent: {}
+[65.739223] (-) TimerEvent: {}
+[65.839425] (-) TimerEvent: {}
+[65.939647] (-) TimerEvent: {}
+[66.039879] (-) TimerEvent: {}
+[66.140152] (-) TimerEvent: {}
+[66.240425] (-) TimerEvent: {}
+[66.340643] (-) TimerEvent: {}
+[66.440898] (-) TimerEvent: {}
+[66.541124] (-) TimerEvent: {}
+[66.641348] (-) TimerEvent: {}
+[66.741545] (-) TimerEvent: {}
+[66.841724] (-) TimerEvent: {}
+[66.941943] (-) TimerEvent: {}
+[67.042157] (-) TimerEvent: {}
+[67.142346] (-) TimerEvent: {}
+[67.242534] (-) TimerEvent: {}
+[67.342722] (-) TimerEvent: {}
+[67.442924] (-) TimerEvent: {}
+[67.543117] (-) TimerEvent: {}
+[67.643301] (-) TimerEvent: {}
+[67.743481] (-) TimerEvent: {}
+[67.843799] (-) TimerEvent: {}
+[67.944077] (-) TimerEvent: {}
+[68.044313] (-) TimerEvent: {}
+[68.144527] (-) TimerEvent: {}
+[68.244725] (-) TimerEvent: {}
+[68.344935] (-) TimerEvent: {}
+[68.445167] (-) TimerEvent: {}
+[68.545389] (-) TimerEvent: {}
+[68.645642] (-) TimerEvent: {}
+[68.745892] (-) TimerEvent: {}
+[68.846119] (-) TimerEvent: {}
+[68.946346] (-) TimerEvent: {}
+[69.046628] (-) TimerEvent: {}
+[69.146850] (-) TimerEvent: {}
+[69.247079] (-) TimerEvent: {}
+[69.347293] (-) TimerEvent: {}
+[69.447512] (-) TimerEvent: {}
+[69.547743] (-) TimerEvent: {}
+[69.647963] (-) TimerEvent: {}
+[69.748210] (-) TimerEvent: {}
+[69.848404] (-) TimerEvent: {}
+[69.948651] (-) TimerEvent: {}
+[70.048915] (-) TimerEvent: {}
+[70.149130] (-) TimerEvent: {}
+[70.249368] (-) TimerEvent: {}
+[70.349585] (-) TimerEvent: {}
+[70.449831] (-) TimerEvent: {}
+[70.550099] (-) TimerEvent: {}
+[70.650345] (-) TimerEvent: {}
+[70.750590] (-) TimerEvent: {}
+[70.850794] (-) TimerEvent: {}
+[70.951007] (-) TimerEvent: {}
+[71.051249] (-) TimerEvent: {}
+[71.151490] (-) TimerEvent: {}
+[71.251758] (-) TimerEvent: {}
+[71.351951] (-) TimerEvent: {}
+[71.452201] (-) TimerEvent: {}
+[71.552395] (-) TimerEvent: {}
+[71.652579] (-) TimerEvent: {}
+[71.752760] (-) TimerEvent: {}
+[71.852930] (-) TimerEvent: {}
+[71.953114] (-) TimerEvent: {}
+[72.053303] (-) TimerEvent: {}
+[72.153501] (-) TimerEvent: {}
+[72.253742] (-) TimerEvent: {}
+[72.353952] (-) TimerEvent: {}
+[72.454171] (-) TimerEvent: {}
+[72.554434] (-) TimerEvent: {}
+[72.654638] (-) TimerEvent: {}
+[72.754830] (-) TimerEvent: {}
+[72.855024] (-) TimerEvent: {}
+[72.955227] (-) TimerEvent: {}
+[73.055429] (-) TimerEvent: {}
+[73.155646] (-) TimerEvent: {}
+[73.255865] (-) TimerEvent: {}
+[73.356147] (-) TimerEvent: {}
+[73.456427] (-) TimerEvent: {}
+[73.556692] (-) TimerEvent: {}
+[73.656963] (-) TimerEvent: {}
+[73.757182] (-) TimerEvent: {}
+[73.857409] (-) TimerEvent: {}
+[73.957654] (-) TimerEvent: {}
+[74.057849] (-) TimerEvent: {}
+[74.158052] (-) TimerEvent: {}
+[74.258249] (-) TimerEvent: {}
+[74.358547] (-) TimerEvent: {}
+[74.458842] (-) TimerEvent: {}
+[74.476233] (rosflight_sim) StdoutLine: {'line': b'[100%] Linking CXX executable sil_board\n'}
+[74.558962] (-) TimerEvent: {}
+[74.659202] (-) TimerEvent: {}
+[74.759424] (-) TimerEvent: {}
+[74.859665] (-) TimerEvent: {}
+[74.959888] (-) TimerEvent: {}
+[74.983203] (rosflight_sim) StdoutLine: {'line': b'[100%] Built target sil_board\n'}
+[74.998533] (rosflight_sim) CommandEnded: {'returncode': 0}
+[74.999229] (rosflight_sim) JobProgress: {'identifier': 'rosflight_sim', 'progress': 'install'}
+[75.010415] (rosflight_sim) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim'], 'cwd': '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('ANTHROPIC_MODEL', 'claude-opus-4-20250514'), ('USER', 'ninonick0426'), ('CLAUDE_CODE_ENTRYPOINT', 'cli'), ('GIT_EDITOR', 'true'), ('XDG_SESSION_TYPE', 'x11'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/home/ninonick0426/ros2_ws/install/rosflight_sim/lib:/home/ninonick0426/ros2_ws/install/rosflight_msgs/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('HOME', '/home/ninonick0426'), ('DESKTOP_SESSION', 'ubuntu'), ('NVM_BIN', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin'), ('NVM_INC', '/home/ninonick0426/.nvm/versions/node/v18.20.8/include/node'), ('ROS_PYTHON_VERSION', '3'), ('GNOME_SHELL_SESSION_MODE', 'ubuntu'), ('GTK_MODULES', 'gail:atk-bridge'), ('SYSTEMD_EXEC_PID', '7433'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('COLORTERM', 'truecolor'), ('NVM_DIR', '/home/ninonick0426/.nvm'), ('COLCON_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('GTK_IM_MODULE', 'ibus'), ('LOGNAME', 'ninonick0426'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('USERNAME', 'ninonick0426'), ('TERM', 'xterm-256color'), ('OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE', 'delta'), ('GNOME_DESKTOP_SESSION_ID', 'this-is-deprecated'), ('ROS_LOCALHOST_ONLY', '0'), ('WINDOWPATH', '2'), ('PATH', '/home/ninonick0426/.nvm/versions/node/v18.20.8/bin:/opt/ros/humble/bin:/home/ninonick0426/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin'), ('SESSION_MANAGER', 'local/nico-ubuntu22:@/tmp/.ICE-unix/2961,unix/nico-ubuntu22:/tmp/.ICE-unix/2961'), ('COREPACK_ENABLE_AUTO_PIN', '0'), ('XDG_MENU_PREFIX', 'gnome-'), ('GNOME_TERMINAL_SCREEN', '/org/gnome/Terminal/screen/0e8aead8_662f_42d3_bea7_edc8ad71a4e3'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('DISPLAY', ':1'), ('LANG', 'en_US.UTF-8'), ('XDG_CURRENT_DESKTOP', 'ubuntu:GNOME'), ('RMW_IMPLEMENTATION', 'rmw_fastrtps_cpp'), ('XMODIFIERS', '@im=ibus'), ('XDG_SESSION_DESKTOP', 'ubuntu'), ('XAUTHORITY', '/run/user/1000/gdm/Xauthority'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('GNOME_TERMINAL_SERVICE', ':1.142'), ('SSH_AGENT_LAUNCHER', 'gnome-keyring'), ('SSH_AUTH_SOCK', '/run/user/1000/keyring/ssh'), ('ROS_DOMAIN_ID', '36'), ('AMENT_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('QT_ACCESSIBILITY', '1'), ('GDMSESSION', 'ubuntu'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CLAUDECODE', '1'), ('GPG_AGENT_INFO', '/run/user/1000/gnupg/S.gpg-agent:0:1'), ('QT_IM_MODULE', 'ibus'), ('PWD', '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/build/rosflight_sim'), ('XDG_CONFIG_DIRS', '/etc/xdg/xdg-ubuntu:/etc/xdg'), ('NVM_CD_FLAGS', ''), ('XDG_DATA_DIRS', '/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins/lib/python3.10/site-packages:/home/ninonick0426/ros2_ws/install/rosflight_msgs/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('COLCON', '1'), ('VTE_VERSION', '6800'), ('CMAKE_PREFIX_PATH', '/home/ninonick0426/ros2_ws/install/unreal_sim_config:/home/ninonick0426/ros2_ws/install/rosflight_pkgs:/home/ninonick0426/ros2_ws/install/rosflight_sim:/home/ninonick0426/ros2_ws/install/rosflight_gcs:/home/ninonick0426/ros2_ws/install/rosflight_io:/home/ninonick0426/ros2_ws/install/rosflight_msgs:/home/ninonick0426/ros2_ws/install/eigen_stl_containers:/home/ninonick0426/ros2_ws/install/rosflight_rqt_plugins:/opt/ros/humble')]), 'shell': False}
+[75.019394] (rosflight_sim) StdoutLine: {'line': b'-- Install configuration: "Release"\n'}
+[75.019699] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.sh\n'}
+[75.019830] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/library_path.dsv\n'}
+[75.019903] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/librosflight_firmware.a\n'}
+[75.020475] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rosflight_sil_manager\n'}
+[75.021313] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rosflight_sil_manager" to ""\n'}
+[75.021537] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/sil_board\n'}
+[75.026735] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/sil_board" to ""\n'}
+[75.027020] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params\n'}
+[75.027203] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/aerosonde_dynamics.yaml\n'}
+[75.027363] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_mixing_matrix_params.yaml\n'}
+[75.027514] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/fixedwing_firmware.yaml\n'}
+[75.027615] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/params.md\n'}
+[75.027830] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_motor_params.yaml\n'}
+[75.028067] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_dynamics.yaml\n'}
+[75.028231] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/anaconda_dynamics.yaml\n'}
+[75.028431] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/multirotor_firmware.yaml\n'}
+[75.028718] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim\n'}
+[75.029020] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/udp_board.hpp\n'}
+[75.029208] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sensor_interface.hpp\n'}
+[75.029508] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/dynamics_interface.hpp\n'}
+[75.029629] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board_ros.hpp\n'}
+[75.029723] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/rosflight_sil.hpp\n'}
+[75.029802] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/forces_and_moments_interface.hpp\n'}
+[75.029894] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/sil_board.hpp\n'}
+[75.030092] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/include/rosflight_sim/rosflight_sim/time_manager_interface.hpp\n'}
+[75.030159] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch\n'}
+[75.030383] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_init_firmware.launch.py\n'}
+[75.030461] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_init_firmware.launch.py\n'}
+[75.030524] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/rc.py\n'}
+[75.030686] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/vimfly.py\n'}
+[75.031197] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/package_run_dependencies/rosflight_sim\n'}
+[75.031502] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/parent_prefix_path/rosflight_sim\n'}
+[75.031671] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.sh\n'}
+[75.031816] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/ament_prefix_path.dsv\n'}
+[75.031960] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.sh\n'}
+[75.032097] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/environment/path.dsv\n'}
+[75.032229] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.bash\n'}
+[75.032403] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.sh\n'}
+[75.032552] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.zsh\n'}
+[75.032677] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/local_setup.dsv\n'}
+[75.032825] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.dsv\n'}
+[75.033054] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/ament_index/resource_index/packages/rosflight_sim\n'}
+[75.033268] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport.cmake\n'}
+[75.033459] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_firmwareTargetsExport-release.cmake\n'}
+[75.033641] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[75.033785] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig.cmake\n'}
+[75.033932] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/cmake/rosflight_simConfig-version.cmake\n'}
+[75.034073] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/package.xml\n'}
+[75.034361] (rosflight_sim) StderrLine: {'line': b'Gazebo not found, skipping rosflight_sim\n'}
+[75.034731] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_viz_transcriber\n'}
+[75.035983] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_viz_transcriber" to ""\n'}
+[75.036162] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_time_manager\n'}
+[75.036902] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_time_manager" to ""\n'}
+[75.037096] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/multirotor_forces_and_moments\n'}
+[75.039574] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/multirotor_forces_and_moments" to ""\n'}
+[75.039809] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/fixedwing_forces_and_moments\n'}
+[75.042806] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/fixedwing_forces_and_moments" to ""\n'}
+[75.042993] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_sensors\n'}
+[75.045818] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_sensors" to ""\n'}
+[75.046121] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_dynamics\n'}
+[75.047404] (rosflight_sim) StdoutLine: {'line': b'-- Set runtime path of "/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/lib/rosflight_sim/standalone_dynamics" to ""\n'}
+[75.047701] (rosflight_sim) StdoutLine: {'line': b'-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch\n'}
+[75.048000] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/standalone_sim.launch.py\n'}
+[75.048205] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/multirotor_standalone.launch.py\n'}
+[75.048284] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/common_nodes_standalone.launch.py\n'}
+[75.048344] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/launch/fixedwing_standalone.launch.py\n'}
+[75.048455] (rosflight_sim) StdoutLine: {'line': b'-- Up-to-date: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params\n'}
+[75.048534] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/params/standalone_sim_params.yaml\n'}
+[75.048645] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config\n'}
+[75.048706] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/config/standalone_sim.rviz\n'}
+[75.048841] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource\n'}
+[75.049016] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/multirotor.dae\n'}
+[75.049422] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.png\n'}
+[75.060070] (-) TimerEvent: {}
+[75.160278] (-) TimerEvent: {}
+[75.258285] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/common_resource/skyhunter.dae\n'}
+[75.260422] (-) TimerEvent: {}
+[75.269016] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource\n'}
+[75.269232] (rosflight_sim) StdoutLine: {'line': b'-- Installing: /home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/install/rosflight_sim/share/rosflight_sim/standalone_resource/logo.png\n'}
+[75.271779] (rosflight_sim) CommandEnded: {'returncode': 0}
+[75.296823] (rosflight_sim) JobEnded: {'identifier': 'rosflight_sim', 'rc': 0}
+[75.297496] (-) EventReactorShutdown: {}

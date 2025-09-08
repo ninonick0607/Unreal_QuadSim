@@ -8,23 +8,27 @@ public class SimHUD : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[]
-		{
-			"Core",
-			"CoreUObject",
-			"Engine",
-			"UMG",        // <-- needed for UUserWidget, UTextBlock, USlider, UEditableTextBox
-			"Slate",      // <-- UMG depends on these
-			"SlateCore",   // <-- for ETextCommit and friends
-			"QuadSimCore",
-			"SimulationCore"
-		});
+        PublicDependencyModuleNames.AddRange(new string[]
+        {
+            "Core",
+            "CoreUObject",
+            "Engine",
+            "UMG",        
+            "Slate",      
+            "SlateCore",  
+            "QuadSimCore",
+            "SimulationCore",
+            "RobotCore",
+            "ImGui",
+            "ImPlotLibrary"
+        });
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			// keep if you like, but not strictly required once in Public:
 			"Slate",
 			"SlateCore",
-			"UMG"
+			"UMG",
+			"ImGui"
 		});
 
 		// Uncomment if you are using Slate UI

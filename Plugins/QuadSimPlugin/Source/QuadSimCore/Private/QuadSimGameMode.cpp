@@ -1,7 +1,9 @@
-// QuadSimGameModePlugin.cpp
 #include "QuadSimGameModePlugin.h"
 #include "QuadSimPlayerController.h"
 #include "Pawns/QuadPawn.h"
+
+#include "ImGuiDelegates.h"
+#include "imgui.h"
 
 #include "Engine/World.h"
 #include "Engine/Engine.h"
@@ -9,7 +11,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/Paths.h"
-#include "HAL/IConsoleManager.h"              // <-- needed for console vars
+#include "HAL/IConsoleManager.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "UObject/SoftObjectPath.h"
 #include "UObject/SoftObjectPtr.h"
@@ -25,12 +27,8 @@ AQuadSimGameMode::AQuadSimGameMode()
 
 static TSubclassOf<ADroneManager> LoadDroneManagerClass()
 {
-    // Prefer a TSoftClassPtr so the path is validated and can be changed in one place.
-    // Adjust if your mount point differs. Your plugin must have "CanContainContent": true
-    // and a proper MountPoint in the .uplugin.
     const FSoftClassPath SoftPath(TEXT("/QuadSimPlugin/Blueprints/Core/BP_DroneManager_.BP_DroneManager__C"));
-    UClass* Loaded = SoftPath.TryLoadClass<ADroneManager>();
-    return Loaded;
+    return SoftPath.TryLoadClass<ADroneManager>();
 }
 
 void AQuadSimGameMode::BeginPlay()
@@ -44,22 +42,19 @@ void AQuadSimGameMode::BeginPlay()
         GEngine->bSmoothFrameRate   = false;
 
         if (IConsoleVariable* CVarMaxFPS = IConsoleManager::Get().FindConsoleVariable(TEXT("t.MaxFPS")))
-        {
-            CVarMaxFPS->Set(60);   // 60 Hz for stable lockstep (change if you need)
-        }
+            CVarMaxFPS->Set(60);
         if (IConsoleVariable* CVarVSync = IConsoleManager::Get().FindConsoleVariable(TEXT("r.VSync")))
-        {
             CVarVSync->Set(0);
-        }
+
         UE_LOG(LogTemp, Log, TEXT("Framerate configured: t.MaxFPS=60, r.VSync=0"));
     }
 
-    // ---- Physics substepping (runtime tweakable)
+    // ---- Physics substepping
     if (UPhysicsSettings* PhysicsSettings = UPhysicsSettings::Get())
     {
-        PhysicsSettings->bSubstepping         = true;
-        PhysicsSettings->MaxSubstepDeltaTime  = 0.016667f; // 60 Hz
-        PhysicsSettings->MaxSubsteps          = 6;
+        PhysicsSettings->bSubstepping        = true;
+        PhysicsSettings->MaxSubstepDeltaTime = 0.016667f;
+        PhysicsSettings->MaxSubsteps         = 6;
         UE_LOG(LogTemp, Log, TEXT("Physics substepping enabled (dt=%.6f, max=%d)"),
             PhysicsSettings->MaxSubstepDeltaTime, PhysicsSettings->MaxSubsteps);
     }
@@ -67,7 +62,7 @@ void AQuadSimGameMode::BeginPlay()
     UWorld* World = GetWorld();
     if (!World) return;
 
-    // ---- Spawn location (PlayerStart if available)
+    // ---- Spawn location
     FVector  SpawnLocation = FVector::ZeroVector;
     FRotator SpawnRotation = FRotator::ZeroRotator;
 
@@ -82,21 +77,17 @@ void AQuadSimGameMode::BeginPlay()
         UE_LOG(LogTemp, Warning, TEXT("No PlayerStart found. Using world origin."));
     }
 
-    // ---- Do not spawn duplicates if they already exist (useful during PIE)
+    // Helper to avoid duplicates
     auto FindExisting = [&](TSubclassOf<AActor> Class) -> AActor*
     {
-        for (TActorIterator<AActor> It(World, Class); It; ++It)
-        {
-            return *It;
-        }
+        for (TActorIterator<AActor> It(World, Class); It; ++It) { return *It; }
         return nullptr;
     };
 
-    // 1) SimulationManager (native class)
-    ASimulationManager* SimManager = Cast<ASimulationManager>(FindExisting(ASimulationManager::StaticClass()));
-    if (!SimManager)
+    // 1) SimulationManager
+    if (!FindExisting(ASimulationManager::StaticClass()))
     {
-        SimManager = World->SpawnActor<ASimulationManager>(ASimulationManager::StaticClass(), SpawnLocation, SpawnRotation);
+        World->SpawnActor<ASimulationManager>(ASimulationManager::StaticClass(), SpawnLocation, SpawnRotation);
         UE_LOG(LogTemp, Log, TEXT("Spawned SimulationManager at %s"), *SpawnLocation.ToString());
     }
     else
@@ -104,19 +95,18 @@ void AQuadSimGameMode::BeginPlay()
         UE_LOG(LogTemp, Log, TEXT("SimulationManager already present, reusing."));
     }
 
-    // 2) DroneManager (BP class from plugin content)
-    ADroneManager* DroneManager = Cast<ADroneManager>(FindExisting(ADroneManager::StaticClass()));
-    if (!DroneManager)
+    // 2) DroneManager (store to member)
+    DroneManagerRef = Cast<ADroneManager>(FindExisting(ADroneManager::StaticClass()));
+    if (!DroneManagerRef)
     {
-        TSubclassOf<ADroneManager> DMClass = LoadDroneManagerClass();
-        if (DMClass)
+        if (TSubclassOf<ADroneManager> DMClass = LoadDroneManagerClass())
         {
-            DroneManager = World->SpawnActor<ADroneManager>(DMClass, SpawnLocation, SpawnRotation);
+            DroneManagerRef = World->SpawnActor<ADroneManager>(DMClass, SpawnLocation, SpawnRotation);
             UE_LOG(LogTemp, Log, TEXT("Spawned DroneManager from BP at %s"), *SpawnLocation.ToString());
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("Failed to load BP_DroneManager_. Check the mount point and path."));
+            UE_LOG(LogTemp, Error, TEXT("Failed to load BP_DroneManager_. Check mount point/path."));
         }
     }
     else
@@ -124,12 +114,13 @@ void AQuadSimGameMode::BeginPlay()
         UE_LOG(LogTemp, Log, TEXT("DroneManager already present, reusing."));
     }
 
-    // ---- Camera handoff (only works if the target has a camera)
-    if (DroneManager)
+    // Camera handoff
+    if (DroneManagerRef)
     {
         if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
         {
-            PC->SetViewTargetWithBlend(DroneManager, 0.35f);
+            PC->SetViewTargetWithBlend(DroneManagerRef, 0.35f);
         }
     }
+    
 }

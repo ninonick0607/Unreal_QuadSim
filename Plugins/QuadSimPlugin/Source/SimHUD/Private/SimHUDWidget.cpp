@@ -3,13 +3,23 @@
 
 void ASimHUDWidget::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	if (MainWidgetClass)
-	{
-		if (APlayerController* PC = GetOwningPlayerController())
-		{
-			MainWidget = CreateWidget<UUserWidget>(PC, MainWidgetClass);
+    // In Play-In-Editor sessions we render an ImGui taskbar instead of the Main UMG HUD.
+    if (UWorld* World = GetWorld())
+    {
+        if (World->IsPlayInEditor())
+        {
+            UE_LOG(LogTemp, Log, TEXT("[SimHUDWidget] Skipping MainWidget in PIE (ImGui taskbar active)."));
+            return;
+        }
+    }
+
+    if (MainWidgetClass)
+    {
+        if (APlayerController* PC = GetOwningPlayerController())
+        {
+            MainWidget = CreateWidget<UUserWidget>(PC, MainWidgetClass);
 			if (MainWidget)
 			{
 				MainWidget->AddToViewport(100);

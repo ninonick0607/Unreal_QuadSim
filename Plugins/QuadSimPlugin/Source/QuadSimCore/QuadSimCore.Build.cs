@@ -11,7 +11,7 @@ public class QuadSimCore : ModuleRules
             "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",
             "ChaosVehicles", "PhysicsCore", "RenderCore", "RHI",
             "Sockets", "Networking", "ImGui", "Slate", "SlateCore", 
-            "UMG", "Json", "JsonUtilities","SimulationCore","RobotCore","GeoReferencing"
+            "UMG", "Json", "JsonUtilities","SimulationCore","RobotCore","GeoReferencing","ImPlotLibrary"
 
         });
         PrivateDependencyModuleNames.AddRange(new string[] { "Projects", "AITestSuite" });

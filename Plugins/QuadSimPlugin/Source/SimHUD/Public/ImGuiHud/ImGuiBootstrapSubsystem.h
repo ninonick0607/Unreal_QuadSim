@@ -26,4 +26,6 @@ private:
     class UControlPanelUI* ControlPanels = nullptr; // per-drone panels
 
     bool bShowStateHUD = false; // toggle for left-side state data HUD
+    bool bShowPIDSettings = false; // toggle to show PID settings inside State HUD
+    bool bShowPIDHistoryWindow = false; // toggle to show PID configuration history window
 };

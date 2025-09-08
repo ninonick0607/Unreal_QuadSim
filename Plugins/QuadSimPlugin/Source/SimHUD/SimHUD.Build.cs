@@ -20,7 +20,8 @@ public class SimHUD : ModuleRules
             "SimulationCore",
             "RobotCore",
             "ImGui",
-            "ImPlotLibrary"
+            "ImPlotLibrary",
+            "Projects"
         });
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{

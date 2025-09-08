@@ -118,6 +118,18 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         static bool  bPaused        = false;
         static int   SpeedMode      = 0;    // -1 = reverse, 0 = normal, 1 = fast
         static float SpeedScale     = 1.0f; // displayed and applied in fast-forward
+        static bool  bSpeedInit     = false;
+        if (!bSpeedInit)
+        {
+            float td = 1.0f;
+            if (World && World->GetWorldSettings())
+            {
+                td = World->GetWorldSettings()->TimeDilation;
+            }
+            if (td <= 0.0f) td = 1.0f;
+            SpeedScale = td;
+            bSpeedInit = true;
+        }
         static bool  bSimMgrActive  = false;
         static bool  bWorldMgrActive= false;
 
@@ -131,7 +143,22 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 
             // Controls column
             ImGui::TableSetColumnIndex(0);
-            // Left-anchored Settings button and popup (JSON config)
+            // Pre-compute sizing to vertically center content
+            ImGuiStyle& st = ImGui::GetStyle();
+            const float padX = st.FramePadding.x;
+            const float padY = st.FramePadding.y;
+            const float itemX = st.ItemSpacing.x;
+            const float LabelBoxW = 180.f;
+            const float WMLabelW  = 170.f;
+            const float LabelH    = BarHeight - 12.f;
+            const float SpeedBoxW = 56.f;
+            const char* PauseTxt  = bPaused ? "Play" : "Pause";
+            float btnH   = ImGui::GetTextLineHeight() + padY * 2.f;
+            float labelTopY = FMath::Max(0.f, (BarHeight - LabelH) * 0.5f);
+            float btnTopY   = labelTopY + FMath::Max(0.f, (LabelH - btnH) * 0.5f);
+
+            // Left-anchored Settings button and popup (JSON config), vertically centered
+            ImGui::SetCursorPosY(btnTopY);
             if (ImGui::Button("Settings")) { ImGui::OpenPopup("SettingsMenu"); }
             if (ImGui::BeginPopup("SettingsMenu"))
             {
@@ -164,16 +191,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             }
             ImGui::SameLine();
             // Pre-compute total width to center the main control group (excluding Settings)
-            ImGuiStyle& st = ImGui::GetStyle();
-            const float padX = st.FramePadding.x;
-            const float padY = st.FramePadding.y;
-            const float itemX = st.ItemSpacing.x;
             auto BtnW = [&](const char* txt){ return ImGui::CalcTextSize(txt).x + padX*2.f; };
-            const float LabelBoxW = 180.f;
-            const float WMLabelW  = 170.f;
-            const float LabelH    = BarHeight - 12.f;
-            const float SpeedBoxW = 56.f;
-            const char* PauseTxt  = bPaused ? "Play" : "Pause";
             float totalW = 0.f;
             totalW += LabelBoxW;                                   // Sim label
             totalW += itemX;
@@ -198,10 +216,6 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             float avail = ImGui::GetContentRegionAvail().x;
             float remainingW = avail - (ImGui::CalcTextSize("Settings").x + padX*2.f + itemX);
             float startXWithin = FMath::Max(0.f, (remainingW - totalW) * 0.5f);
-            // Vertical centering: align BUTTONS to the vertical middle of label boxes
-            float btnH   = ImGui::GetTextLineHeight() + padY * 2.f;
-            float labelTopY = FMath::Max(0.f, (BarHeight - LabelH) * 0.5f);
-            float btnTopY   = labelTopY + FMath::Max(0.f, (LabelH - btnH) * 0.5f);
             ImGui::SetCursorPosY(labelTopY);
             ImGui::SetCursorPosX(colStartX + (ImGui::CalcTextSize("Settings").x + padX*2.f + itemX) + startXWithin);
 

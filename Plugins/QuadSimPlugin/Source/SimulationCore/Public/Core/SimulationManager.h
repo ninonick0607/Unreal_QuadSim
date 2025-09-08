@@ -150,7 +150,6 @@ private:
     //void ManualPhysicsStep(float FixedDeltaTime);
     
     // ImGui
-    void DrawImGuiWindow();
     bool bShowImGuiWindow;
     bool bStepRequested; 
     bool bIsStepping; 

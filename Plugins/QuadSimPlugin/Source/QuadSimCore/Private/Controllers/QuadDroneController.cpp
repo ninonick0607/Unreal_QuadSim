@@ -3,7 +3,6 @@
 #include "Controllers/QuadDroneController.h"
 #include "Pawns/QuadPawn.h"
 #include "DrawDebugHelpers.h"
-#include "imgui.h"
 #include <random>
 
 #ifndef EXCLUDE_PX4_COMPONENT
@@ -206,21 +205,6 @@ void UQuadDroneController::GamepadController(double DeltaTime)
 	/* optional HUD / debug */
 	DrawDebugVisualsVel(FVector::ZeroVector);
 	DrawMagneticDebugVisuals();
-	if (dronePawn && dronePawn->ImGuiUtil)
-	{
-		// Display HUD only for the selected drone (independent) or all (swarm)
-		bool bShowUI = true;
-		if (ADroneManager* Manager = ADroneManager::Get(dronePawn->GetWorld()))
-		{
-			if (!Manager->IsSwarmMode())
-			{
-				const int32 myIdx = Manager->GetDroneIndex(dronePawn);
-				bShowUI = (myIdx == Manager->SelectedDroneIndex);
-			}
-		}
-
-		if (bShowUI){dronePawn->ImGuiUtil->ImGuiHud(currentFlightMode,DeltaTime);}
-	}
 }
 void UQuadDroneController::FlightController(double DeltaTime)
 {
@@ -243,20 +227,6 @@ void UQuadDroneController::FlightController(double DeltaTime)
 	{
         
 		DrawDebugVisualsVel(FVector::ZeroVector);
-		// Show UI if needed
-		if (dronePawn && dronePawn->ImGuiUtil)
-		{
-			bool bShowUI = true;
-			if (ADroneManager* Manager = ADroneManager::Get(dronePawn->GetWorld()))
-			{
-				if (!Manager->IsSwarmMode())
-				{
-					const int32 myIdx = Manager->GetDroneIndex(dronePawn);
-					bShowUI = (myIdx == Manager->SelectedDroneIndex);
-				}
-			}
-			if (bShowUI) { dronePawn->ImGuiUtil->ImGuiHud(currentFlightMode, DeltaTime); }
-		}
         
 		return; 
 	}
@@ -340,21 +310,7 @@ void UQuadDroneController::FlightController(double DeltaTime)
 	
 	//  Debug drawing and on‑screen HUD (optional)
 	DrawDebugVisualsVel(FVector(desiredLocalVelocity.X, desiredLocalVelocity.Y, 0.f));
-
-	if (dronePawn && dronePawn->ImGuiUtil)
-	{
-		bool bShowUI = true;
-		if (ADroneManager* Manager = ADroneManager::Get(dronePawn->GetWorld()))
-		{
-			if (!Manager->IsSwarmMode())
-			{
-				const int32 myIdx = Manager->GetDroneIndex(dronePawn);
-				bShowUI = (myIdx == Manager->SelectedDroneIndex);
-			}
-		}
-
-		if (bShowUI){dronePawn->ImGuiUtil->ImGuiHud(currentFlightMode,DeltaTime);}
-	}
+	
 	
 }
 

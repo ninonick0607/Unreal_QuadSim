@@ -112,8 +112,6 @@ void ASimulationManager::Tick(float DeltaTime)
 		}
 		break;
 	}
-    
-	DrawImGuiWindow();
 }
 void ASimulationManager::StepSimulation(float DeltaTime)
 {
@@ -306,105 +304,4 @@ void ASimulationManager::StartNewEpisode()
     ResetSimulation();
     
     UE_LOG(LogTemp, Display, TEXT("Started episode %d"), CurrentEpisode);
-}
-
-void ASimulationManager::DrawImGuiWindow()
-{
-    if (!bShowImGuiWindow)
-    {
-        return;
-    }
-    
-    ImGui::Begin("Simulation Manager", &bShowImGuiWindow);
-    
-    // Simulation Info
-    ImGui::Text("Simulation Time: %.2f s", CurrentSimulationTime);
-    ImGui::Text("Episode: %d, Step: %d", CurrentEpisode, CurrentStep);
-    ImGui::Text("Registered Robots: %d", RegisteredRobots.Num());
-    
-    // Show current time dilation
-    float CurrentTimeDilation = GetWorld()->GetWorldSettings()->TimeDilation;
-    ImGui::Text("Time Dilation: %.3f", CurrentTimeDilation);
-    
-    ImGui::Separator();
-    
-    // Mode Selection
-    ImGui::Text("Simulation Mode:");
-    const char* modes[] = { "Realtime", "Lockstep", "Fast Forward", "Paused" };
-    int currentMode = (int)CurrentSimulationMode;
-    if (ImGui::Combo("Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
-    {
-        SetSimulationMode((ESimulationMode)currentMode);
-    }
-    
-    // Mode-specific controls
-    if (CurrentSimulationMode == ESimulationMode::FastForward)
-    {
-        float timeScale = TimeController ? TimeController->GetTimeScale() : 1.0f;
-        if (ImGui::SliderFloat("Time Scale", &timeScale, 0.1f, 10.0f))
-        {
-            SetTimeScale(timeScale);
-        }
-    }
-    
-    // Fixed Timestep
-    if (TimeController)
-    {
-        float fixedTimestep = TimeController->GetFixedDeltaTime();
-        if (ImGui::InputFloat("Fixed Timestep", &fixedTimestep, 0.001f, 0.01f, "%.4f"))
-        {
-            TimeController->SetFixedTimestep(FMath::Clamp(fixedTimestep, 0.001f, 0.1f));
-        }
-        ImGui::Text("Frequency: %.1f Hz", 1.0f / fixedTimestep);
-    }
-    
-    ImGui::Separator();
-    
-    // Control Buttons
-    if (ImGui::Button("Reset Simulation"))
-    {
-        ResetSimulation();
-    }
-    
-    ImGui::SameLine();
-    
-    if (ImGui::Button("New Episode"))
-    {
-        StartNewEpisode();
-    }
-    
-    // Manual Step (for Lockstep/Paused modes)
-    if (CurrentSimulationMode == ESimulationMode::Lockstep || CurrentSimulationMode == ESimulationMode::Paused)
-    {
-        if (ImGui::Button("Step"))
-        {
-            RequestSimulationStep();
-        }
-        
-        if (CurrentSimulationMode == ESimulationMode::Lockstep)
-        {
-            ImGui::SameLine();
-            ImGui::Text(bWaitingForExternalCommand ? "Waiting for command..." : "Processing...");
-        }
-    }
-    
-    ImGui::Separator();
-    
-    // Robot List
-    ImGui::Text("Registered Robots:");
-    ImGui::BeginChild("RobotList", ImVec2(0, 150), true);
-    for (int32 i = 0; i < RegisteredRobots.Num(); i++)
-    {
-        if (RegisteredRobots[i])
-        {
-            bool isSelected = (i == SelectedRobotIndex);
-            if (ImGui::Selectable(TCHAR_TO_UTF8(*RegisteredRobots[i]->GetName()), isSelected))
-            {
-                SelectedRobotIndex = i;
-            }
-        }
-    }
-    ImGui::EndChild();
-    
-    ImGui::End();
 }

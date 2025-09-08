@@ -10,6 +10,7 @@
 #include "Core/DroneJSONConfig.h"
 #include "SimulationCore/Public/Core/SimulationManager.h"
 #include "GameFramework/Actor.h"
+#include <cfloat>
 
 void UControlPanelUI::TickAndDraw(UWorld* World)
 {
@@ -39,9 +40,12 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
     const float RightPad = 10.f;
     ImGui::SetNextWindowPos(ImVec2(IO.DisplaySize.x - PanelW - RightPad, PanelY), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(PanelW, 600.f), ImGuiCond_FirstUseEver);
+    // Lock width to PanelW and let height auto-fit to content; prevent user resize
+    ImGui::SetNextWindowSizeConstraints(ImVec2(PanelW, 0.0f), ImVec2(PanelW, FLT_MAX));
 
     FString Title = FString::Printf(TEXT("Control Panel - %s##ControlPanel"), *ActivePawn->GetName());
-    if (ImGui::Begin(TCHAR_TO_UTF8(*Title), &bOpen))
+    ImGuiWindowFlags WFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
+    if (ImGui::Begin(TCHAR_TO_UTF8(*Title), &bOpen, WFlags))
     {
         // Remember current Y for next frame to respect user-adjusted vertical position
         PanelY = ImGui::GetWindowPos().y;
@@ -253,6 +257,71 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
                 ImGui::SliderFloat("Z Velocity (m/s)", &zVel, -MaxVel, MaxVel, "%.2f");
                 vel.Z = zVel; vel.X = 0.f; vel.Y = 0.f;
                 Controller->SetDesiredVelocity(vel);
+            }
+
+            // --- Reset-to-0 helpers under sliders ---
+            ImGui::Separator();
+            ImGui::TextUnformatted("Reset to 0:");
+            ImGui::SameLine();
+            if (ImGui::SmallButton("X"))
+            {
+                if (Mode == EFlightMode::AutoWaypoint)
+                {
+                    FVector sp = Controller->GetCurrentSetPoint(); sp.X = 0.f; Controller->SetDestination(sp);
+                }
+                else if (Mode == EFlightMode::VelocityControl)
+                {
+                    FVector v = Controller->GetDesiredVelocity(); v.X = 0.f; Controller->SetDesiredVelocity(v);
+                }
+                else if (Mode == EFlightMode::AngleControl || Mode == EFlightMode::JoyStickAngleControl)
+                {
+                    Controller->SetDesiredRollAngle(0.f);
+                }
+                else if (Mode == EFlightMode::RateControl || Mode == EFlightMode::JoyStickAcroControl)
+                {
+                    Controller->SetDesiredRollRate(0.f);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Y"))
+            {
+                if (Mode == EFlightMode::AutoWaypoint)
+                {
+                    FVector sp = Controller->GetCurrentSetPoint(); sp.Y = 0.f; Controller->SetDestination(sp);
+                }
+                else if (Mode == EFlightMode::VelocityControl)
+                {
+                    FVector v = Controller->GetDesiredVelocity(); v.Y = 0.f; Controller->SetDesiredVelocity(v);
+                }
+                else if (Mode == EFlightMode::AngleControl || Mode == EFlightMode::JoyStickAngleControl)
+                {
+                    Controller->SetDesiredPitchAngle(0.f);
+                }
+                else if (Mode == EFlightMode::RateControl || Mode == EFlightMode::JoyStickAcroControl)
+                {
+                    Controller->SetDesiredPitchRate(0.f);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Z"))
+            {
+                if (Mode == EFlightMode::AutoWaypoint)
+                {
+                    FVector sp = Controller->GetCurrentSetPoint(); sp.Z = 0.f; Controller->SetDestination(sp);
+                }
+                else // Velocity / Angle / Rate variants share Z velocity
+                {
+                    FVector v = Controller->GetDesiredVelocity(); v.Z = 0.f; Controller->SetDesiredVelocity(v);
+                }
+            }
+            // Yaw is not present in AutoWaypoint block; show only when applicable
+            if (Mode != EFlightMode::AutoWaypoint)
+            {
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Yaw"))
+                {
+                    Controller->SetDesiredYawRate(0.f);
+                }
             }
         }
 

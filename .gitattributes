@@ -1,1 +1,9 @@
-*.sqlite filter=lfs diff=lfs merge=lfs -text
+# Unreal assets must be binary and stored in LFS
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap   filter=lfs diff=lfs merge=lfs -text
+# Catch content trees (belt and suspenders)
+Plugins/**/Content/** filter=lfs diff=lfs merge=lfs -text
+Content/**            filter=lfs diff=lfs merge=lfs -text
+# Extra safety: never normalize line endings on these
+*.uasset -text
+*.umap   -text

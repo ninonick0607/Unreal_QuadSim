@@ -35,5 +35,6 @@ private:
     // Per-drone UI state (checkboxes), but a single window is drawn.
     TMap<TWeakObjectPtr<class AQuadPawn>, FDronePanelState> DroneStates;
     bool bOpen = false;
-    float PanelY = 80.f; // remember Y so right edge stays locked but vertical can move/resize
+    float PanelX = -1.f; // remember last X (set on first show)
+    float PanelY = 80.f; // remember last Y
 };

@@ -431,17 +431,18 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             if (ImGui::Begin("##QuadSimControlPanelBtn", nullptr, wflags))
             {
                 // Make buttons ~30% larger via frame padding
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(21.f, 13.f));
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(24.f, 14.f));
                 float totalH = ImGui::GetTextLineHeightWithSpacing() * 2 + ImGui::GetStyle().FramePadding.y * 4 + 8.f;
                 float cy = (ImGui::GetContentRegionAvail().y - totalH) * 0.5f;
                 ImGui::SetCursorPosY(FMath::Max(0.f, cy));
                 float cx = (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(cpLabel).x - ImGui::GetStyle().FramePadding.x*2) * 0.5f;
 
-                // Slightly brighten the buttons locally
-                auto Lighten = [](ImVec4 c, float k){ return ImVec4(FMath::Min(c.x*(1.f+k),1.f), FMath::Min(c.y*(1.f+k),1.f), FMath::Min(c.z*(1.f+k),1.f), c.w); };
-                ImGui::PushStyleColor(ImGuiCol_Button,        Lighten(Theme.Button,       0.15f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Lighten(Theme.ButtonHover,  0.15f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  Lighten(Theme.ButtonActive, 0.15f));
+                // Brighten the buttons locally
+                auto Lighten = [](ImVec4 c, float k){ return ImVec4(FMath::Clamp(c.x + k, 0.f, 1.f), FMath::Clamp(c.y + k, 0.f, 1.f), FMath::Clamp(c.z + k, 0.f, 1.f), c.w); };
+                // Keep darker blue; only a subtle brighten
+                ImGui::PushStyleColor(ImGuiCol_Button,        Lighten(Theme.Button,       0.08f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Lighten(Theme.ButtonHover,  0.08f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  Lighten(Theme.ButtonActive, 0.08f));
 
                 ImGui::SetCursorPosX(FMath::Max(0.f, cx));
                 if (ImGui::Button(cpLabel))
@@ -506,7 +507,8 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                 float fillH = barSize.y * percent;
                                 ImVec2 fillMin(p.x, q.y - fillH);
                                 ImVec2 fillMax(q.x, q.y);
-                                dl->AddRectFilled(fillMin, fillMax, IM_COL32(80,160,255,255));
+                                // Deep yellow fill strictly inside the bar
+                                dl->AddRectFilled(fillMin, fillMax, IM_COL32(255, 200, 0, 255));
                                 // Newton value centered inside bar
                                 char nbuf[24]; snprintf(nbuf, sizeof(nbuf), "%.0fN", thrust);
                                 ImVec2 tsize = ImGui::CalcTextSize(nbuf);

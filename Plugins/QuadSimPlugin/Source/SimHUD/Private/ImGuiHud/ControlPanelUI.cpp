@@ -38,7 +38,22 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
     ImGuiIO& IO = ImGui::GetIO();
     const float PanelW = 380.f;
     const float RightPad = 10.f;
-    ImGui::SetNextWindowPos(ImVec2(IO.DisplaySize.x - PanelW - RightPad, PanelY), ImGuiCond_FirstUseEver);
+
+    // Use the actual viewport size (not IO.DisplaySize) so the panel tracks with editor layout changes
+    float VpW = IO.DisplaySize.x;
+    float VpH = IO.DisplaySize.y;
+    if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
+    {
+        const FIntPoint vp = GEngine->GameViewport->Viewport->GetSizeXY();
+        VpW = vp.X; VpH = vp.Y;
+    }
+
+    // Initial placement near right edge only on first show
+    if (PanelX < 0.f)
+    {
+        PanelX = FMath::Max(0.f, VpW - PanelW - RightPad);
+    }
+    ImGui::SetNextWindowPos(ImVec2(PanelX, FMath::Clamp(PanelY, 0.f, FMath::Max(0.f, VpH - 60.f))), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(PanelW, 600.f), ImGuiCond_FirstUseEver);
     // Lock width to PanelW and let height auto-fit to content; prevent user resize
     ImGui::SetNextWindowSizeConstraints(ImVec2(PanelW, 0.0f), ImVec2(PanelW, FLT_MAX));
@@ -47,8 +62,21 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
     ImGuiWindowFlags WFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
     if (ImGui::Begin(TCHAR_TO_UTF8(*Title), &bOpen, WFlags))
     {
-        // Remember current Y for next frame to respect user-adjusted vertical position
-        PanelY = ImGui::GetWindowPos().y;
+        // Clamp window into viewport if the editor layout changed
+        ImVec2 winPos  = ImGui::GetWindowPos();
+        ImVec2 size    = ImGui::GetWindowSize();
+        float maxX = FMath::Max(0.f, VpW - size.x);
+        float maxY = FMath::Max(0.f, VpH - size.y);
+        float clampedX = FMath::Clamp(winPos.x, 0.f, maxX);
+        float clampedY = FMath::Clamp(winPos.y, 0.f, maxY);
+        if (clampedX != winPos.x || clampedY != winPos.y)
+        {
+            ImGui::SetWindowPos(ImVec2(clampedX, clampedY));
+            winPos.x = clampedX; winPos.y = clampedY;
+        }
+        // Remember current pos for next frame to respect user-adjusted location
+        PanelX = winPos.x;
+        PanelY = winPos.y;
         // Drone selector at the top
         if (ImGui::BeginCombo("Active Drone", TCHAR_TO_UTF8(*ActivePawn->GetName())))
         {

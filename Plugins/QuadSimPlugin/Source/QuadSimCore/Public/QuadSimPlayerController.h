@@ -30,10 +30,14 @@ public:
 	void ApplyGameOnly();
 
 protected:
-	/** Console toggle for ImGui input (expects an input action named "ToggleImGui"). */
-	UFUNCTION()
-	void ToggleImguiInput();
+    /** Console toggle for ImGui input (expects an input action named "ToggleImGui"). */
+    UFUNCTION()
+    void ToggleImguiInput();
 
-	/** Common mouse flags we like for UI work. */
-	void SetDefaultMouseFlags(bool bEnable);
+    /** Common mouse flags we like for UI work. */
+    void SetDefaultMouseFlags(bool bEnable);
+
+private:
+    // Track whether we've toggled ImGui input on, to switch input modes appropriately
+    bool bImGuiInputActive = false;
 };

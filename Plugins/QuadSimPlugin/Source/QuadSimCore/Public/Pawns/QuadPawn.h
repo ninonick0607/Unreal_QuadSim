@@ -6,7 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Core/ThrusterComponent.h"
 #include "Utility/NavigationComponent.h"
-#include "UI/ImGuiUtil.h"
+// #include "UI/ImGuiUtil.h" // removed legacy per-drone ImGui component
 #include "GameFramework/Pawn.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -18,9 +18,8 @@ class USensorManagerComponent;
 
 // Forward Declarations
 class UQuadDroneController;
-class UImGuiUtil;
+class UImGuiUtil; // legacy; no longer referenced
 class UThrusterComponent;
-class UQuadHUDWidget;
 class UPX4Component;
 // Enum to track camera state
 UENUM(BlueprintType)
@@ -62,8 +61,10 @@ public:
 	// Constructor
 	AQuadPawn();
 
-	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+    virtual void PossessedBy(AController* NewController) override;
+    virtual void UnPossessed() override;
 
 	// --- Drone Components ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -118,8 +119,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller")
 	UQuadDroneController* QuadController;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	UImGuiUtil* ImGuiUtil;
+    // Legacy per-drone ImGui component removed
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Identification")
 	FString DroneID;
@@ -171,11 +171,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
-	UPROPERTY()
-	UQuadHUDWidget* HUDWidgetInstance;
-	void UpdateHUD();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PX4")
 	UPX4Component* PX4Component;
 	

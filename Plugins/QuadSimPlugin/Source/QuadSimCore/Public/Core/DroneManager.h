@@ -9,7 +9,7 @@ class AQuadPawn;
 // Forward declaration for flight modes
 enum class EFlightMode : uint8;
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class QUADSIMCORE_API ADroneManager : public AActor, public ISimulatable
 {
 	GENERATED_BODY()
@@ -20,8 +20,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
     
-	UFUNCTION(BlueprintCallable, Category = "Drone Manager")
-	AQuadPawn* SpawnDrone(const FVector& SpawnLocation, const FRotator& SpawnRotation);
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager")
+    AQuadPawn* SpawnDrone(const FVector& SpawnLocation, const FRotator& SpawnRotation);
 
 	UFUNCTION(BlueprintCallable, Category = "Drone Manager")
 	TArray<AQuadPawn*> GetDroneList() const;
@@ -47,8 +47,18 @@ public:
     DECLARE_MULTICAST_DELEGATE_OneParam(FOnGlobalFlightModeChanged, EFlightMode /*NewMode*/);
     FOnGlobalFlightModeChanged OnGlobalFlightModeChanged;
 
-	UPROPERTY(VisibleAnywhere, Category = "Drone Manager")
-	int32 SelectedDroneIndex;
+    UPROPERTY(VisibleAnywhere, Category = "Drone Manager")
+    int32 SelectedDroneIndex;
+
+    // Fixed spawn origin for new drones (editable in BP). Defaults to (0,0,0).
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone Manager")
+    FVector SpawnOrigin = FVector::ZeroVector;
+
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager")
+    void SetSpawnOrigin(const FVector& InOrigin) { SpawnOrigin = InOrigin; }
+
+    UFUNCTION(BlueprintPure, Category = "Drone Manager")
+    FVector GetSpawnOrigin() const { return SpawnOrigin; }
 
 
     virtual void SimulationUpdate_Implementation(float FixedDeltaTime) override;

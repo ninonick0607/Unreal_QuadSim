@@ -22,7 +22,9 @@
 AQuadSimGameMode::AQuadSimGameMode()
 {
     PlayerControllerClass = AQuadSimPlayerController::StaticClass();
-    // Optional: DefaultPawnClass = AQuadPawn::StaticClass();
+    // Do not auto-spawn a default pawn at PlayerStart; we will possess a placed camera pawn.
+    DefaultPawnClass = nullptr;
+    bStartPlayersAsSpectators = true;
 }
 
 static TSubclassOf<ADroneManager> LoadDroneManagerClass()
@@ -114,12 +116,24 @@ void AQuadSimGameMode::BeginPlay()
         UE_LOG(LogTemp, Log, TEXT("DroneManager already present, reusing."));
     }
 
-    // Camera handoff
-    if (DroneManagerRef)
+    // Camera handoff: possess a placed camera pawn if present
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
     {
-        if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+        APawn* CameraPawn = nullptr;
+        // Prefer an actor tagged "StartupCamera"
+        for (TActorIterator<APawn> It(World); It; ++It)
         {
-            PC->SetViewTargetWithBlend(DroneManagerRef, 0.35f);
+            if (It->ActorHasTag(FName("StartupCamera"))) { CameraPawn = *It; break; }
+        }
+        // Fallback: first pawn found
+        if (!CameraPawn)
+        {
+            for (TActorIterator<APawn> It(World); It; ++It) { CameraPawn = *It; break; }
+        }
+        if (CameraPawn)
+        {
+            PC->Possess(CameraPawn);
+            PC->SetViewTarget(CameraPawn);
         }
     }
     

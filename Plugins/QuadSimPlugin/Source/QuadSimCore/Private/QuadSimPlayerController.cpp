@@ -24,7 +24,18 @@ void AQuadSimPlayerController::SetupInputComponent()
 
 void AQuadSimPlayerController::ToggleImguiInput()
 {
-	ConsoleCommand(TEXT("ImGui.ToggleInput"));
+    ConsoleCommand(TEXT("ImGui.ToggleInput"));
+    bImGuiInputActive = !bImGuiInputActive;
+    if (bImGuiInputActive)
+    {
+        // Free the mouse and allow UI clicks when ImGui input is active
+        ApplyGameAndUIFocus(nullptr, /*bShowCursor=*/true);
+    }
+    else
+    {
+        // Return to game-only controls
+        ApplyGameOnly();
+    }
 }
 
 void AQuadSimPlayerController::ApplyGameAndUIFocus(UUserWidget* WidgetToFocus, bool bShowCursorIn)

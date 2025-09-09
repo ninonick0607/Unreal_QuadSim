@@ -40,6 +40,11 @@ protected:
     UPROPERTY(EditAnywhere, Category="Taskbar")
     FName InnerButtonName = TEXT("Button");
 
+    // If true, the UI will possess the newly spawned drone automatically.
+    // Leave false to keep viewing through the camera pawn.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Taskbar")
+    bool bPossessOnSpawn = false;
+
 	UPROPERTY(meta=(BindWidgetOptional)) UTextBlock* TxtSpeed = nullptr;  // ← NEW
 
 private:

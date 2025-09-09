@@ -139,9 +139,22 @@ AQuadPawn* ADroneManager::SpawnDrone(const FVector& SpawnLocation, const FRotato
         FActorSpawnParameters SpawnParams;
         SpawnParams.Owner = this;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        
-        // Spawn the drone.
-        AQuadPawn* NewDrone = World->SpawnActor<AQuadPawn>(QuadPawnClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+        // Always spawn at PlayerStart if present; otherwise fall back to origin (0,0,0)
+        FVector UseLoc = FVector::ZeroVector;
+        FRotator UseRot = SpawnRotation;
+        if (AActor* PS = UGameplayStatics::GetActorOfClass(World, APlayerStart::StaticClass()))
+        {
+            UseLoc = PS->GetActorLocation();
+            UseRot = PS->GetActorRotation();
+        }
+
+        AQuadPawn* NewDrone = World->SpawnActor<AQuadPawn>(QuadPawnClass, UseLoc, UseRot, SpawnParams);
+        if (NewDrone)
+        {
+            // Set selection to the newly spawned drone
+            SelectedDroneIndex = GetDroneIndex(NewDrone);
+        }
         return NewDrone;
     }
     return nullptr;

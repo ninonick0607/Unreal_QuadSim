@@ -10,6 +10,7 @@
 #include "SimulationCore/Public/Core/SimulationManager.h"
 #include "Core/DroneManager.h"
 #include "Pawns/QuadPawn.h"
+#include "QuadSimCore/Public/QuadSimPlayerController.h"
 
 // ------ Manager init ------
 
@@ -235,7 +236,7 @@ void USimTaskbarWidget::OnSlowerClicked()
 			SM->SetSimulationMode(ESimulationMode::FastForward);
 
 		const float cur = ReadTimeScale();
-		SetTimeScaleClamped(cur - 0.25f);
+		SetTimeScaleClamped(cur - 0.10f);
 		UpdateSpeedText();
 	}
 }
@@ -256,31 +257,28 @@ void USimTaskbarWidget::OnSpawnClicked()
     if (ADroneManager* DM = GetDM())
     {
         // Same logic as your ImGui path
-        FVector  SpawnLoc = DM->GetActorLocation();
+        FVector  SpawnLoc = FVector::ZeroVector;
         FRotator SpawnRot = FRotator::ZeroRotator;
-
-        const TArray<AQuadPawn*> Drones = DM->GetDroneList();
-        if (Drones.Num() > 0)
-        {
-            if (AQuadPawn* Last = Drones.Last())
-            {
-                SpawnLoc = Last->GetActorLocation() + FVector(300.f, 0.f, 0.f);
-                SpawnLoc.Z = Last->GetActorLocation().Z;
-                SpawnRot   = Last->GetActorRotation();
-            }
-        }
-        else if (AActor* PS = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass()))
-        {
-            SpawnLoc = PS->GetActorLocation();
-            SpawnRot = PS->GetActorRotation();
-        }
 
         if (AQuadPawn* NewDrone = DM->SpawnDrone(SpawnLoc, SpawnRot))
         {
             if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
             {
                 if (PC && NewDrone && PC->GetPawn() != NewDrone)
+                {
                     PC->Possess(NewDrone);
+                    PC->SetViewTarget(NewDrone);
+                    if (AQuadSimPlayerController* QPC = Cast<AQuadSimPlayerController>(PC))
+                    {
+                        QPC->ApplyGameOnly();
+                    }
+                    else
+                    {
+                        FInputModeGameOnly Mode; Mode.SetConsumeCaptureMouseDown(true);
+                        PC->SetInputMode(Mode);
+                        PC->bShowMouseCursor = false;
+                    }
+                }
             }
         }
         else
@@ -293,3 +291,4 @@ void USimTaskbarWidget::OnSpawnClicked()
         UE_LOG(LogTemp, Warning, TEXT("[Taskbar] No DroneManager"));
     }
 }
+

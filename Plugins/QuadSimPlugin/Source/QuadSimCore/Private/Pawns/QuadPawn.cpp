@@ -14,9 +14,7 @@
 #include "Components/PrimitiveComponent.h" 
 #include "GameFramework/Actor.h"        
 #include "Core/ThrusterComponent.h"       
-#include "UI/ImGuiUtil.h"
 #include "Sensors/MagSensor.h"
-#include "UI/QuadHUDWidget.h"
 #include "Components/ChildActorComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -85,7 +83,6 @@ AQuadPawn::AQuadPawn()
 	, CameraFPV(nullptr)
 	, CameraGroundTrack(nullptr)
 	, QuadController(nullptr)	
-	, ImGuiUtil(nullptr)
 	, WaypointMode(EWaypointMode::WaitingForModeSelection)
 	, NewWaypoint(FVector::ZeroVector)
 	, bHasCollidedWithObstacle(false)
@@ -161,8 +158,8 @@ AQuadPawn::AQuadPawn()
 	}
 
 	// Create additional components
-	ImGuiUtil = CreateDefaultSubobject<UImGuiUtil>(TEXT("DroneImGuiUtil"));
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
+    // Defer possession to GameMode/UI logic; avoid auto-possessing first player implicitly
+    AutoPossessPlayer = EAutoReceiveInput::Disabled;
 	NavigationComponent = CreateDefaultSubobject<UNavigationComponent>(TEXT("NavigationComponent"));
 
 	// Create PX4 component
@@ -185,25 +182,9 @@ void AQuadPawn::BeginPlay()
 		FPVCaptureComponent->TextureTarget = FPVCaptureRenderTarget;
 	}
 
-	// --- Create and add HUD to viewport ---
-	// You might want to create a C++ property for the HUD class to use
-	// For now, we assume you have a Blueprint of WBP_DroneHUD
-	if (IsLocallyControlled() && HUDWidgetClass) // Check if player controlled AND if a widget class was set in the editor
-	{
-		APlayerController* PC = GetController<APlayerController>();
-		if (PC)
-		{
-			// Use the correct CreateWidget function
-			// This uses the HUDWidgetClass property you set in the editor.
-			HUDWidgetInstance = CreateWidget<UQuadHUDWidget>(PC, HUDWidgetClass);
-			if (HUDWidgetInstance)
-			{
-				HUDWidgetInstance->AddToViewport();
-			}
-		}
-	}
+    // HUD creation will be handled on possession to ensure correct owner
 	
-	DroneID = GetName();
+    DroneID = GetName();
 	UE_LOG(LogTemp, Display, TEXT("QuadPawn BeginPlay: DroneID set to %s"), *DroneID);
 	
 	if (!QuadController)
@@ -217,17 +198,9 @@ void AQuadPawn::BeginPlay()
 	
 	UE_LOG(LogTemp, Display, TEXT("QuadPawn BeginPlay: Pawn=%p, Name=%s"), this, *GetName());
 	
-	if (!ImGuiUtil)
-	{
-		ImGuiUtil = NewObject<UImGuiUtil>(this, UImGuiUtil::StaticClass(), TEXT("DroneImGuiUtil"));
-		ImGuiUtil->Initialize(this, QuadController);
-	}
-    if (ImGuiUtil)
-    {
-        ImGuiUtil->Initialize(this, QuadController);
-    }
+    // Removed legacy per-drone ImGui component wiring
 
-	// Initialize sensors
+    // Initialize sensors
 	if (SensorManager)
 	{
 		SensorManager->InitializeSensors();
@@ -254,7 +227,6 @@ void AQuadPawn::BeginPlay()
 	CameraGroundTrack->SetActive(false);
 	CurrentCameraMode = ECameraMode::FPV;
 
-	UpdateHUD();
 
 }
 
@@ -308,7 +280,7 @@ void AQuadPawn::UpdateControl(float DeltaTime)
 {
 	if (SensorManager)
 	{
-		SensorManager->UpdateAllSensors(DeltaTime, true);
+		SensorManager->UpdateAllSensors(DeltaTime, false);
 	}
 	if (QuadController)
 	{	
@@ -357,7 +329,6 @@ void AQuadPawn::SwitchCamera()
 		break;
 
 	}
-	UpdateHUD();
 
 }
 
@@ -471,37 +442,16 @@ float AQuadPawn::GetMass()
 	return DroneBody ? DroneBody->GetMass() : 0.0f;
 }
 
-void AQuadPawn::UpdateHUD()
+void AQuadPawn::PossessedBy(AController* NewController)
 {
-	USceneCaptureComponent2D* captureComponentToUse = nullptr;
-	UTextureRenderTarget2D* renderTargetToDisplay = nullptr;
+    Super::PossessedBy(NewController);
+	
+}
 
-	if (CurrentCameraMode == ECameraMode::FPV)
-	{
-		captureComponentToUse = TPCaptureComponent;
-		renderTargetToDisplay = TPCaptureRenderTarget;
-	}
-	else if (CurrentCameraMode == ECameraMode::ThirdPerson)
-	{
-		captureComponentToUse = FPVCaptureComponent;
-		renderTargetToDisplay = FPVCaptureRenderTarget;
-	}
-	// Optional: Handle GroundTrack mode here too
-	else if (CurrentCameraMode == ECameraMode::GroundTrack)
-	{
-		captureComponentToUse = FPVCaptureComponent;
-		renderTargetToDisplay = FPVCaptureRenderTarget;
-	}
-    
-	if (captureComponentToUse && renderTargetToDisplay)
-	{
-		captureComponentToUse->CaptureScene();
+void AQuadPawn::UnPossessed()
+{
+    Super::UnPossessed();
 
-		if (HUDWidgetInstance)
-		{
-			HUDWidgetInstance->UpdateHUDTexture(renderTargetToDisplay);
-		}
-	}
 }
 
 void AQuadPawn::ResetRotation()

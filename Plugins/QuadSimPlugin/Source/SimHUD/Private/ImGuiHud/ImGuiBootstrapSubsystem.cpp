@@ -19,6 +19,7 @@
 #include "Core/DroneJSONConfig.h"
 #include "Pawns/QuadPawn.h"
 #include "Controllers/QuadDroneController.h"
+#include "QuadSimCore/Public/QuadSimPlayerController.h"
 // For PID settings and saving
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
@@ -195,7 +196,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             float totalW = 0.f;
             totalW += LabelBoxW;                                   // Sim label
             totalW += itemX;
-            totalW += BtnW("Reverse");
+            totalW += BtnW("Slower");
             totalW += itemX;
             totalW += BtnW(PauseTxt);
             totalW += itemX;
@@ -240,7 +241,17 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             }
 
             ImGui::SetCursorPosY(btnTopY);
-            if (ImGui::Button("Reverse")) { SpeedMode = -1; }
+            if (ImGui::Button("Slower"))
+            {
+                // Reduce current speed scale by 0.10x and apply via SimulationManager
+                SpeedMode = -1;
+                SpeedScale = FMath::Clamp(SpeedScale - 0.10f, 0.05f, 100.0f);
+                if (ASimulationManager* SM = ASimulationManager::Get(World))
+                {
+                    SM->SetSimulationMode(ESimulationMode::FastForward);
+                    SM->SetTimeScale(SpeedScale);
+                }
+            }
             ImGui::SameLine();
             ImGui::SetCursorPosY(btnTopY);
             if (ImGui::Button(bPaused ? "Play" : "Pause"))
@@ -340,8 +351,28 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             {
                 if (ADroneManager* DM = ADroneManager::Get(World))
                 {
-                    const FVector Loc = DM->GetActorLocation();
-                    DM->SpawnDrone(Loc, FRotator::ZeroRotator);
+                    if (AQuadPawn* NewDrone = DM->SpawnDrone(FVector::ZeroVector, FRotator::ZeroRotator))
+                    {
+                        if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+                        {
+                            if (PC && NewDrone && PC->GetPawn() != NewDrone)
+                            {
+                                PC->Possess(NewDrone);
+                                PC->SetViewTarget(NewDrone);
+                                // Return to game-only input for control
+                                if (AQuadSimPlayerController* QPC = Cast<AQuadSimPlayerController>(PC))
+                                {
+                                    QPC->ApplyGameOnly();
+                                }
+                                else
+                                {
+                                    FInputModeGameOnly Mode; Mode.SetConsumeCaptureMouseDown(true);
+                                    PC->SetInputMode(Mode);
+                                    PC->bShowMouseCursor = false;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -399,12 +430,19 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                       ImGuiWindowFlags_NoBackground;
             if (ImGui::Begin("##QuadSimControlPanelBtn", nullptr, wflags))
             {
-                // Bigger buttons via frame padding
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(16.f, 10.f));
+                // Make buttons ~30% larger via frame padding
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(21.f, 13.f));
                 float totalH = ImGui::GetTextLineHeightWithSpacing() * 2 + ImGui::GetStyle().FramePadding.y * 4 + 8.f;
                 float cy = (ImGui::GetContentRegionAvail().y - totalH) * 0.5f;
                 ImGui::SetCursorPosY(FMath::Max(0.f, cy));
                 float cx = (ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(cpLabel).x - ImGui::GetStyle().FramePadding.x*2) * 0.5f;
+
+                // Slightly brighten the buttons locally
+                auto Lighten = [](ImVec4 c, float k){ return ImVec4(FMath::Min(c.x*(1.f+k),1.f), FMath::Min(c.y*(1.f+k),1.f), FMath::Min(c.z*(1.f+k),1.f), c.w); };
+                ImGui::PushStyleColor(ImGuiCol_Button,        Lighten(Theme.Button,       0.15f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, Lighten(Theme.ButtonHover,  0.15f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  Lighten(Theme.ButtonActive, 0.15f));
+
                 ImGui::SetCursorPosX(FMath::Max(0.f, cx));
                 if (ImGui::Button(cpLabel))
                 {
@@ -415,6 +453,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                 {
                     bShowStateHUD = !bShowStateHUD;
                 }
+                ImGui::PopStyleColor(3);
                 ImGui::PopStyleVar();
             }
             ImGui::End();
@@ -952,4 +991,5 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
     if (bShowMain) ImGui::End();
 #endif
 }
+
 

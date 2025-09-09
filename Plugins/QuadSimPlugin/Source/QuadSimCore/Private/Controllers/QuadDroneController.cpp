@@ -9,7 +9,6 @@
 #include "Controllers/PX4Component.h"
 #endif
 #include "GeographicCoordinates.h"
-#include "UI/ImGuiUtil.h"
 #include "Core/DroneJSONConfig.h"
 #include "Core/DroneManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -615,7 +614,6 @@ void UQuadDroneController::ApplyMotorCommands(const TArray<float>& MotorCommands
         }
     }
 }
-
 void UQuadDroneController::SetUseExternalController(bool bUseExternal)
 {
     if (bUseExternalController != bUseExternal)
@@ -636,9 +634,6 @@ void UQuadDroneController::SetUseExternalController(bool bUseExternal)
         }
     }
 }
-
-
-
 void UQuadDroneController::DrawMagneticDebugVisuals()
 {
     if (!dronePawn || !bDebugVisualsEnabled) return;

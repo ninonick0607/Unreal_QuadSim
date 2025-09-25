@@ -222,7 +222,7 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             // X control: slider with editable box
             ImGui::PushID("ManualX");
             ImGui::SetNextItemWidth(200.f);
-            ImGui::SliderFloat("X (m)", &ix, -500.f, 500.f, "%.2f");
+            ImGui::SliderFloat("X (m)", &ix, -50.f, 50.f, "%.2f");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(90.f);
             ImGui::InputFloat("##XEdit", &ix, 0.1f, 1.0f, "%.2f");
@@ -231,7 +231,7 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             // Y control: slider with editable box
             ImGui::PushID("ManualY");
             ImGui::SetNextItemWidth(200.f);
-            ImGui::SliderFloat("Y (m)", &iy, -500.f, 500.f, "%.2f");
+            ImGui::SliderFloat("Y (m)", &iy, -50.f, 50.f, "%.2f");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(90.f);
             ImGui::InputFloat("##YEdit", &iy, 0.1f, 1.0f, "%.2f");
@@ -240,7 +240,7 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             // Z control: slider with editable box
             ImGui::PushID("ManualZ");
             ImGui::SetNextItemWidth(200.f);
-            ImGui::SliderFloat("Z (m)", &iz, -500.f, 500.f, "%.2f");
+            ImGui::SliderFloat("Z (m)", &iz, -50.f, 50.f, "%.2f");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(90.f);
             ImGui::InputFloat("##ZEdit", &iz, 0.1f, 1.0f, "%.2f");

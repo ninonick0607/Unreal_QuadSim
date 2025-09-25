@@ -183,21 +183,19 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
 	const FGamepadInputs& GP = dronePawn->GamepadInputs;
 
 	/* ---------------- state ---------------- */
-	FVector GPSData = SensorData.GPSPosMeters;
-	float Altitude = SensorData.BaroAltitudeM;
-	const FVector  currPos = {GPSData.X, GPSData.Y, Altitude};     
-	const FVector  currVel = SensorData.IMUVelMS;          
+	float Altitude = SensorData.BaroAltitudeM*100;
+	const FVector  currVel = SensorData.IMUVelMS*100;          
 	const FRotator currRot = SensorData.IMUAttitude;
 	const FRotator yawOnlyRot(0.f, currRot.Yaw, 0.f);
-	FVector localVel = yawOnlyRot.UnrotateVector(currVel);
-
+	FVector localVel =(currVel);
+	
 	const FVector worldAngDeg = dronePawn->DroneBody->GetPhysicsAngularVelocityInDegrees();
 	localAngularRateDeg = yawOnlyRot.UnrotateVector(worldAngDeg);
 
 	/* ---------------- altitude / throttle ---------------- */
-	hoverTargetAltitude += GP.Throttle * 150.f * DeltaTime;          // Â±1 m s-Â¹
+	hoverTargetAltitude += GP.Throttle * 150.f * DeltaTime;          // ±1 m s-¹
 
-	double altVelSetpoint = AltitudePID->Calculate(hoverTargetAltitude, currPos.Z, DeltaTime);
+	double altVelSetpoint = AltitudePID->Calculate(hoverTargetAltitude, Altitude, DeltaTime);
 	double zEffort = PIDSet.ZPID->Calculate(altVelSetpoint, localVel.Z, DeltaTime);
 
 	/* ---------------- desired attitudes from sticks ---------------- */

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/ninonick0426/Documents/Unreal Projects/UnrealQuadSim/**)",
+      "Read(//home/ninonick0426/Documents/**)",
+      "Bash(grep:*)",
+      "Bash(cd:*)",
+      "Bash(ros2 topic list:*)",
+      "Bash(timeout 5s ros2 topic echo:*)",
+      "Bash(ros2 topic info:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

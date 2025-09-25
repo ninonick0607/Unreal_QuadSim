@@ -24,6 +24,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="Navigation")
     void AddWaypoint(const FVector& Waypoint);
 
+    // Expose current waypoint plan (copy, in meters)
+    UFUNCTION(BlueprintCallable, Category="Navigation")
+    TArray<FVector> GetWaypoints() const { return Waypoints; }
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Navigation")
     float AcceptableDistance = 100.0f;
 

@@ -8,6 +8,7 @@
 #include "Engine/GameViewportClient.h"
 #include "ImGuiHud/Style/SimImGuiStyle.h"
 #include "ImGuiHud/ControlPanelUI.h"
+#include "ImGuiHud/SettingsUI.h"
 #include "SimulationCore/Public/Core/SimulationManager.h"
 #include "QuadSimCore/Public/Core/DroneManager.h"
 #include "Pawns/QuadPawn.h"
@@ -23,7 +24,6 @@
 // For PID settings and saving
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
-#include "HAL/PlatformFilemanager.h"
 #include "Misc/FileHelper.h"
 #include <string>
 
@@ -75,6 +75,7 @@ bool USimHUDTaskbarSubsystem::TryBindImGui(float /*DeltaSeconds*/)
 
 void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 {
+    
     UWorld* World = GetWorld();
     if (!World)
         return;
@@ -88,6 +89,11 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
     if (!ControlPanels)
     {
         ControlPanels = NewObject<UControlPanelUI>(this);
+    }
+    // Lazy-create settings panel
+    if (!SettingsUI)
+    {
+        SettingsUI = NewObject<USimSettingsUI>(this);
     }
 
     // Taskbar at top
@@ -158,38 +164,9 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             float labelTopY = FMath::Max(0.f, (BarHeight - LabelH) * 0.5f);
             float btnTopY   = labelTopY + FMath::Max(0.f, (LabelH - btnH) * 0.5f);
 
-            // Left-anchored Settings button and popup (JSON config), vertically centered
+            // Left-anchored Settings button (opens panel), vertically centered
             ImGui::SetCursorPosY(btnTopY);
-            if (ImGui::Button("Settings")) { ImGui::OpenPopup("SettingsMenu"); }
-            if (ImGui::BeginPopup("SettingsMenu"))
-            {
-                auto& Cfg = UDroneJSONConfig::Get().Config;
-                ImGui::Text("Flight Parameters"); ImGui::Separator();
-                ImGui::InputFloat("Max Velocity Bound", &Cfg.FlightParams.MaxVelocityBound);
-                ImGui::InputFloat("Max Velocity", &Cfg.FlightParams.MaxVelocity);
-                ImGui::InputFloat("Max Angle", &Cfg.FlightParams.MaxAngle);
-                ImGui::InputFloat("Max Angle Rate", &Cfg.FlightParams.MaxAngleRate);
-                ImGui::InputFloat("Max PID Output", &Cfg.FlightParams.MaxPIDOutput);
-                ImGui::InputFloat("Max Thrust", &Cfg.FlightParams.MaxThrust);
-                ImGui::InputFloat("Altitude Threshold", &Cfg.FlightParams.AltitudeThreshold);
-                ImGui::InputFloat("Min Altitude Local", &Cfg.FlightParams.MinAltitudeLocal);
-                ImGui::InputFloat("Acceptable Distance", &Cfg.FlightParams.AcceptableDistance);
-                ImGui::Separator();
-                ImGui::Text("Controller Parameters"); ImGui::Separator();
-                ImGui::InputFloat("Altitude Rate", &Cfg.ControllerParams.AltitudeRate);
-                ImGui::InputFloat("Yaw Rate", &Cfg.ControllerParams.YawRate);
-                ImGui::InputFloat("Min Vel For Yaw", &Cfg.ControllerParams.MinVelocityForYaw);
-                ImGui::Separator();
-                ImGui::Text("Obstacle Parameters"); ImGui::Separator();
-                ImGui::InputFloat("Inner Boundary", &Cfg.ObstacleParams.InnerBoundarySize);
-                ImGui::InputFloat("Outer Boundary", &Cfg.ObstacleParams.OuterBoundarySize);
-                ImGui::InputFloat("Spawn Height", &Cfg.ObstacleParams.SpawnHeight);
-                ImGui::Separator();
-                if (ImGui::Button("Save")) { UDroneJSONConfig::Get().SaveConfig(); }
-                ImGui::SameLine();
-                if (ImGui::Button("Reload")) { UDroneJSONConfig::Get().ReloadConfig(); }
-                ImGui::EndPopup();
-            }
+            if (ImGui::Button("Settings")) { if (SettingsUI) SettingsUI->ToggleOpen(); }
             ImGui::SameLine();
             // Pre-compute total width to center the main control group (excluding Settings)
             auto BtnW = [&](const char* txt){ return ImGui::CalcTextSize(txt).x + padX*2.f; };
@@ -467,6 +444,17 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         ControlPanels->TickAndDraw(World);
     }
 
+    // Apply startup settings once, then draw settings panel
+    if (SettingsUI)
+    {
+        if (!bAppliedStartupSettings)
+        {
+            SettingsUI->ApplyStartupPreferences(World, this);
+            bAppliedStartupSettings = true;
+        }
+        SettingsUI->TickAndDraw(World, this);
+    }
+
     // Draw left-side State Data HUD when toggled
     if (bShowStateHUD)
     {
@@ -523,12 +511,17 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         ImGui::Separator();
                         ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "Attitude");
                         ImGui::Separator();
-
+                        
+                        FSensorData SensorData;
+                        if (Pawn->SensorManager)
+                        {
+                            SensorData = Pawn->SensorManager->GetCurrentSensorData();
+                        }
                         // Drone Mass
                         ImGui::Text("Drone Mass: %.2f kg", Pawn->GetMass());
 
                         // Attitude (current & desired)
-                        FRotator curAtt = Pawn->SensorManager ? Pawn->SensorManager->IMU->GetLastAttitude() : Pawn->GetActorRotation();
+                        FRotator curAtt = Pawn->SensorManager ? SensorData.IMUAttitude : Pawn->GetActorRotation();
                         ImGui::Text("Current Roll/Pitch: %.2f / %.2f deg", curAtt.Roll, curAtt.Pitch);
                         ImGui::Text("Desired Roll/Pitch: %.2f / %.2f deg", Ctrl->GetDesiredRoll(), Ctrl->GetDesiredPitch());
 
@@ -538,18 +531,18 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         ImGui::Text("Desired Rate Roll/Pitch: %.2f / %.2f deg/s", (float)Ctrl->GetDesiredRollRate(), (float)Ctrl->GetDesiredPitchRate());
 
                         ImGui::TextColored(ImVec4(1.0f,0.9f,0.4f,1.0f), "Acceleration");
-                        FVector curAcc = Pawn->SensorManager ? Pawn->SensorManager->IMU->GetLastAccelerometer() : FVector::ZeroVector;
+                        FVector curAcc =SensorData.IMULinearAccelMS2;
                         ImGui::Text("Current Acceleration: X %.2f Y %.2f Z %.2f m/s^2", curAcc.X, curAcc.Y, curAcc.Z);
 
                         ImGui::TextColored(ImVec4(0.6f,1.0f,0.6f,1.0f), "Position");
-                        FVector curPos = Pawn->SensorManager ? Pawn->SensorManager->GPS->GetLastGPS() : Pawn->GetActorLocation();
+                        FVector curPos = SensorData.GPSPosMeters;
                         ImGui::Text("Current Position: X %.1f Y %.1f Z %.1f", curPos.X, curPos.Y, curPos.Z);
                         ImGui::TextColored(ImVec4(0.6f,1.0f,0.8f,1.0f), "Geo Position");
-                        FVector geo = Pawn->SensorManager ? Pawn->SensorManager->GPS->GetGeographicCoordinates() : FVector::ZeroVector;
+                        FVector geo = SensorData.GPSLatLong;
                         ImGui::Text("Geo Position: Lat %.3f Lon %.3f Alt %.1f", geo.X, geo.Y, geo.Z);
 
                         ImGui::TextColored(ImVec4(0.5f,0.7f,1.0f,1.0f), "Velocity");
-                        FVector curVel = Pawn->SensorManager ? Pawn->SensorManager->IMU->GetLastVelocity() : Pawn->GetVelocity();
+                        FVector curVel = SensorData.IMUVelMS;
                         ImGui::Text("Current Velocity: X %.2f Y %.2f Z %.2f m/s", curVel.X, curVel.Y, curVel.Z);
                         FVector desVel = Ctrl->GetDesiredVelocity();
                         ImGui::Text("Desired Velocity: X %.2f Y %.2f Z %.2f m/s", desVel.X, desVel.Y, desVel.Z);
@@ -559,9 +552,9 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         if (Pawn->SensorManager && Pawn->SensorManager->Barometer)
                         {
                             UBaroSensor* Baro = Pawn->SensorManager->Barometer;
-                            ImGui::Text("Pressure: %.2f hPa", Baro->GetLastPressureHPa());
-                            ImGui::Text("Temperature: %.1f C", Baro->GetLastTemperature());
-                            ImGui::Text("Altitude: %.1f m", Baro->GetEstimatedAltitude());
+                            ImGui::Text("Pressure: %.2f hPa", SensorData.BaroLastPressureHPa);
+                            ImGui::Text("Temperature: %.1f C", SensorData.BaroTemp);
+                            ImGui::Text("Altitude: %.1f m", SensorData.BaroAltitudeM);
                         }
 
                         // (Removed legacy bottom thruster progress bars)
@@ -993,5 +986,4 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
     if (bShowMain) ImGui::End();
 #endif
 }
-
 

@@ -18,19 +18,19 @@ UBaroSensor::UBaroSensor()
 
 void UBaroSensor::Initialize()
 {
-	// Find the GeoReferencingSystem in the world
-	if (UWorld* World = GetWorld())
-	{
-		for (TActorIterator<AGeoReferencingSystem> It(World); It; ++It)
-		{
-			GeoRefSystem = *It;
-			break;
-		}
-		
-		if (!GeoRefSystem)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("BaroSensor: No GeoReferencingSystem found in level! Using default altitude."));
-		}
+    // Find the GeoReferencingSystem in the world
+    if (UWorld* World = GetWorld())
+    {
+        GeoRefSystem = AGeoReferencingSystem::GetGeoReferencingSystem(World);
+        
+        if (!GeoRefSystem)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("BaroSensor: No GeoReferencingSystem found in level! Using default altitude."));
+        }
+    	else
+    	{
+    		bInitialized = true;
+    	}
 	}
 	
 	// Reset drift

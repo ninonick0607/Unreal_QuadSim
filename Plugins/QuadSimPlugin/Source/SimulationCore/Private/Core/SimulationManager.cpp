@@ -140,10 +140,14 @@ void ASimulationManager::StepSimulation(float DeltaTime)
             StepsExecuted++;
         }
         
-        if (StepsExecuted >= MaxStepsPerFrame)
+        // Only warn if we truly still have leftover time to consume.
+        // Hitting the per-frame cap with no leftover is expected when fast-forwarding.
+        if (StepsExecuted >= MaxStepsPerFrame && TimeController->ShouldStep())
         {
-            UE_LOG(LogTemp, Warning, TEXT("Simulation falling behind! Executed max steps (%d) this frame"), 
-                   MaxStepsPerFrame);
+            UE_LOG(LogTemp, Warning, TEXT("Simulation falling behind: hit per-frame cap %d and still have leftover (accum=%.4fs, fixed=%.4fs)"),
+                   MaxStepsPerFrame,
+                   TimeController->GetAccumulatedTime(),
+                   TimeController->GetFixedDeltaTime());
         }
     }
 }
@@ -199,7 +203,8 @@ void ASimulationManager::SetSimulationMode(ESimulationMode NewMode)
             GetWorld()->GetWorldSettings()->SetTimeDilation(0.0001f);
             break;
         case ESimulationMode::FastForward:
-            GetWorld()->GetWorldSettings()->SetTimeDilation(TimeController->GetTimeScale());
+            // Use the TimeController to scale time; keep world dilation at 1.0 to avoid double scaling
+            GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
             break;
         default:
             GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
@@ -241,12 +246,17 @@ void ASimulationManager::SetTimeScale(float NewTimeScale)
 {
     if (TimeController)
     {
-        TimeController->SetTimeScale(NewTimeScale);
-        
-        // Update time dilation if in fast forward mode
-        if (CurrentSimulationMode == ESimulationMode::FastForward)
+        // Drive global sim speed via world time dilation so physics and game systems follow.
+        // Avoid double-scaling by keeping the internal TimeController at 1x.
+        TimeController->SetTimeScale(1.0f);
+
+        const float Clamped = FMath::Clamp(NewTimeScale, 0.0001f, 100.0f);
+        if (UWorld* World = GetWorld())
         {
-            GetWorld()->GetWorldSettings()->SetTimeDilation(NewTimeScale);
+            if (AWorldSettings* WS = World->GetWorldSettings())
+            {
+                WS->SetTimeDilation(Clamped);
+            }
         }
     }
 }

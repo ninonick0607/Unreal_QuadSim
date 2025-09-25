@@ -18,7 +18,9 @@ public:
     
 	void Initialize();
 	void UpdateSensor(float DeltaTime, bool bNoise);
-	
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	bool IsInitialized() const { return bInitialized; }
+    
 	// Get sensor readings
 	UFUNCTION(BlueprintPure, Category = "Barometer")
 	float GetLastPressure() const { return LastPressure; }  // Pascal
@@ -34,9 +36,10 @@ public:
     
 private:
 	// Sensor update rate (20Hz from PX4)
-	float UpdateRate = 20.0f;
+	float UpdateRate = 50.0f;
 	float AccumulatedTime = 0.0f;
-    
+	bool bInitialized = false;
+
 	// Last sensor readings
 	float LastPressure;      // Pascal
 	float LastTemperature;   // Celsius

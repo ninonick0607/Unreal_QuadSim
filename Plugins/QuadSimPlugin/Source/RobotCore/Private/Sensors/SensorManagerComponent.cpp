@@ -132,36 +132,66 @@ void USensorManagerComponent::UpdateAllSensors(float DeltaTime, bool bAddNoise)
 	{
 		const float MagPeriod = 1.0f / 100.0f; // 0.01 seconds (10ms)
 		float RemainingTime = DeltaTime;
-        
+
 		while (RemainingTime > 0.0f)
 		{
 			float StepTime = FMath::Min(RemainingTime, MagPeriod);
 			Magnetometer->UpdateSensor(StepTime, bAddNoise);
-			RemainingTime -= MagPeriod;
+			RemainingTime -= StepTime;
 		}
 	}
 	if (Barometer)
 	{
 		const float BaroPeriod = 1.0f / 20.0f; // 0.05 seconds (50ms)
 		float RemainingTime = DeltaTime;
-        
+
 		while (RemainingTime > 0.0f)
 		{
 			float StepTime = FMath::Min(RemainingTime, BaroPeriod);
 			Barometer->UpdateSensor(StepTime, bAddNoise);
-			RemainingTime -= BaroPeriod;
+			RemainingTime -= StepTime;
 		}
 	}
+	CachedSensorData = GetCurrentSensorData();
+
 }
 
-// void USensorManagerComponent::SetupSensorAttachments()
-// {
-//     // Currently sensors are attached to this component in the constructor
-//     // Override this if you need special attachment logic
-//     
-//     // Example: If you wanted IMU attached to a specific socket:
-//     // if (IMU && GetAttachParent())
-//     // {
-//     //     IMU->AttachToComponent(GetAttachParent(), FAttachmentTransformRules::KeepRelativeTransform, "IMUSocket");
-//     // }
-// }
+FSensorData USensorManagerComponent::GetCurrentSensorData() const
+{
+	FSensorData Data;
+    
+	if (IMU && IMU->IsInitialized())
+	{
+		Data.IMUAngVelRADS = IMU->GetLastGyroscope();
+		Data.IMULinearAccelMS2 = IMU->GetLastAccelerometer();
+		Data.IMUAttitude = IMU->GetLastAttitude();
+		Data.IMUVelMS = IMU->GetLastVelocity();
+		Data.IMUTimestamp = IMU->GetLastUpdateTime();
+		Data.bIMUValid = true;
+	}
+    
+	if (GPS && GPS->IsInitialized())
+	{
+		Data.GPSPosMeters = GPS->GetLastGPS();
+		Data.GPSLatLong = GPS->GetGeographicCoordinates();
+		Data.GPSTimestamp = GPS->GetLastUpdateTime();
+		Data.bGPSValid = GPS->HasFix();
+	}
+    
+	if (Barometer && Barometer->IsInitialized())
+	{
+		Data.BaroAltitudeM = Barometer->GetEstimatedAltitude();
+		Data.BaroTemp = Barometer->GetLastTemperature();
+		Data.BaroLastPressureHPa = Barometer->GetLastPressureHPa();
+		Data.bBaroValid = true;
+	}
+    
+	if (Magnetometer && Magnetometer->IsInitialized())
+	{
+		Data.MagFieldGauss = Magnetometer->GetLastMagField();
+		Data.MagHeadingDeg = Magnetometer->GetHeading();
+		Data.bMagValid = !Magnetometer->IsCalibrating();
+	}
+    
+	return Data;
+}

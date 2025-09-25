@@ -13,7 +13,7 @@
     {
       "Name": "QuadSimCore",
       "Type": "Runtime",
-      "LoadingPhase": "Default"
+      "LoadingPhase": "PreDefault"
     },
     {
       "Name": "SimulationCore",
@@ -28,7 +28,7 @@
     {
       "Name": "SimHUD",
       "Type": "Runtime",
-      "LoadingPhase": "Default"
+      "LoadingPhase": "PostDefault"
     }
   ],
 

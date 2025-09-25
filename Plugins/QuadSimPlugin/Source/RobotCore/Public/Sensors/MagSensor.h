@@ -16,16 +16,38 @@ public:
 	UMagSensor();
     
 	float SensorNoise();
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	bool IsInitialized() const { return bInitialized; }
+    
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	float GetLastUpdateTime() const { return LastUpdateTime; }
+
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	float GetHeading() const { return MagneticHeading; }
+    
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	bool IsCalibrating() const { return bIsCalibrating; }
+    
+	UFUNCTION(BlueprintCallable, Category = "Magnetometer")
+	float GetDeclination() const { return MagneticDeclination; }
+	
 	void UpdateSensor(float DeltaTime, bool bNoise);
 	FVector GetLastMagField() const { return LastMagField; }
 	FVector GetLastMagFieldMilliGauss() const { return LastMagField * 1000.0f; } // Convert to milligauss
-    
+    void CalculateMagneticHeading();
 	void Initialize();
     
 private:
 	float UpdateRate = 100.0f;  
 	float AccumulatedTime = 0.0f;
-    
+	bool bInitialized = false;
+	bool bIsCalibrating = false;
+	float LastUpdateTime = 0.0f;
+	float CalibrationTime = 0.0f;
+	static constexpr float CALIBRATION_DURATION = 2.0f; // 3 seconds calibration
+
+	float MagneticHeading = 0.0f;
+	float MagneticDeclination = 0.0f;
 	FVector LastMagField;       
 	FVector EarthMagField;      
 	bool bEarthMagFieldValid = false;

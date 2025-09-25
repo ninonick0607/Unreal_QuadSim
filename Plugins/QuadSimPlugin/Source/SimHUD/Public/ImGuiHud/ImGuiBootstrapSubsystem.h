@@ -25,7 +25,18 @@ private:
     UPROPERTY()
     class UControlPanelUI* ControlPanels = nullptr; // per-drone panels
 
+    UPROPERTY()
+    class USimSettingsUI* SettingsUI = nullptr; // central settings panel
+
     bool bShowStateHUD = false; // toggle for left-side state data HUD
     bool bShowPIDSettings = false; // toggle to show PID settings inside State HUD
     bool bShowPIDHistoryWindow = false; // toggle to show PID configuration history window
+
+    bool bAppliedStartupSettings = false; // run-once gate
+
+public:
+    // Accessors for settings UI to control HUD state
+    void SetStateHUDVisible(bool bVisible) { bShowStateHUD = bVisible; }
+    bool IsStateHUDVisible() const { return bShowStateHUD; }
+    class UControlPanelUI* GetControlPanels() const { return ControlPanels; }
 };

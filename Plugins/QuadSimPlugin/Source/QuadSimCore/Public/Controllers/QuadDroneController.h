@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SensorData.h"
 #include "Utility/QuadPIDController.h"
 
 
@@ -60,31 +61,51 @@ public:
     AQuadPawn* dronePawn;
     UPROPERTY()
     TArray<float> Thrusts;
-
+    
+    //Constructor
     UQuadDroneController(const FObjectInitializer& ObjectInitializer);
-
+    
+    //Init
     void Initialize(AQuadPawn* InPawn);
-    void Update(double DeltaTime);
-
-    void FlightController(double DeltaTime);
-    void GamepadController(double DeltaTime);
+    void Update(const FSensorData& SensorData, float DeltaTime);
+    
+    //Update
+    void GamepadController(const FSensorData& SensorData,double DeltaTime);
+    void FlightController(const FSensorData& SensorData, double DeltaTime);
     void ThrustMixer(double currentRoll, double currentPitch, double zOutput, double rollOutput, double pitchOutput, double yawOutput);
     float YawRateControl(double DeltaTime);
-    
+
+    //Reset
     void ResetPID();
     void ResetDroneIntegral();
-    void ResetDroneRotation();
-    void ResetDroneOrigin();
+    // Reset full controller state for a fresh Play session
+    void ResetControllerState();
 
+    //Hover and Nav
     void SetHoverMode(bool bActive, float TargetAltitude = 250.0f);
     void SetDestination(FVector desiredSetPoints);
 
+    //Helpers
     void DrawDebugVisuals(const FVector& currentPosition)const;
     void DrawDebugVisualsVel(const FVector& horizontalVelocity) const;
-	
+    void DrawMagneticDebugVisuals();
+    void SetManualPathMode(bool bManual) { bManualPathMode = bManual; }
+    float GetCurrentThrustOutput(int32 ThrusterIndex) const;
+    UFUNCTION(BlueprintCallable, Category = "Flight")
+    void SetFlightMode(EFlightMode NewMode);
+
+    //PX4
+    UFUNCTION(BlueprintCallable, Category = "External Control")
+    void ApplyMotorCommands(const TArray<float>& MotorCommands);
+    
+    // ROS2
+    UFUNCTION(BlueprintCallable, Category = "External Control")
+    void SetUseExternalController(bool bUseExternal);
+
+    // Setters and Getters
     FVector GetDesiredVelocity() const { return desiredNewVelocity; }
     bool GetDebugVisualsEnabled() const { return bDebugVisualsEnabled; }
-	
+    
     float GetDesiredRoll() const { return desiredRoll; }
     float GetDesiredPitch() const { return desiredPitch; }
     float GetDesiredYawRate() const { return desiredYawRate; }
@@ -112,29 +133,12 @@ public:
     void SetDesiredRollRate(const float& NewRollRate){desiredNewRollRate = NewRollRate;};
     void SetDesiredYawRate(float NewYawRate) { desiredYawRate = NewYawRate; }
 
-    float GetCurrentThrustOutput(int32 ThrusterIndex) const;
-
-    UFUNCTION(BlueprintCallable, Category = "Flight")
-    void SetFlightMode(EFlightMode NewMode);
     FFullPIDSet* GetPIDSet(EFlightMode Mode){return &PIDSet;}
 
     // External Control Support (PX4 integration)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "External Control")
     bool bUseExternalController = false;
 
-    // Apply motor commands from external controller (PX4)
-    UFUNCTION(BlueprintCallable, Category = "External Control")
-    void ApplyMotorCommands(const TArray<float>& MotorCommands);
-
-    // Set external controller state
-    UFUNCTION(BlueprintCallable, Category = "External Control")
-    void SetUseExternalController(bool bUseExternal);
-
-    // Getters for external controller to access state
-    UFUNCTION(BlueprintCallable, Category = "External Control")
-    FVector GetLocalAngularRateDeg() const { return localAngularRateDeg; }
-	
-	void DrawMagneticDebugVisuals();
 
 private:
 
@@ -142,7 +146,9 @@ private:
     FFullPIDSet PIDSet;
     QuadPIDController* AltitudePID;
     EFlightMode currentFlightMode;
-
+    FSensorData LastSensorData;
+    bool bHasValidSensorData = false;
+    
     //Global Drone Variables
     FVector currentLocalVelocity;
     bool bDebugVisualsEnabled = false;
@@ -172,9 +178,6 @@ private:
     bool bHoverModeActive;
     bool bManualThrustMode = false;
     
-    bool bUseROSflight = false;
-    float desiredThrust_Normalized = 0.0f;
-
 	float maxThrust;
     float maxVelocity;
     float maxAngle;
@@ -187,7 +190,6 @@ private:
     float maxYawRate;
     float minVelocityForYaw;
 
-    bool Debug_DrawDroneCollisionSphere;
-    bool Debug_DrawDroneWaypoint;
     bool bGamepadModeUI = false; 
+    bool bManualPathMode = false;
 };

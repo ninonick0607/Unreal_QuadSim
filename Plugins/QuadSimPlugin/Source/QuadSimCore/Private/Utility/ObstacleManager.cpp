@@ -129,6 +129,7 @@ AActor* AObstacleManager::SpawnGoal(EGoalPosition Position) {
     
     FVector CenterPoint = GetActorLocation();
     float HalfOuterSize = OuterBoundarySize * 0.5f;
+    float HalfInnerSize = InnerBoundarySize * 0.5f;
     UE_LOG(LogTemp, Display, TEXT("Goal Actor Position: %f %f %f"), CenterPoint.X, CenterPoint.Y, CenterPoint.Z);
 
     // Default to a random position if specified
@@ -142,22 +143,23 @@ AActor* AObstacleManager::SpawnGoal(EGoalPosition Position) {
     
     switch (Position) {
         case EGoalPosition::Front:
-            SpawnLocation.X += HalfOuterSize;
+            // Place goal on the outline of the inner (red) box
+            SpawnLocation.X += HalfInnerSize;
             SpawnRotation.Yaw = 180.0f;
             break;
             
         case EGoalPosition::Back:
-            SpawnLocation.X -= HalfOuterSize;
+            SpawnLocation.X -= HalfInnerSize;
             SpawnRotation.Yaw = 0.0f;
             break;
             
         case EGoalPosition::Left:
-            SpawnLocation.Y += HalfOuterSize;
+            SpawnLocation.Y += HalfInnerSize;
             SpawnRotation.Yaw = 270.0f;
             break;
             
         case EGoalPosition::Right:
-            SpawnLocation.Y -= HalfOuterSize;
+            SpawnLocation.Y -= HalfInnerSize;
             SpawnRotation.Yaw = 90.0f;
             break;
             
@@ -316,7 +318,8 @@ void AObstacleManager::MoveDroneToOppositeOfGoal(EGoalPosition GoalPos) {
             break;
     }
     
-    DroneLocation.Z = ObstacleSpawnHeight; // Set proper height
+    // Keep drone at ground level instead of obstacle height
+    DroneLocation.Z = CenterPoint.Z; // Use the same Z as the ObstacleManager center point
     
     // Additional logging for debugging
     UE_LOG(LogTemp, Display, TEXT("Moving drone to %s based on opposite position %d"), 

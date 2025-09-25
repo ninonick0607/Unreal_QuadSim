@@ -65,7 +65,8 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
     virtual void PossessedBy(AController* NewController) override;
     virtual void UnPossessed() override;
-
+	void SetupPropellers();
+	void SetupCameras();
 	// --- Drone Components ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* DroneBody;
@@ -87,20 +88,6 @@ public:
 	// Ground tracking camera
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraGroundTrack;
-	
-	// --- HUD Scene Capture Components ---
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD")
-	USceneCaptureComponent2D* TPCaptureComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HUD")
-	USceneCaptureComponent2D* FPVCaptureComponent;
-
-	// --- HUD Render Targets ---
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
-	UTextureRenderTarget2D* TPCaptureRenderTarget;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
-	UTextureRenderTarget2D* FPVCaptureRenderTarget;
 
 	// --- Thruster Components ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -134,7 +121,8 @@ public:
 	void ReloadJSONConfig();
 	void ResetRotation();
 	void ResetPosition();
-	
+	void UpdatePropellerVisuals(float DeltaTime);
+	void SetCameraMode(ECameraMode NewMode);
 	UFUNCTION(BlueprintPure, Category = "Drone State")
 	float GetMass();
 
@@ -158,24 +146,27 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Input")
 	FGamepadInputs GamepadInputs;
-	UFUNCTION(BlueprintCallable, Category = "ROS Control")
-	void SetExternalAttitudeCommand(float InRoll, float InPitch);
+    UFUNCTION(BlueprintCallable, Category = "ROS Control")
+    void SetExternalAttitudeCommand(float InRoll, float InPitch);
+
+    UFUNCTION(BlueprintCallable, Category = "ROS Control")
+    void SetExternalVelocityCommand(const FVector& LinearMps, const FVector& AngularRadps);
+
+    UFUNCTION(BlueprintCallable, Category = "ROS Control")
+    void SetExternalHoverHeight(float HeightMeters);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation")
 	bool bIsSimulationControlled = false;
     
 	// Make UpdateControl public so DroneManager can call it
 	void UpdateControl(float DeltaTime);
-	void DebugDrawMagnetometer();
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PX4")
 	UPX4Component* PX4Component;
 	
-
     UFUNCTION()
     void OnDroneHit(UPrimitiveComponent* HitComponent,AActor* OtherActor,UPrimitiveComponent* OtherComp,FVector NormalImpulse,const FHitResult& Hit);
 
@@ -187,12 +178,19 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	ECameraMode CurrentCameraMode;
-	void ResetGroundCameraPosition();
-	void UpdateGroundCameraTracking();
+    void ResetGroundCameraPosition();
+    void UpdateGroundCameraTracking();
+
+public:
+    UFUNCTION(BlueprintCallable, Category = "Camera")
+    void ForceFPVCameraActive();
 
 private:
 	float LastCollisionTime;
 	float CollisionTimeout = 0.2f;
 	bool bWaypointModeSelected;
+	bool bSensorsReady = false;
+	bool bControllerReady = false;
+	float NextCollisionCheckTime = 0.0f;
 
 };

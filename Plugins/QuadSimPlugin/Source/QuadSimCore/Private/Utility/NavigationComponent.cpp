@@ -5,7 +5,8 @@ UNavigationComponent::UNavigationComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     CurrentIndex = 0;
-    AcceptableDistance = UDroneJSONConfig::Get().Config.FlightParams.AcceptableDistance;
+    // Config stores distances in centimeters; convert to meters for nav logic
+    AcceptableDistance = UDroneJSONConfig::Get().Config.FlightParams.AcceptableDistance / 100.0f;
 
 }
 

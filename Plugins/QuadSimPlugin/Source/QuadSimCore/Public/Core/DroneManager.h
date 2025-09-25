@@ -15,7 +15,7 @@ class QUADSIMCORE_API ADroneManager : public AActor, public ISimulatable
 	GENERATED_BODY()
 
 public:
-	ADroneManager();
+    ADroneManager();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -23,8 +23,21 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Drone Manager")
     AQuadPawn* SpawnDrone(const FVector& SpawnLocation, const FRotator& SpawnRotation);
 
-	UFUNCTION(BlueprintCallable, Category = "Drone Manager")
-	TArray<AQuadPawn*> GetDroneList() const;
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager")
+    TArray<AQuadPawn*> GetDroneList() const;
+
+    // Settings-driven API -------------------------------------------------
+    // Allow settings/HUD to assign the drone pawn class
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager|Settings")
+    void SetQuadPawnClass(TSubclassOf<AQuadPawn> InClass, bool bRespawn = false);
+
+    // Set the Obstacle Manager blueprint/class to spawn
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager|Settings")
+    void SetObstacleManagerClass(TSubclassOf<AActor> InClass, bool bRespawn = false);
+
+    // Toggle obstacle spawning; optionally apply immediately by spawning/destroying
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager|Settings")
+    void SetSpawnObstacles(bool bEnabled, bool bApplyImmediately = false);
 
     
     // Register a quad-drone controller for global flight mode broadcasts
@@ -60,6 +73,10 @@ public:
     UFUNCTION(BlueprintPure, Category = "Drone Manager")
     FVector GetSpawnOrigin() const { return SpawnOrigin; }
 
+    // Select a drone by index and optionally possess it (switch camera)
+    UFUNCTION(BlueprintCallable, Category = "Drone Manager")
+    void SelectDroneByIndex(int32 Index, bool bAlsoPossess = true);
+
 
     virtual void SimulationUpdate_Implementation(float FixedDeltaTime) override;
     virtual void ResetRobot_Implementation() override;
@@ -67,11 +84,19 @@ public:
     virtual void ApplyCommand_Implementation(const FString& Command) override;
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone Manager")
-	TSubclassOf<AQuadPawn> QuadPawnClass;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone Manager")
+    TSubclassOf<AQuadPawn> QuadPawnClass;
+
+    // Class of the obstacle manager to spawn (conditionally)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone Manager|Obstacles")
+    TSubclassOf<AActor> ObstacleManagerClass;
+
+    // Whether obstacles should spawn at BeginPlay (can be toggled by settings)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone Manager|Obstacles")
+    bool bSpawnObstacles = true;
 
 
 	UPROPERTY(VisibleAnywhere, Category = "Drone Manager")
@@ -83,9 +108,13 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Swarm", meta=(AllowPrivateAccess="true"))
     bool bSwarmMode = false;
 
-	void OnActorSpawned(AActor* SpawnedActor);
+    void OnActorSpawned(AActor* SpawnedActor);
 
     FDelegateHandle OnActorSpawnedHandle;
     // Last spawn location used for positioning new drones
     FVector LastSpawnLocation = FVector::ZeroVector;
+
+    // Runtime reference to spawned obstacle manager (if any)
+    UPROPERTY(Transient)
+    TWeakObjectPtr<AActor> SpawnedObstacleManager;
 };

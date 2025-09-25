@@ -2,255 +2,160 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Engine/World.h"
-#include "Sockets.h"
-#include "Common/UdpSocketBuilder.h"
-#include "SocketSubsystem.h"
-#include "Interfaces/IPv4/IPv4Address.h"
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
-#include "HAL/ThreadSafeBool.h"
 #include "HAL/CriticalSection.h"
-
-#include <mavlink_types.h>
-
+#include "Sockets.h"
 #include "PX4Component.generated.h"
 
-// Forward declarations
 class UQuadDroneController;
-class FPX4CommunicationThread;
 
-UENUM(BlueprintType)
-enum class EPX4ControlMode : uint8
-{
-    Disabled    UMETA(DisplayName = "Disabled"),
-    Position    UMETA(DisplayName = "Position Control"),
-    Velocity    UMETA(DisplayName = "Velocity Control"), 
-    Attitude    UMETA(DisplayName = "Attitude Control"),
-    Manual      UMETA(DisplayName = "Manual Control")
-};
-
-// Communication Thread Class
-class FPX4CommunicationThread : public FRunnable
-{
-public:
-    FPX4CommunicationThread(class UPX4Component* InPX4Component);
-    virtual ~FPX4CommunicationThread();
-
-    // FRunnable interface
-    virtual bool Init() override;
-    virtual uint32 Run() override;
-    virtual void Stop() override;
-    virtual void Exit() override;
-
-    void StartThread();
-    void StopThread();
-    bool IsRunning() const { return Thread != nullptr; }
-
-private:
-    class UPX4Component* PX4Component;
-    FRunnableThread* Thread;
-    FThreadSafeBool bStopRequested;
-    
-    static const int32 TARGET_FREQUENCY_HZ = 250;  // Increase to 250Hz for lockstep
-    static const double TARGET_INTERVAL; // Will be 0.004 seconds (4ms)
-};
-
+/**
+ * Sleek, no-lockstep PX4 HIL component.
+ * NOTE: Do NOT include or forward-declare any MAVLink types in this header.
+ */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class QUADSIMCORE_API UPX4Component : public UActorComponent
 {
-    GENERATED_BODY()
-
+	GENERATED_BODY()
 public:
-    UPX4Component();
+	UPX4Component();
 
-protected:
-    virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	// UE lifecycle
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-public:
-    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	// Settings
+    UPROPERTY(EditAnywhere, Category="PX4")
+    bool bEnablePX4 = false;
 
-    // Configuration
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Connection")
-    bool bUsePX4 = false;
+	UPROPERTY(EditAnywhere, Category="PX4")
+	int32 SimulatorTcpPort = 4560; // PX4 SITL connects here
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Connection")
-    FString PX4_IP = TEXT("127.0.0.1");
+	// Status
+    UPROPERTY(VisibleAnywhere, Category="PX4")
+    bool bPX4Connected = false;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Connection")
-    int32 PX4_Port = 4560;  // Standard PX4 simulator port (TCP)
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Connection")
-    int32 ControlPortLocal = 14540;  // Local UDP port for MAVLink control
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Connection")
-    int32 ControlPortRemote = 14580;  // Remote UDP port for MAVLink control
+    // Motor order mapping (PX4 index -> Our thruster index)
+    // Default (Iris/Gazebo-style): PX4 [FR, BL, FL, BR] -> Ours [FL, FR, BL, BR]
+    // Map used: [2, 0, 1, 3]
+    UPROPERTY(EditAnywhere, Category="PX4")
+    TArray<int32> Px4ToOurMotorMap;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Control")
-    EPX4ControlMode ControlMode = EPX4ControlMode::Attitude;
+    // Optional logging to verify mapping at runtime
+    UPROPERTY(EditAnywhere, Category="PX4|Debug")
+    bool bLogActuatorMapping = true;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Control")
-    float StateUpdateRate = 100.0f; // Hz
+	// Public control (new)
+	UFUNCTION(BlueprintCallable, Category="PX4")
+	void Connect();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Control")
-    float HeartbeatRate = 2.0f; // Hz - Send heartbeat every 0.5 seconds
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PX4 Control", meta = (DisplayName = "Use Lockstep Mode"))
-    bool bUseLockstepMode = true;
+	UFUNCTION(BlueprintCallable, Category="PX4")
+	void Disconnect();
 
-    // Status
-    UPROPERTY(BlueprintReadOnly, Category = "PX4 Status")
-    bool bConnectedToPX4 = false;
+	// --- Compatibility shims (to keep other modules compiling) ---
+	UFUNCTION(BlueprintCallable, Category="PX4")
+	void SetPX4Active(bool bActive) { bEnablePX4 = bActive; if (bActive) Connect(); else Disconnect(); }
 
-    UPROPERTY(BlueprintReadOnly, Category = "PX4 Status")
-    float LastHeartbeatTime = 0.0f;
-
-    // Control Functions
-    UFUNCTION(BlueprintCallable, Category = "PX4")
-    void SetPX4Active(bool bActive);
-
-    UFUNCTION(BlueprintCallable, Category = "PX4")
-    void ConnectToPX4();
-
-    UFUNCTION(BlueprintCallable, Category = "PX4")
-    void DisconnectFromPX4();
-    
-    // Lockstep control
-    UFUNCTION(BlueprintCallable, Category = "PX4")
-    void SetLockstepMode(bool bEnabled);
-
-    // Thread-safe methods (called by communication thread)
-    bool IsConnectedToPX4() const;
-    void SendHeartbeat();
+	// Legacy called by DroneManager; no-op in non-lockstep design (kept for ABI)
+	UFUNCTION(BlueprintCallable, Category="PX4")
 	void SimulationUpdate(float FixedDeltaTime);
-	bool bIsActive() const { return bUsePX4 && bConnectedToPX4; }
-	bool IsLockstepMode() const { return bUseLockstep; }
-	void ProcessIncomingMAVLinkData();
+	
+	// Please use IsPX4Active() instead of bIsActive() to avoid UE bitfield conflict
+	UFUNCTION(BlueprintCallable, Category="PX4")
+	bool IsPX4Active() const { return bEnablePX4 && bPX4Connected; }
 
-	// Frame-independent update for the communication thread
-	void ThreadSimulationStep();
+	// Your sensor pull — keep your existing implementation body
 	void UpdateCurrentState();
 
+	// Called by comm thread
+	void ProcessIncomingTCP();
+	void ThreadStep_RealTime();
+	void SendHeartbeat();
+	void SendHILSensor();
+	void SendHILStateQuaternion();
+	void SendHILGPS();
+	void SendHILRC();
+
+	// Actuator decoded -> game thread
+	void EnqueueMotorCommand(const TArray<float>& Norm01);
+
+	// Time helpers
+	uint64 NowUsec() const;
+	uint32 TimeBootMs() const { return static_cast<uint32>(NowUsec()/1000ULL); }
+
+	// Handshake state (no MAVLink types here)
+	void OnHeartbeat_Parsed(uint8 SrcSys, uint8 SrcComp);
+
+	// Ready?
+	bool IsPX4Ready() const { return bPX4Connected && bSawHeartbeat; }
+
+	uint64 GetFirstHeartbeatUsec() const { return FirstHeartbeatUsec; }
+
 private:
-	struct FMotorCommand
-	{
-		TArray<float> Commands;
-		double Timestamp;
-	};
-    
-	FCriticalSection MotorCommandMutex;
-	TQueue<FMotorCommand, EQueueMode::Mpsc> PendingMotorCommands;
-	
-    // TCP Communication (for initial handshake)
-    FSocket* TCPListenSocket;  // Server socket that listens for connections
-    FSocket* TCPClientSocket;  // Actual connection socket to PX4
-    TSharedPtr<FInternetAddr> PX4TCPAddress;
+	// TCP
+	FSocket* ListenSocket = nullptr;
+	FSocket* ClientSocket = nullptr;
+	bool bListening = false;
+	bool bTCPConnected = false;
 
-    // UDP Communication (for MAVLink messages)
-    FSocket* UDPSendSocket;
-    FSocket* UDPRecvSocket;
-    TSharedPtr<FInternetAddr> PX4UDPAddress;
-    TSharedPtr<FInternetAddr> LocalUDPAddress;
-    
-    // Communication state
-    bool bTCPListening = false;
-    bool bTCPConnected = false;
-    bool bUDPReady = false;
+	// Comm thread
+	class FPX4CommThread* Comm = nullptr;
 
-    // MAVLink System IDs
-    uint8 SystemID = 1;
-    uint8 ComponentID = 1;
-    uint8 TargetSystem = 1;
-    uint8 TargetComponent = 1;
-    uint64_t HILTimestamp = 0;
-    const uint64_t HIL_INTERVAL_US = 10000; // 250Hz = 4ms = 4000 microseconds
+	// IDs
+	uint8 SysId = 1;     // this component
+	uint8 CompId = 200;  // onboard controller
+	uint8 TargetSys = 1; // PX4 fills after heartbeat
+	uint8 TargetComp = 1;
 
-    // Message sequence counter
-    uint8 MessageSequence = 0;
+	// Heartbeat gating
+	bool   bSawHeartbeat = false;
+	uint64 FirstHeartbeatUsec = 0;
 
-    // Timing
-    float HeartbeatTimer = 0.0f;
-    float ConnectionTimeoutTimer = 0.0f;
-    static constexpr float ConnectionTimeout = 10.0f;
+	// Thread-safe state from sensors (set in UpdateCurrentState)
+	mutable FCriticalSection StateCS;
+	bool    bStateValid = false;
+	FVector PositionNED = FVector::ZeroVector;     // m
+	FVector VelocityNED = FVector::ZeroVector;     // m/s
+	FVector AccelFRD    = FVector::ZeroVector;     // m/s^2 (linear accel, no gravity)
+	FRotator RotNED     = FRotator::ZeroRotator;   // deg
+	FVector AngVelFRD   = FVector::ZeroVector;     // rad/s
+	FVector GeoLLA      = FVector::ZeroVector;     // lat, lon, alt[m]
+	float   PressurePa  = 101325.f;
+	float   TemperatureC= 20.f;
+	float   AltM        = 0.f;
+	FVector MagGauss    = FVector(0.3f,0,0.5f);
 
-    // State Storage (main thread)
-    FVector CurrentPosition = FVector::ZeroVector;
-    FVector CurrentVelocity = FVector::ZeroVector;
-    FRotator CurrentRotation = FRotator::ZeroRotator;
-    FVector CurrentAngularVelocity = FVector::ZeroVector;
-	FVector CurrentGeoCoords = FVector::ZeroVector;
-	FVector CurrentMagData = FVector::ZeroVector;
-	FVector CurrentAccelData = FVector::ZeroVector;
-	float CurrentPressure = 0.0f;
-	float CurrentTemperature = 0.0f;
-	float CurrentAltitude = 0.f;
+	// Game-thread motor queue
+	struct FMotorCmd { TArray<float> Values; double Stamp; };
+	TQueue<FMotorCmd, EQueueMode::Mpsc> MotorQueue;
 
-    // Threading
-    FPX4CommunicationThread* CommunicationThread;
-    mutable FCriticalSection StateMutex; // Protects shared state access
-    
-    // Thread-safe state copies
-    FVector ThreadSafePosition;
-    FVector ThreadSafeVelocity;
-    FRotator ThreadSafeRotation;
-    FVector ThreadSafeAngularVelocity;
-	FVector ThreadSafeGeoCoords;
-	FVector ThreadSafeMagData;
-	FVector ThreadSafeAccelData;
-	float ThreadSafePressureData;
-	float ThreadSafeTemperatureData;
-	float ThreadSafeAltitudeData;
-	
-    bool bThreadSafeDataValid;
-
-    // QuadDroneController reference
-    UPROPERTY()
-    UQuadDroneController* QuadController;
-
-    // MAVLink Communication Functions
-    void SetupTCPServer();
-    void AcceptTCPConnection();
-    void SetupUDPSockets();
-    void CleanupSockets();
-    void SendMAVLinkMessage(const uint8* MessageBuffer, uint16 MessageLength);
-    void ParseMAVLinkData(const uint8* Data, int32 DataLength);
-    void SendHILStateQuaternion();
-    void SendHILSensor();
-    void SendHILGPS();
-    void SendHILRCInputs();
+	// Internals
+	void CreateTCPServer();
+	void AcceptOnce();
+	void CloseSockets();
+	void SendBytes(const uint8* Data, int32 Len);
 
 
-    // MAVLink Message Handlers
-    void HandleActuatorOutputs(const uint8* MessageBuffer, uint16 MessageLength);
-    void HandleHeartbeat(const uint8* MessageBuffer, uint16 MessageLength);
-    
-    // Helper Functions
-    UQuadDroneController* FindQuadController();
-    void UpdateConnectionStatus();
+};
 
-	uint64 BaseTimestamp = 0;
-	uint64 TimestampOffset = 0;
-	FCriticalSection TimestampMutex;
-    
-	// Add heartbeat to communication thread
-	double LastHeartbeatSentTime = 0.0;
-    
-	// Track send failures
-	int32 ConsecutiveSendFailures = 0;
-    
-	// Get synchronized timestamp
-	uint64 GetSynchronizedTimestamp();
+// ---------- Comm Thread ----------
+class FPX4CommThread : public FRunnable
+{
+public:
+	explicit FPX4CommThread(UPX4Component* InOwner) : Owner(InOwner) {}
+	virtual bool    Init() override { return true; }
+	virtual uint32  Run() override;
+	virtual void    Stop() override { bStop = true; }
+	void            Start();
+	void            Join();
+	double Last250 = 0.0;
+	double Last50  = 0.0;
+	double LastHB  = 0.0;
 
-	bool bUseLockstep = true;
-	uint64 LockstepCounter = 1;
-
-	mavlink_system_t mavlink_system = {1, 1}; // system_id = 1, component_id = 1
-	uint64 SimulationStepCounter = 0;
-	
-	// Thread-safe lockstep timing
-	FCriticalSection LockstepMutex;
-	double LastLockstepTime = 0.0;
-	const double LOCKSTEP_INTERVAL = 0.004; // 4ms = 250Hz
-
+private:
+	UPX4Component* Owner = nullptr;
+	FRunnableThread* Thread = nullptr;
+	FThreadSafeBool bStop = false;
 };

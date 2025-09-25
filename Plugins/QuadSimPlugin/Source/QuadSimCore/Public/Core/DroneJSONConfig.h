@@ -12,6 +12,7 @@ struct FDroneConfigData
 	struct FFlightParameters {
 		float MaxVelocityBound;
 		float MaxVelocity;
+		float MaxAngleBound;   // new: UI roof for MaxAngle
 		float MaxAngle;
 		float MaxAngleRate;
 		float MaxPIDOutput;

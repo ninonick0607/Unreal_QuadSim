@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SensorData.h"
 #include "Components/SceneComponent.h"
 #include "SensorManagerComponent.generated.h"
 
@@ -17,6 +18,7 @@ class ROBOTCORE_API USensorManagerComponent : public USceneComponent
 	GENERATED_BODY()
 
 public:
+	
 	USensorManagerComponent();
 	void BeginPlay() override;
 	UFUNCTION(BlueprintCallable, Category = "Sensors")
@@ -27,7 +29,10 @@ public:
     
 	UFUNCTION(BlueprintPure, Category = "Sensors")
 	bool AreSensorsInitialized() const { return bSensorsInitialized; }
-    
+	
+	UFUNCTION(BlueprintCallable, Category = "Sensors")
+	FSensorData GetCurrentSensorData() const;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
 	UGPSSensor* GPS;
     
@@ -39,12 +44,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
 	UBaroSensor* Barometer;
-    
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
-	// URangefinderSensor* Rangefinder;
+
 
 private:
+	// Cache the latest sensor data
+	FSensorData CachedSensorData;
 	bool bSensorsInitialized;
     
-//	void SetupSensorAttachments();
 };

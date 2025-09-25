@@ -15,6 +15,11 @@ public:
     
 	float SensorNoise();
 	void UpdateSensor(float DeltaTime, bool bNoise);
+	UFUNCTION(BlueprintCallable, Category = "IMU")
+	bool IsInitialized() const { return bInitialized; }
+    
+	UFUNCTION(BlueprintCallable, Category = "IMU")
+	float GetLastUpdateTime() const { return LastUpdateTime; }
 	FVector SampleRawAcceleration(float DeltaTime);
 	FVector SampleRawAngularVelocity();
 	FVector SampleRawVelocity();
@@ -30,11 +35,13 @@ public:
 
 private:
 	float UpdateRate = 250.0f;
+	float LastUpdateTime = 0.0f;
+
 	float AccumulatedTime = 0.0f;
-	FVector LastAccelerometer;
-	FVector LastGyroscope;
-    FVector LastVelocity;
-	FRotator LastAttitude;
+	FVector LastAccelerometer = FVector::ZeroVector;
+	FVector LastGyroscope = FVector::ZeroVector;
+    FVector LastVelocity = FVector::ZeroVector;
+	FRotator LastAttitude = FRotator::ZeroRotator;
 	FVector PreviousVelocity;
 	bool bInitialized = false;
     

@@ -16,9 +16,26 @@ struct FDronePanelState
     bool bOpen = false;        // panel open state
     bool bGamepad = false;     // toggle for gamepad mode UI
     bool bPX4 = false;         // toggle for PX4 external controller
+    bool bDebug = false;       // toggle for debug drawings
     float HoverAlt = 250.f;    // desired hover altitude (meters)
     bool bHoverActive = false; // toggle for hover mode
     bool bAppliedGamepad = false; // tracks if ToggleGamepadMode applied
+
+    // Session-only overrides (do NOT persist to config)
+    bool  bHasSessionMaxVel   = false;
+    bool  bHasSessionMaxAngle = false;
+    bool  bHasSessionMaxRate  = false;
+    float SessionMaxVel       = 0.f;   // m/s
+    float SessionMaxAngle     = 0.f;   // deg
+    float SessionMaxRate      = 0.f;   // deg/s
+
+    // Position mode: require explicit opt-in to override nav with UI sliders
+    bool  bManualPositionOverride = false;
+
+    // Manual path (queue) state for Position Control Settings
+    bool  bManualPathMode = false;     // when true, nav follows ManualQueue
+    FVector ManualInput = FVector::ZeroVector; // meters
+    TArray<FVector> ManualQueue;       // meters, in order
 };
 
 UCLASS()

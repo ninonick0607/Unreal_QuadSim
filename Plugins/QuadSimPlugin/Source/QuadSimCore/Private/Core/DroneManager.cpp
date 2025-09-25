@@ -59,6 +59,22 @@ void ADroneManager::BeginPlay()
             LastSpawnLocation = LastPawn->GetActorLocation();
         }
     }
+
+    // Optionally spawn the Obstacle Manager at startup if enabled
+    if (bSpawnObstacles && ObstacleManagerClass)
+    {
+        if (UWorld* World = GetWorld())
+        {
+            FActorSpawnParameters Params;
+            Params.Owner = this;
+            Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            AActor* ObMgr = World->SpawnActor<AActor>(ObstacleManagerClass, GetActorLocation(), GetActorRotation(), Params);
+            if (ObMgr)
+            {
+                SpawnedObstacleManager = ObMgr;
+            }
+        }
+    }
 }
 
 void ADroneManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -140,13 +156,28 @@ AQuadPawn* ADroneManager::SpawnDrone(const FVector& SpawnLocation, const FRotato
         SpawnParams.Owner = this;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-        // Always spawn at PlayerStart if present; otherwise fall back to origin (0,0,0)
+        // Spawn 1 meter from the currently possessed drone if any; otherwise at PlayerStart
         FVector UseLoc = FVector::ZeroVector;
         FRotator UseRot = SpawnRotation;
-        if (AActor* PS = UGameplayStatics::GetActorOfClass(World, APlayerStart::StaticClass()))
+
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
         {
-            UseLoc = PS->GetActorLocation();
-            UseRot = PS->GetActorRotation();
+            if (AQuadPawn* Cur = Cast<AQuadPawn>(PC->GetPawn()))
+            {
+                // Offset 1 meter to the right to avoid overlap
+                const FVector Right = Cur->GetActorRightVector();
+                UseLoc = Cur->GetActorLocation() + Right * 100.0f; // 100 cm = 1 m
+                UseRot = Cur->GetActorRotation();
+            }
+        }
+
+        if (UseLoc.IsZero())
+        {
+            if (AActor* PS = UGameplayStatics::GetActorOfClass(World, APlayerStart::StaticClass()))
+            {
+                UseLoc = PS->GetActorLocation();
+                UseRot = PS->GetActorRotation();
+            }
         }
 
         AQuadPawn* NewDrone = World->SpawnActor<AQuadPawn>(QuadPawnClass, UseLoc, UseRot, SpawnParams);
@@ -154,10 +185,44 @@ AQuadPawn* ADroneManager::SpawnDrone(const FVector& SpawnLocation, const FRotato
         {
             // Set selection to the newly spawned drone
             SelectedDroneIndex = GetDroneIndex(NewDrone);
+
+            // Possess the newly spawned drone and switch to its camera
+            if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+            {
+                PC->Possess(NewDrone);
+                PC->SetViewTarget(NewDrone);
+                NewDrone->ForceFPVCameraActive();
+            }
         }
         return NewDrone;
     }
     return nullptr;
+}
+
+void ADroneManager::SelectDroneByIndex(int32 Index, bool bAlsoPossess)
+{
+    if (Index < 0 || Index >= AllDrones.Num())
+        return;
+
+    if (AQuadPawn* Target = AllDrones[Index].Get())
+    {
+        SelectedDroneIndex = Index;
+        if (bAlsoPossess)
+        {
+            if (UWorld* World = GetWorld())
+            {
+                if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+                {
+                    if (PC->GetPawn() != Target)
+                    {
+                        PC->Possess(Target);
+                    }
+                    PC->SetViewTarget(Target);
+                    Target->ForceFPVCameraActive();
+                }
+            }
+        }
+    }
 }
 
 
@@ -175,6 +240,81 @@ TArray<AQuadPawn*> ADroneManager::GetDroneList() const
     return DroneList;
 }
 
+void ADroneManager::SetQuadPawnClass(TSubclassOf<AQuadPawn> InClass, bool bRespawn)
+{
+    QuadPawnClass = InClass;
+
+    if (!bRespawn)
+    {
+        return;
+    }
+
+    // Respawn is optional; not implemented here because manager doesn't own a single pawn.
+    // If needed, caller should destroy/recreate drones via their own flow.
+}
+
+void ADroneManager::SetObstacleManagerClass(TSubclassOf<AActor> InClass, bool bRespawn)
+{
+    ObstacleManagerClass = InClass;
+
+    if (!bRespawn)
+    {
+        return;
+    }
+
+    if (!GetWorld())
+    {
+        return;
+    }
+
+    if (SpawnedObstacleManager.IsValid())
+    {
+        if (AActor* Ob = SpawnedObstacleManager.Get())
+        {
+            Ob->Destroy();
+        }
+        SpawnedObstacleManager.Reset();
+    }
+
+    if (bSpawnObstacles && ObstacleManagerClass)
+    {
+        FActorSpawnParameters Params;
+        Params.Owner = this;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        SpawnedObstacleManager = GetWorld()->SpawnActor<AActor>(ObstacleManagerClass, GetActorLocation(), GetActorRotation(), Params);
+    }
+}
+
+void ADroneManager::SetSpawnObstacles(bool bEnabled, bool bApplyImmediately)
+{
+    bSpawnObstacles = bEnabled;
+
+    if (!bApplyImmediately || !GetWorld())
+    {
+        return;
+    }
+
+    // Turning off: destroy if exists
+    if (!bSpawnObstacles)
+    {
+        if (AActor* Ob = SpawnedObstacleManager.Get())
+        {
+            Ob->Destroy();
+        }
+        SpawnedObstacleManager.Reset();
+        return;
+    }
+
+    // Turning on: spawn if not present
+    if (!SpawnedObstacleManager.IsValid() && ObstacleManagerClass)
+    {
+        FActorSpawnParameters Params;
+        Params.Owner = this;
+        Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        SpawnedObstacleManager = GetWorld()->SpawnActor<AActor>(ObstacleManagerClass, GetActorLocation(), GetActorRotation(), Params);
+    }
+}
+
 void ADroneManager::SimulationUpdate_Implementation(float FixedDeltaTime)
 {
 	// Update all drones with fixed timestep
@@ -185,7 +325,7 @@ void ADroneManager::SimulationUpdate_Implementation(float FixedDeltaTime)
 			// Make sure PX4Component updates are synchronized
 			if (UPX4Component* PX4Comp = Drone->FindComponentByClass<UPX4Component>())
 			{
-				if (PX4Comp->bIsActive())
+				if (PX4Comp->IsPX4Active())
 				{
 					PX4Comp->SimulationUpdate(FixedDeltaTime);
 				}
@@ -215,14 +355,17 @@ void ADroneManager::ResetRobot_Implementation()
     {
         if (AQuadPawn* Drone = DronePtr.Get())
         {
-            // Teleport the drone to the reset location
-            Drone->SetActorTransform(ResetTransform, false, nullptr, ETeleportType::ResetPhysics);
+            // Teleport the drone to the reset location but preserve current scale
+            const FVector CurrentScale = Drone->GetActorScale3D();
+            Drone->SetActorLocationAndRotation(
+                ResetTransform.GetLocation(),
+                ResetTransform.GetRotation().Rotator(),
+                false,
+                nullptr,
+                ETeleportType::ResetPhysics);
+            Drone->SetActorScale3D(CurrentScale);
 
-            // Also call your controller's reset logic for other things (like motor values)
-            if (UQuadDroneController* Controller = Drone->QuadController)
-            {
-                Controller->ResetDroneOrigin(); // A new function that doesn't change position
-            }
+            Drone->ResetPosition();
         }
     }
 }

@@ -24,58 +24,58 @@
 #include "Sensors/GPSSensor.h"
 #include "Sensors/SensorManagerComponent.h"
 
-#define EPSILON 0.0001f
-// At the top of QuadPawn.cpp
-
 namespace DroneWaypointConfig
 {
-	static constexpr float startHeight = 500.0f;
-	static constexpr float maxHeight = 1000.0f;
-	static constexpr float radius = 1000.0f;
-	static constexpr float heightStep = 100.0f;
-	static constexpr int32 pointsPerLoop = 8;
-	static constexpr float angleStep = 2.0f * PI / pointsPerLoop;
+	// All values in meters to keep flight control domain in meters
+	static constexpr float startHeight     = 5.0f;    // m above current Z
+	static constexpr float totalHeight     = 20.0f;   // m rise across the spiral
+	static constexpr float radius          = 10.0f;   // m spiral radius
+	static constexpr int32 segmentsPerRev  = 72;      // higher = smoother curve
+	static constexpr int32 numRevolutions  = 3;       // total revolutions
 }
-
 const FVector start = FVector(0, 0, 1000);
-
-// Generate a spiral of waypoints around a given start position
 static TArray<FVector> spiralWaypoints(const FVector& startPos)
 {
     TArray<FVector> waypoints;
-    // Initial ascent to specified start height
-    FVector basePos = startPos;
-    const float initialAltitude = DroneWaypointConfig::startHeight;
-    const float targetZ = basePos.Z + initialAltitude;
-    waypoints.Add(FVector(basePos.X, basePos.Y, targetZ));
 
-    // Figure-8 parameters
-    // Increase resolution for smoother curves
-    const int32 numPoints = 360;
-    const float twoPi = 2.0f * PI;
-    // Dimensions: roughly a 10m x 10m box (cm units)
-    const float width = DroneWaypointConfig::radius * 0.5f; // ~5m half-width
-    const float height = width;                            // symmetrical loops
+    // Base position in meters
+    const FVector basePos = startPos;
 
-    // Generate waypoints along the figure-8 curve at constant altitude
-    for (int32 i = 0; i <= numPoints; ++i)
+    // Parameters
+    const float startHeight = DroneWaypointConfig::startHeight;    // m
+    const float totalHeight = DroneWaypointConfig::totalHeight;    // m
+    const float radius      = DroneWaypointConfig::radius;         // m
+    const int32 segPerRev   = DroneWaypointConfig::segmentsPerRev; // segments per revolution
+    const int32 revs        = DroneWaypointConfig::numRevolutions; // total revolutions
+    const int32 totalSeg    = segPerRev * revs;
+    const float dTheta      = 2.0f * PI / static_cast<float>(segPerRev);
+    const float dzPerSeg    = totalHeight / static_cast<float>(totalSeg);
+
+    // Add a vertical climb to the start height for clarity
+    const float startZ = basePos.Z + startHeight;
+    waypoints.Add(FVector(basePos.X, basePos.Y, basePos.Z));
+    waypoints.Add(FVector(basePos.X, basePos.Y, startZ));
+
+    // Build a helix that rises totalHeight over 'revs' revolutions
+    float z = startZ;
+    for (int32 i = 0; i <= totalSeg; ++i)
     {
-        float t = twoPi * static_cast<float>(i) / static_cast<float>(numPoints);
-        float x = basePos.X + width * FMath::Sin(t);
-        float y = basePos.Y + height * FMath::Sin(2.0f * t);
-        waypoints.Add(FVector(x, y, targetZ));
+        const float theta = i * dTheta;
+        const float x = basePos.X + radius * FMath::Cos(theta);
+        const float y = basePos.Y + radius * FMath::Sin(theta);
+        waypoints.Add(FVector(x, y, z));
+        z += dzPerSeg;
     }
+
     return waypoints;
 }
-
-// Expose figure-8 waypoint generator for the pawn
-
 const FName ObstacleCollisionTag = FName("Obstacle");
 TArray<FVector> AQuadPawn::GenerateFigureEightWaypoints(FVector Altitude) const
 {
     return spiralWaypoints(Altitude);
 }
 
+//=========================== Constructor =========================== //
 AQuadPawn::AQuadPawn()
 	: DroneBody(nullptr)
 	, SpringArm(nullptr)
@@ -99,240 +99,277 @@ AQuadPawn::AQuadPawn()
     DroneBody->SetGenerateOverlapEvents(true);
     DroneBody->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 
+	SetupCameras();
+	SetupPropellers();
+	
 	// SENSORS
 	SensorManager = CreateDefaultSubobject<USensorManagerComponent>(TEXT("SensorManager"));
 	SensorManager->SetupAttachment(DroneBody);
+
+	// Controller
+	QuadController = CreateDefaultSubobject<UQuadDroneController>(TEXT("QuadDroneController"));
 	
-	CameraFPV = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraFPV"));
-	CameraFPV->SetupAttachment(DroneBody,TEXT("FPVCam"));
-	CameraFPV->bAutoActivate = true; 
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(DroneBody);
-	SpringArm->TargetArmLength = 200.f;
-	SpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = false;
-	SpringArm->bInheritPitch = false;
-	SpringArm->bInheritRoll = false;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName); 
-	Camera->bAutoActivate = false; 
-	
-	CameraGroundTrack = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraGroundTrack"));
-	CameraGroundTrack->bAutoActivate = false;
-	
-	// Third-Person Capture (attaches to the spring arm like the main TP camera)
-	TPCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("TPCaptureComponent"));
-	TPCaptureComponent->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	TPCaptureComponent->bCaptureEveryFrame = false; // IMPORTANT! For performance. We'll trigger captures manually.
-
-	// FPV Capture (attaches to the body like the main FPV camera)
-	FPVCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("FPVCaptureComponent"));
-	FPVCaptureComponent->SetupAttachment(DroneBody, TEXT("FPVCam"));
-	FPVCaptureComponent->bCaptureEveryFrame = false; // IMPORTANT!
-
-	
-	const FString propellerNames[] = { TEXT("MotorFL"), TEXT("MotorFR"), TEXT("MotorBL"), TEXT("MotorBR") };
-	const FString socketNames[] = { TEXT("MotorSocketFL"), TEXT("MotorSocketFR"), TEXT("MotorSocketBL"), TEXT("MotorSocketBR") };
-
-	Propellers.SetNum(4);
-	Thrusters.SetNum(4);
-	PropellerRPMs.SetNum(4);
-
-	for (int i = 0; i < 4; i++)
-	{
-		Propellers[i] = CreateDefaultSubobject<UStaticMeshComponent>(*propellerNames[i]);
-		Propellers[i]->SetSimulatePhysics(false);
-		Propellers[i]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Propellers[i]->SetupAttachment(DroneBody, *socketNames[i]);
-
-		Thrusters[i] = CreateDefaultSubobject<UThrusterComponent>(
-			*FString::Printf(TEXT("Thruster_%s"), *propellerNames[i])
-		);
-		Thrusters[i]->SetupAttachment(DroneBody, *socketNames[i]);
-		Thrusters[i]->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
-
-		PropellerRPMs[i] = 0.f;
-
-	}
-
-	// Create additional components
-    // Defer possession to GameMode/UI logic; avoid auto-possessing first player implicitly
-    AutoPossessPlayer = EAutoReceiveInput::Disabled;
+	// Nav Component
 	NavigationComponent = CreateDefaultSubobject<UNavigationComponent>(TEXT("NavigationComponent"));
 
 	// Create PX4 component
 	PX4Component = CreateDefaultSubobject<UPX4Component>(TEXT("PX4Component"));
+
 	
+    AutoPossessPlayer = EAutoReceiveInput::Disabled;
 }
+
+void AQuadPawn::SetupCameras()
+{
+    // Camera setup code moved to separate function for clarity
+    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArm->SetupAttachment(DroneBody);
+    SpringArm->TargetArmLength = 200.f;
+    SpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
+    SpringArm->bDoCollisionTest = false;
+    SpringArm->bInheritPitch = false;
+    SpringArm->bInheritRoll = false;
+    
+    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+    Camera->bAutoActivate = false;
+    
+    CameraFPV = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraFPV"));
+    CameraFPV->SetupAttachment(DroneBody, TEXT("FPVCam"));
+    CameraFPV->bAutoActivate = true;
+    
+    CameraGroundTrack = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraGroundTrack"));
+    CameraGroundTrack->bAutoActivate = false;
+}
+void AQuadPawn::SetupPropellers()
+{
+    const FString propellerNames[] = { TEXT("MotorFL"), TEXT("MotorFR"), TEXT("MotorBL"), TEXT("MotorBR") };
+    const FString socketNames[] = { TEXT("MotorSocketFL"), TEXT("MotorSocketFR"), TEXT("MotorSocketBL"), TEXT("MotorSocketBR") };
+    
+    Propellers.SetNum(4);
+    Thrusters.SetNum(4);
+    PropellerRPMs.SetNum(4);
+    
+    for (int i = 0; i < 4; i++)
+    {
+        Propellers[i] = CreateDefaultSubobject<UStaticMeshComponent>(*propellerNames[i]);
+        Propellers[i]->SetSimulatePhysics(false);
+    	Propellers[i]->SetMassOverrideInKg(*propellerNames[i],0);
+        Propellers[i]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Propellers[i]->SetupAttachment(DroneBody, *socketNames[i]);
+        
+        Thrusters[i] = CreateDefaultSubobject<UThrusterComponent>(
+            *FString::Printf(TEXT("Thruster_%s"), *propellerNames[i])
+        );
+        Thrusters[i]->SetupAttachment(DroneBody, *socketNames[i]);
+        Thrusters[i]->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
+        
+        PropellerRPMs[i] = 0.f;
+    }
+}
+
+//=========================== BeginPlay & Tick =========================== //
 
 void AQuadPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-	// Assign the render target assets to the capture components
-	if (TPCaptureRenderTarget)
-	{
-		TPCaptureComponent->TextureTarget = TPCaptureRenderTarget;
-	}
-	if (FPVCaptureRenderTarget)
-	{
-		FPVCaptureComponent->TextureTarget = FPVCaptureRenderTarget;
-	}
-
-    // HUD creation will be handled on possession to ensure correct owner
+	ToggleImguiInput();
 	
     DroneID = GetName();
 	UE_LOG(LogTemp, Display, TEXT("QuadPawn BeginPlay: DroneID set to %s"), *DroneID);
-	
-	if (!QuadController)
-	{
-		QuadController = NewObject<UQuadDroneController>(this, TEXT("QuadDroneController"));
-		QuadController->Initialize(this);
-	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Debug SetController: QuadController=%p"), QuadController);
-	
-	
-	UE_LOG(LogTemp, Display, TEXT("QuadPawn BeginPlay: Pawn=%p, Name=%s"), this, *GetName());
-	
-    // Removed legacy per-drone ImGui component wiring
-
-    // Initialize sensors
-	if (SensorManager)
-	{
-		SensorManager->InitializeSensors();
-		UE_LOG(LogTemp, Display, TEXT("QuadPawn: Initialized SensorManager sensors"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("QuadPawn: SensorManager is null!"));
-	}
-	
-    // Reset PID controllers
-    QuadController->ResetPID();
-    // Collision events binding
-    if (DroneBody)
+    // Initialize sensors and mark readiness
+    if (SensorManager)
     {
-        DroneBody->OnComponentHit.AddDynamic(this, &AQuadPawn::OnDroneHit);
+        SensorManager->InitializeSensors();
+        bSensorsReady = SensorManager->AreSensorsInitialized();
+        UE_LOG(LogTemp, Display, TEXT("QuadPawn: SensorManager init complete (ready=%d)"), bSensorsReady);
     }
-    // Collision handling via NotifyHit override; skip AddDynamic binding
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("QuadPawn: SensorManager is null!"));
+    }
+    
+    // Ensure controller exists and is initialized once sensors are ready
+    if (!QuadController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("QuadPawn: QuadController missing, creating at BeginPlay"));
+        QuadController = NewObject<UQuadDroneController>(this);
+    }
+    if (QuadController && bSensorsReady)
+    {
+        QuadController->Initialize(this);
+        QuadController->ResetControllerState();
+        bControllerReady = true;
+        UE_LOG(LogTemp, Display, TEXT("QuadPawn: Controller initialized"));
+    }
 	
+	if (DroneBody)
+	{
+		DroneBody->OnComponentHit.AddDynamic(this, &AQuadPawn::OnDroneHit);
+	}
 	ResetCollisionStatus();
 
-	Camera->SetActive(false);
-	CameraFPV->SetActive(true);
-	CameraGroundTrack->SetActive(false);
-	CurrentCameraMode = ECameraMode::FPV;
-
-
+	SetCameraMode(ECameraMode::FPV);
 }
-
 void AQuadPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	
 	Super::EndPlay(EndPlayReason);
 }
-
 void AQuadPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (!bSensorsReady || !bControllerReady)
+		return;
 
-	// Only update controller if NOT being controlled by SimulationManager
 	if (!bIsSimulationControlled)
-	{
-		UpdateControl(DeltaTime);
-	}
+    {
+        UpdateControl(DeltaTime);
+    }
+	
+	UpdatePropellerVisuals(DeltaTime);
 
-	// Visual updates (propellers) should always happen regardless
-	for (int32 i = 0; i < Propellers.Num(); i++)
+	if (CurrentCameraMode == ECameraMode::GroundTrack)
 	{
-		if (Propellers[i])
-		{
-			float CurrentThrustVal = QuadController->GetCurrentThrustOutput(i);
-			PropellerRPMs[i] = FMath::Abs(CurrentThrustVal) * 1;
-			float DirectionMultiplier = 1.0f;
-			if (MotorClockwiseDirections.IsValidIndex(i))
-			{
-				DirectionMultiplier = MotorClockwiseDirections[i] ? -1.0f : 1.0f;
-			}
-			float DegreesPerSecond = PropellerRPMs[i] * 6.0f;
-			float DeltaRotation = DegreesPerSecond * DeltaTime * DirectionMultiplier;
-			Propellers[i]->AddLocalRotation(FRotator(0.f, DeltaRotation, 0.f));
-		}
+		UpdateGroundCameraTracking();
 	}
-
-	UpdateGroundCameraTracking();
+	
 	if (bHasCollidedWithObstacle)
 	{
 		float CurrentTime = GetWorld()->GetTimeSeconds();
-		if (CurrentTime - LastCollisionTime > CollisionTimeout)
+		if (CurrentTime >= NextCollisionCheckTime)
 		{
-			bHasCollidedWithObstacle = false;
-			UE_LOG(LogTemp, Display, TEXT("%s collision status cleared due to inactivity."), *GetName());
+			if (CurrentTime - LastCollisionTime > CollisionTimeout)
+			{
+				bHasCollidedWithObstacle = false;
+				UE_LOG(LogTemp, Display, TEXT("%s collision cleared"), *GetName());
+			}
+			NextCollisionCheckTime = CurrentTime + 1.0f; // Check every second
 		}
 	}
 }
+
+//=========================== Update =========================== //
 
 void AQuadPawn::UpdateControl(float DeltaTime)
 {
-	if (SensorManager)
+    	if (!SensorManager)
+    		return;
+    
+	// Update sensors
+	SensorManager->UpdateAllSensors(DeltaTime, false);
+    
+    	// Get unified sensor data
+	FSensorData SensorData = SensorManager->GetCurrentSensorData();
+    
+    	// Late-initialize controller if needed
+    	if (!QuadController)
+    	{
+    		UE_LOG(LogTemp, Warning, TEXT("QuadPawn: QuadController missing in UpdateControl, creating now"));
+    		QuadController = NewObject<UQuadDroneController>(this);
+    	}
+    	if (QuadController)
+    	{
+    		// Ensure controller has pawn reference
+    		if (!bControllerReady)
+    		{
+    			QuadController->Initialize(this);
+    			QuadController->ResetControllerState();
+    			bControllerReady = true;
+    		}
+    		// Pass to controller
+    		QuadController->Update(SensorData, DeltaTime);
+    	}
+    
+	// Update navigation
+	if (NavigationComponent && SensorData.bGPSValid)
 	{
-		SensorManager->UpdateAllSensors(DeltaTime, false);
-	}
-	if (QuadController)
-	{	
-		QuadController->Update(DeltaTime);
-	}
-	if (NavigationComponent)
-	{
-		NavigationComponent->UpdateNavigation(SensorManager->GPS->GetLastGPS());
+		FVector CurrentPos(
+			SensorData.GPSPosMeters.X,
+			SensorData.GPSPosMeters.Y,
+			SensorData.bBaroValid ? SensorData.BaroAltitudeM : SensorData.GPSPosMeters.Z
+		);
+        
+		NavigationComponent->UpdateNavigation(CurrentPos);
 		FVector NextGoal = NavigationComponent->GetCurrentSetpoint();
-		if (QuadController)
-		{
-			QuadController->SetDestination(NextGoal);
-		}
+		QuadController->SetDestination(NextGoal);
 	}
 }
+void AQuadPawn::UpdatePropellerVisuals(float DeltaTime)
+{
+	
+    for (int32 i = 0; i < Propellers.Num(); i++)
+    {
+        if (Propellers[i] && QuadController)
+        {
+            float ThrustVal = QuadController->GetCurrentThrustOutput(i);
+            PropellerRPMs[i] = FMath::Abs(ThrustVal);
+            
+            float Direction = (MotorClockwiseDirections.IsValidIndex(i) && 
+                             MotorClockwiseDirections[i]) ? -1.0f : 1.0f;
+            float DeltaRotation = PropellerRPMs[i] * 6.0f * DeltaTime * Direction;
+            
+            Propellers[i]->AddLocalRotation(FRotator(0.f, DeltaRotation, 0.f));
+        }
+    }
+}
 
+//=========================== Cam Settings =========================== //
+
+void AQuadPawn::SetCameraMode(ECameraMode NewMode)
+{
+    // Deactivate all cameras
+    if (Camera) Camera->SetActive(false);
+    if (CameraFPV) CameraFPV->SetActive(false);
+    if (CameraGroundTrack) CameraGroundTrack->SetActive(false);
+    
+    // Activate the selected camera
+    CurrentCameraMode = NewMode;
+    switch (NewMode)
+    {
+        case ECameraMode::ThirdPerson:
+            if (Camera) Camera->SetActive(true);
+            break;
+        case ECameraMode::FPV:
+            if (CameraFPV) CameraFPV->SetActive(true);
+            break;
+        case ECameraMode::GroundTrack:
+            if (CameraGroundTrack) 
+            {
+                CameraGroundTrack->SetActive(true);
+                ResetGroundCameraPosition();
+            }
+            break;
+    }
+}
 void AQuadPawn::SwitchCamera()
 {
-	if (!Camera || !CameraFPV || !CameraGroundTrack)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("SwitchCamera: One or more camera components are missing!"));
-		return;
-	}
-
-	Camera->SetActive(false);
-	CameraFPV->SetActive(false);
-	CameraGroundTrack->SetActive(false);
-
-	switch (CurrentCameraMode)
-	{
-	case ECameraMode::ThirdPerson:
-		CurrentCameraMode = ECameraMode::FPV;
-		CameraFPV->SetActive(true);
-		UE_LOG(LogTemp, Log, TEXT("Camera Mode: FPV"));
-		break;
-
-	case ECameraMode::FPV:
-		CurrentCameraMode = ECameraMode::GroundTrack;
-		CameraGroundTrack->SetActive(true);
-		ResetGroundCameraPosition();
-		UE_LOG(LogTemp, Log, TEXT("Camera Mode: Ground Track"));
-		break;
-	default:
-		CurrentCameraMode = ECameraMode::ThirdPerson;
-		Camera->SetActive(true);
-		break;
-
-	}
-
+    // Cycle through camera modes
+    ECameraMode NextMode = ECameraMode::ThirdPerson;
+    switch (CurrentCameraMode)
+    {
+        case ECameraMode::ThirdPerson:
+            NextMode = ECameraMode::FPV;
+            break;
+        case ECameraMode::FPV:
+            NextMode = ECameraMode::GroundTrack;
+            break;
+        case ECameraMode::GroundTrack:
+            NextMode = ECameraMode::ThirdPerson;
+            break;
+    }
+    SetCameraMode(NextMode);
 }
-
-
+void AQuadPawn::ForceFPVCameraActive()
+{
+	if (!Camera || !CameraFPV || !CameraGroundTrack) return;
+	Camera->SetActive(false);
+	CameraGroundTrack->SetActive(false);
+	CameraFPV->SetActive(true);
+	CurrentCameraMode = ECameraMode::FPV;
+}
 void AQuadPawn::ResetGroundCameraPosition()
 {
 	if (!CameraGroundTrack || !DroneBody) return;
@@ -351,7 +388,6 @@ void AQuadPawn::ResetGroundCameraPosition()
 
 	UpdateGroundCameraTracking();
 }
-
 void AQuadPawn::UpdateGroundCameraTracking()
 {
 	if (CurrentCameraMode == ECameraMode::GroundTrack && CameraGroundTrack && CameraGroundTrack->IsActive() && DroneBody)
@@ -373,13 +409,12 @@ void AQuadPawn::UpdateGroundCameraTracking()
 	}
 }
 
+//=========================== Control Input =========================== //
 
 void AQuadPawn::ToggleImguiInput()
 {
 	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ConsoleCommand("ImGui.ToggleInput");
 }
-
-
 void AQuadPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -397,24 +432,19 @@ void AQuadPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("GP_ResetRotation", IE_Pressed, this, &AQuadPawn::ResetRotation);
 	PlayerInputComponent->BindAction("GP_ResetPosition", IE_Pressed, this, &AQuadPawn::ResetPosition);
 }
+void AQuadPawn::ToggleGamepadMode()
+{
+	const bool bGP = (QuadController->GetFlightMode() == EFlightMode::JoyStickAngleControl);
+	QuadController->SetFlightMode(bGP ? EFlightMode::None: EFlightMode::JoyStickAngleControl);
+}
 void AQuadPawn::OnThrottleAxis(float Value) { GamepadInputs.Throttle = Value; }
 void AQuadPawn::OnYawAxis(float Value)      { GamepadInputs.Yaw      = Value; }
 void AQuadPawn::OnPitchAxis(float Value)    { GamepadInputs.Pitch    = Value; }
 void AQuadPawn::OnRollAxis(float Value)     { GamepadInputs.Roll     = Value; }
+void AQuadPawn::ReloadJSONConfig(){UDroneJSONConfig::Get().ReloadConfig();}
 
-void AQuadPawn::ToggleGamepadMode()
-{
-	const bool bGP = (QuadController->GetFlightMode() == EFlightMode::JoyStickAngleControl);
-	QuadController->SetFlightMode(bGP ? EFlightMode::None
-									  : EFlightMode::JoyStickAngleControl);
-}
+//=========================== Collision =========================== //
 
-void AQuadPawn::ReloadJSONConfig()
-{
-	UDroneJSONConfig::Get().ReloadConfig();
-}
-
-// Component hit callback
 void AQuadPawn::OnDroneHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     if (OtherActor && OtherActor != this && OtherActor->ActorHasTag(ObstacleCollisionTag))
@@ -427,7 +457,6 @@ void AQuadPawn::OnDroneHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
         }
     }
 }
-
 void AQuadPawn::ResetCollisionStatus()
 {
 	if (bHasCollidedWithObstacle) 
@@ -445,9 +474,8 @@ float AQuadPawn::GetMass()
 void AQuadPawn::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
-	
+    ForceFPVCameraActive();
 }
-
 void AQuadPawn::UnPossessed()
 {
     Super::UnPossessed();
@@ -465,32 +493,34 @@ void AQuadPawn::ResetRotation()
 
 		DroneBody->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		DroneBody->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-        
-		if (QuadController)
-		{
-			QuadController->ResetPID();
-		}
+		QuadController->ResetPID(); 
 
 		UE_LOG(LogTemp, Log, TEXT("Drone rotation reset."));
 	}
 }
-
 void AQuadPawn::ResetPosition()
 {
-	if (GetWorld())
-	{
-		AActor* PlayerStart = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
+    if (GetWorld())
+    {
+        AActor* PlayerStart = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
 
-		if (PlayerStart)
-		{
+        if (PlayerStart)
+        {
+            // Preserve current scale when resetting position/orientation
+            const FVector CurrentScale = GetActorScale3D();
+            SetActorLocationAndRotation(PlayerStart->GetActorLocation(),PlayerStart->GetActorRotation(),false,nullptr,ETeleportType::TeleportPhysics);
+            SetActorScale3D(CurrentScale);
 
-			SetActorTransform(PlayerStart->GetActorTransform(), false, nullptr, ETeleportType::TeleportPhysics);
-
-			if (QuadController)
-			{
-				QuadController->ResetPID();
-			}
-
+        	if (DroneBody)
+        	{
+        		DroneBody->SetSimulatePhysics(true);
+        		DroneBody->SetPhysicsLinearVelocity(FVector::ZeroVector);
+        		DroneBody->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+        		DroneBody->WakeAllRigidBodies();
+        	}
+        	QuadController->ResetPID();
+			QuadController->SetDesiredVelocity(FVector::ZeroVector);
+        	
 			UE_LOG(LogTemp, Log, TEXT("Drone position reset to PlayerStart."));
 		}
 		else
@@ -499,6 +529,7 @@ void AQuadPawn::ResetPosition()
 		}
 	}
 }
+
 void AQuadPawn::SetExternalAttitudeCommand(float InRoll, float InPitch)
 {
 	if (QuadController)
@@ -514,52 +545,35 @@ void AQuadPawn::SetExternalAttitudeCommand(float InRoll, float InPitch)
 		UE_LOG(LogTemp, Log, TEXT("QuadPawn: Passed external attitude to controller (Roll: %.2f, Pitch: %.2f)"), InRoll, InPitch);
 	}
 }
-void AQuadPawn::DebugDrawMagnetometer()
+void AQuadPawn::SetExternalVelocityCommand(const FVector& LinearMps, const FVector& AngularRadps)
 {
-	if (!SensorManager || !SensorManager->Magnetometer) return;
+    if (!QuadController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("QuadPawn::SetExternalVelocityCommand: QuadController is null"));
+        return;
+    }
 
-	// 1) grab the latest body-frame field (in Gauss)
-	FVector magBody = SensorManager->Magnetometer->GetLastMagField();  
+    // Ensure the controller uses velocity mode
+    QuadController->SetFlightMode(EFlightMode::VelocityControl);
 
-	// 2) rotate it into world-frame so we know where “north” points in world coords
-	FQuat  pawnQuat = GetActorQuat();
-	FVector magWorld = pawnQuat.RotateVector(magBody);
+    // Desired linear velocity is expected in local FLU (m/s)
+    QuadController->SetDesiredVelocity(LinearMps);
 
-	// 3) project onto horizontal plane (zero out up/down)
-	FVector magHoriz = FVector(magWorld.X, magWorld.Y, 0.f).GetSafeNormal();
-	if (!magHoriz.IsNearlyZero())
-	{
-		// 4) draw an arrow at the drone’s location pointing toward magnetic north
-		FVector loc = GetActorLocation();
-		DrawDebugDirectionalArrow(
-			GetWorld(),
-			loc,
-			loc + magHoriz * 200.f,    // 200 cm arrow
-			50.f,                      // arrow head size
-			FColor::Cyan,
-			false,                     // persistent
-			0.f,                       // life time (0 = one frame)
-			0,
-			5.f                        // line thickness
-		);
-	}
+    // Controller yaw rate is in deg/s; convert from rad/s
+    const float YawRateDeg = FMath::RadiansToDegrees(AngularRadps.Z);
+    QuadController->SetDesiredYawRate(YawRateDeg);
 
-	// 5) compute heading (degrees clockwise from +X/North)
-	float headingRad = FMath::Atan2(magHoriz.Y, magHoriz.X);
-	float headingDeg = FMath::RadiansToDegrees(headingRad);
-	if (headingDeg < 0) headingDeg += 360.f;
-
-	// 6) display on-screen text: Gauss magnitude & heading
-	float gauss = magBody.Size();
-	FString dbg = FString::Printf(
-		TEXT("Mag: %.3f G   Heading: %.1f°"), 
-		gauss, 
-		headingDeg
-	);
-	GEngine->AddOnScreenDebugMessage(
-		-1,            // key -1 = new message
-		0.f,           // duration 0 = every frame
-		FColor::White, 
-		dbg
-	);
+    UE_LOG(LogTemp, Log, TEXT("QuadPawn: External velocity set v=(%.2f,%.2f,%.2f) m/s, yawRate=%.2f deg/s"),
+           LinearMps.X, LinearMps.Y, LinearMps.Z, YawRateDeg);
+}
+void AQuadPawn::SetExternalHoverHeight(float HeightMeters)
+{
+    if (!QuadController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("QuadPawn::SetExternalHoverHeight: QuadController is null"));
+        return;
+    }
+    // Controller expects hover target in meters
+    QuadController->SetHoverMode(true, HeightMeters);
+    UE_LOG(LogTemp, Log, TEXT("QuadPawn: External hover height set to %.2f m"), HeightMeters);
 }

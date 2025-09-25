@@ -1,14 +1,19 @@
-#include "SimHUD.h"
 #include "Modules/ModuleManager.h"
+#include "Logging/LogMacros.h"
 
-void FSimHUDModule::StartupModule()
+class FSimHUDModule : public IModuleInterface
 {
-    UE_LOG(LogTemp, Warning, TEXT("SimHUD Module Started"));
-}
+public:
+    virtual void StartupModule() override
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SimHUD Module Started"));
+    }
 
-void FSimHUDModule::ShutdownModule()
-{
-    UE_LOG(LogTemp, Warning, TEXT("SimHUD Module Shutdown"));
-}
+    virtual void ShutdownModule() override
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SimHUD Module Shutdown"));
+    }
+};
 
 IMPLEMENT_MODULE(FSimHUDModule, SimHUD)
+

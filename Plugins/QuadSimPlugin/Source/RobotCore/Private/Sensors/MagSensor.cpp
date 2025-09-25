@@ -19,18 +19,20 @@ UMagSensor::UMagSensor()
 
 void UMagSensor::Initialize()
 {
-	if (UWorld* World = GetWorld())
-	{
-		for (TActorIterator<AGeoReferencingSystem> It(World); It; ++It)
-		{
-			GeoRefSystem = *It;
-			break;
-		}
+    if (UWorld* World = GetWorld())
+    {
+        GeoRefSystem = AGeoReferencingSystem::GetGeoReferencingSystem(World);
         
-		if (!GeoRefSystem)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("MagSensor: No GeoReferencingSystem found in level! Please add one."));
-		}
+        if (!GeoRefSystem)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("MagSensor: No GeoReferencingSystem found in level! Please add one."));
+        }
+        else
+        {
+        	bInitialized = true;
+        	bIsCalibrating = true; // Start calibration
+        	CalibrationTime = 0.0f;
+        }
 	}
     // Any initialization if needed
     bEarthMagFieldValid = false;
@@ -41,12 +43,27 @@ void UMagSensor::UpdateSensor(float DeltaTime, bool bNoise)
 {
     AccumulatedTime += DeltaTime;
     const float Period = 1.0f / UpdateRate;
-    
+
+	if (bIsCalibrating)
+	{
+		CalibrationTime += DeltaTime;
+		if (CalibrationTime >= CALIBRATION_DURATION)
+		{
+			bIsCalibrating = false;
+			UE_LOG(LogTemp, Display, TEXT("MagSensor: Calibration complete"));
+		}
+	}
+	
     if (AccumulatedTime < Period)
     {
         return;
     }
     AccumulatedTime -= Period;
+	
+	if (UWorld* World = GetWorld())
+	{
+		LastUpdateTime = World->GetTimeSeconds();
+	}
     
     // First, update the Earth's magnetic field based on GPS position
     UpdateEarthMagField();
@@ -72,8 +89,42 @@ void UMagSensor::UpdateSensor(float DeltaTime, bool bNoise)
     
     // Store the result
     LastMagField = BodyMagField;
+	CalculateMagneticHeading();
+
 }
 
+void UMagSensor::CalculateMagneticHeading()
+{
+	if (!GetOwner()) return;
+    
+	// Get the magnetic field in world frame
+	FQuat VehicleRotation = GetOwner()->GetActorQuat();
+	FVector WorldMagField = VehicleRotation.RotateVector(LastMagField);
+    
+	// Project onto horizontal plane
+	FVector HorizontalMag = FVector(WorldMagField.X, WorldMagField.Y, 0.0f).GetSafeNormal();
+    
+	if (!HorizontalMag.IsNearlyZero())
+	{
+		// Calculate heading (angle from North/+X axis, clockwise positive)
+		float HeadingRad = FMath::Atan2(HorizontalMag.Y, HorizontalMag.X);
+		MagneticHeading = FMath::RadiansToDegrees(HeadingRad);
+        
+		// Normalize to 0-360 range
+		if (MagneticHeading < 0.0f)
+		{
+			MagneticHeading += 360.0f;
+		}
+        
+		// Get declination if available (difference between magnetic and true north)
+		if (GeoRefSystem && bEarthMagFieldValid)
+		{
+			// This would come from the World Magnetic Model
+			// For now, using a placeholder
+			MagneticDeclination = 0.0f; // You can calculate this from WMM if needed
+		}
+	}
+}
 void UMagSensor::UpdateEarthMagField()
 {
 	// Check if we have georeferencing system

@@ -9,7 +9,7 @@
  * Handles all coordinate system conversions, unit conversions, and frame transformations
  * 
  * Coordinate Systems:
- * - Unreal: Forward-Left-Up (FLU), centimeters
+ * - Unreal: Forward-Right-Up (FRU), centimeters (Unreal's native left-handed)
  * - NED: North-East-Down, meters (aerospace/PX4 standard)
  * - ENU: East-North-Up, meters (ROS standard)
  * - Body: Vehicle-fixed frame
@@ -40,6 +40,13 @@ public:
      */
     UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
     static FVector NEDToUnreal(const FVector& NEDPos);
+
+    /**
+     * Convert position from Unreal (FRU, meters) to NED (m)
+     * Use when your input is already meters (e.g., GPS sensor which returns m)
+     */
+    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
+    static FVector UnrealMetersToNED(const FVector& UnrealPosMeters);
     
     /**
      * Convert position from Unreal (FLU, cm) to ENU (m)
@@ -74,6 +81,13 @@ public:
      */
     UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
     static FVector UnrealVelocityToENU(const FVector& UnrealVel);
+
+    /**
+     * Convert velocity from Unreal (FRU, m/s) to NED (m/s)
+     * Use when your input is already m/s (e.g., IMU velocity)
+     */
+    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
+    static FVector UnrealMetersVelocityToNED(const FVector& UnrealVelMS);
 
     // ==================== ROTATION TRANSFORMS ====================
     
@@ -128,7 +142,31 @@ public:
     static FVector UnrealAngularVelocityToENU(const FVector& UnrealAngVel);
 
     // ==================== FRAME TRANSFORMS ====================
-    
+
+    /**
+     * Transform accelerometer data from Unreal body frame (FLU) to PX4 body frame (FRD)
+     * This is critical for PX4 integration - gravity must appear as negative Z in FRD frame
+     * @param UnrealBodyAccel Acceleration in Unreal body frame (FLU, m/s²)
+     * @return Acceleration in PX4 body frame (FRD, m/s²)
+     */
+    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
+    static FVector UnrealBodyAccelToFRD(const FVector& UnrealBodyAccel);
+
+    /**
+     * Transform angular velocity from Unreal body frame (FLU) to PX4 body frame (FRD)
+     * @param UnrealBodyAngVel Angular velocity in Unreal body frame (FLU, deg/s)
+     * @return Angular velocity in PX4 body frame (FRD, rad/s)
+     */
+    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
+    static FVector UnrealBodyAngVelToFRD(const FVector& UnrealBodyAngVel);
+
+    /**
+     * Generic body-frame vector transform from Unreal body (FRU) to PX4 body (FRD)
+     * Use for vectors like magnetometer that are already in body frame
+     */
+    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
+    static FVector UnrealBodyToFRD(const FVector& UnrealBodyVec);
+
     /**
      * Transform vector from world frame to body frame
      * @param WorldVector Vector in world frame

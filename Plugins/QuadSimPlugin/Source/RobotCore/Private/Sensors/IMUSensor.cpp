@@ -46,7 +46,8 @@ FVector UIMUSensor::SampleRawAcceleration(float DeltaTime)
 	FVector RawAccel = (CurrVel - PreviousVelocity) / DeltaTime;
 	PreviousVelocity = CurrVel;
 
-	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAccel/100);
+	// Convert to m/s^2 and transform to body frame
+	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAccel / 100.0f);
 }
 
 FVector UIMUSensor::SampleRawAngularVelocity()
@@ -86,7 +87,10 @@ void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)
 	if (AccumulatedTime < Period)
 		return;
 	AccumulatedTime -= Period;
-
+	if (UWorld* World = GetWorld())
+	{
+		LastUpdateTime = World->GetTimeSeconds();
+	}
 	// Sample all sensor data
 	FVector Accel = SampleRawAcceleration(Period);
 	FVector Gyro = SampleRawAngularVelocity();
@@ -116,15 +120,19 @@ void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)
 		Attitude.Pitch += SensorNoise() * FMath::RadiansToDegrees(GyroAttNoiseStdDev);
 		Attitude.Yaw += SensorNoise() * FMath::RadiansToDegrees(GyroAttNoiseStdDev);
 	}
-	if (bNeedsFirstAccelSample)
-	{
-		LastAccelerometer = Accel;
-		bNeedsFirstAccelSample = false;
-	}
-	// Store all sensor readings
-	LastGyroscope = Gyro;
-	LastVelocity = Velocity;  // You'll need to add this member variable
-	LastAttitude = Attitude;  // You'll need to add this member variable
+    if (bNeedsFirstAccelSample)
+    {
+        LastAccelerometer = Accel; // seed with first valid sample
+        bNeedsFirstAccelSample = false;
+    }
+    else
+    {
+        LastAccelerometer = Accel; // update every period to avoid stale accel
+    }
+    // Store all sensor readings
+    LastGyroscope = Gyro;
+    LastVelocity = Velocity;  // You'll need to add this member variable
+    LastAttitude = Attitude;  // You'll need to add this member variable
 }
 
 float UIMUSensor::SensorNoise()

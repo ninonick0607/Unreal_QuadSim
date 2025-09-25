@@ -7,9 +7,11 @@
 #include "QuadSimCore/Public/Core/DroneManager.h"
 #include "Pawns/QuadPawn.h"
 #include "Controllers/QuadDroneController.h"
+#include "Controllers/PX4Component.h"
 #include "Core/DroneJSONConfig.h"
 #include "SimulationCore/Public/Core/SimulationManager.h"
 #include "GameFramework/Actor.h"
+#include "Utility/NavigationComponent.h"
 #include <cfloat>
 
 void UControlPanelUI::TickAndDraw(UWorld* World)
@@ -86,7 +88,8 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
                 bool bSelected = (i == ActiveIndex);
                 if (ImGui::Selectable(TCHAR_TO_UTF8(*P->GetName()), bSelected))
                 {
-                    DM->SelectedDroneIndex = i;
+                    // Also possess the selected drone and switch camera
+                    DM->SelectDroneByIndex(i, /*bAlsoPossess=*/true);
                 }
                 if (bSelected) ImGui::SetItemDefaultFocus();
             }
@@ -104,11 +107,19 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             {
                 Controller->SetUseExternalController(State.bPX4);
             }
+            if (ActivePawn)
+            {
+                if (UPX4Component* PX4 = ActivePawn->FindComponentByClass<UPX4Component>())
+                {
+                    PX4->SetPX4Active(State.bPX4);
+                }
+            }
         }
+        // (Debug toggle moved next to mode selection below)
         // Note: Gamepad visualization/modes are controlled by selecting the Gamepad Angle/Acro buttons below.
 
         ImGui::Separator();
-        // Top horizontal 4 buttons for flight modes (slightly tighter default helps sharpness)
+        // Top horizontal buttons for flight modes
         if (!State.bGamepad)
         {
             if (ImGui::Button("Position"))
@@ -130,13 +141,19 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             {
                 if (Controller) { Controller->SetUseExternalController(false); Controller->SetFlightMode(EFlightMode::RateControl); }
             }
+
+            // Debug toggle next to mode selection
+            ImGui::SameLine();
+            bool bDebugNow = State.bDebug;
+            if (ImGui::Checkbox("Debug", &bDebugNow))
+            {
+                State.bDebug = bDebugNow;
+                if (Controller) { Controller->SetDebugVisualsEnabled(State.bDebug); }
+            }
         }
         else
         {
-            ImGui::BeginDisabled(true);
-            ImGui::Button("Position"); ImGui::SameLine(); ImGui::Button("Velocity");
-            ImGui::EndDisabled();
-            ImGui::SameLine();
+            // Gamepad-only modes; hide Position/Velocity completely
             if (ImGui::Button("Gamepad Angle"))
             {
                 if (Controller) { Controller->SetUseExternalController(false); Controller->SetFlightMode(EFlightMode::JoyStickAngleControl); }
@@ -146,49 +163,134 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             {
                 if (Controller) { Controller->SetUseExternalController(false); Controller->SetFlightMode(EFlightMode::JoyStickAcroControl); }
             }
+
+            // Debug toggle next to gamepad mode selection
+            ImGui::SameLine();
+            bool bDebugNow = State.bDebug;
+            if (ImGui::Checkbox("Debug", &bDebugNow))
+            {
+                State.bDebug = bDebugNow;
+                if (Controller) { Controller->SetDebugVisualsEnabled(State.bDebug); }
+            }
         }
 
         ImGui::Separator();
         // Control Settings (above control sliders)
         if (ImGui::CollapsingHeader("Control Settings", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            const auto& Cfg = UDroneJSONConfig::Get().Config;
-            static float UiMaxVel   = Cfg.FlightParams.MaxVelocity;
-            static float UiMaxAngle = Cfg.FlightParams.MaxAngle;
-            static float UiMaxRate  = Cfg.FlightParams.MaxAngleRate;
+            auto& Cfg = UDroneJSONConfig::Get().Config;
 
-            const float maxVelBound = FMath::Max(0.1f, Cfg.FlightParams.MaxVelocityBound);
+            // Bounds from settings (read-only)
+            const float maxVelBound   = FMath::Max(0.0f, Cfg.FlightParams.MaxVelocityBound);
+            const float maxAngleBound = FMath::Max(0.0f, Cfg.FlightParams.MaxAngleBound);
+
+            // Session values: initialize from settings once, then keep in panel state
+            float UiMaxVel   = State.bHasSessionMaxVel   ? State.SessionMaxVel   : Cfg.FlightParams.MaxVelocity;
+            float UiMaxAngle = State.bHasSessionMaxAngle ? State.SessionMaxAngle : Cfg.FlightParams.MaxAngle;
+            float UiMaxRate  = State.bHasSessionMaxRate  ? State.SessionMaxRate  : Cfg.FlightParams.MaxAngleRate;
+
             if (ImGui::SliderFloat("Max Velocity (m/s)", &UiMaxVel, 0.0f, maxVelBound, "%.2f"))
             {
-                if (Controller) Controller->SetMaxVelocity(UiMaxVel);
+                State.SessionMaxVel = UiMaxVel;
+                State.bHasSessionMaxVel = true;
+                if (Controller) Controller->SetMaxVelocity(UiMaxVel); // session-only
             }
-
-            if (ImGui::SliderFloat("Max Angle (deg)", &UiMaxAngle, 0.0f, Cfg.FlightParams.MaxAngle, "%.1f"))
+            if (ImGui::SliderFloat("Max Angle (deg)", &UiMaxAngle, 0.0f, maxAngleBound, "%.1f"))
             {
-                if (Controller) Controller->SetMaxAngle(UiMaxAngle);
+                State.SessionMaxAngle = UiMaxAngle;
+                State.bHasSessionMaxAngle = true;
+                if (Controller) Controller->SetMaxAngle(UiMaxAngle); // session-only
             }
-
-            if (ImGui::SliderFloat("Max Angle Rate (deg/s)", &UiMaxRate, 0.0f, Cfg.FlightParams.MaxAngleRate, "%.1f"))
+            if (ImGui::SliderFloat("Max Angle Rate (deg/s)", &UiMaxRate, 0.0f, 180.0f, "%.1f"))
             {
-                if (Controller) Controller->SetMaxAngleRate(UiMaxRate);
+                State.SessionMaxRate = UiMaxRate;
+                State.bHasSessionMaxRate = true;
+                if (Controller) Controller->SetMaxAngleRate(UiMaxRate); // session-only
             }
         }
 
         ImGui::Separator();
+        // Position Control Settings (manual queue builder)
+        if (Controller && Controller->GetFlightMode() == EFlightMode::AutoWaypoint && State.bManualPositionOverride && ImGui::CollapsingHeader("Position Control Settings", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            // Input fields for a waypoint in meters
+            // Change from pure text inputs to slider + editable value box per axis
+            float ix = State.ManualInput.X;
+            float iy = State.ManualInput.Y;
+            float iz = State.ManualInput.Z;
+
+            // X control: slider with editable box
+            ImGui::PushID("ManualX");
+            ImGui::SetNextItemWidth(200.f);
+            ImGui::SliderFloat("X (m)", &ix, -500.f, 500.f, "%.2f");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(90.f);
+            ImGui::InputFloat("##XEdit", &ix, 0.1f, 1.0f, "%.2f");
+            ImGui::PopID();
+
+            // Y control: slider with editable box
+            ImGui::PushID("ManualY");
+            ImGui::SetNextItemWidth(200.f);
+            ImGui::SliderFloat("Y (m)", &iy, -500.f, 500.f, "%.2f");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(90.f);
+            ImGui::InputFloat("##YEdit", &iy, 0.1f, 1.0f, "%.2f");
+            ImGui::PopID();
+
+            // Z control: slider with editable box
+            ImGui::PushID("ManualZ");
+            ImGui::SetNextItemWidth(200.f);
+            ImGui::SliderFloat("Z (m)", &iz, -500.f, 500.f, "%.2f");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(90.f);
+            ImGui::InputFloat("##ZEdit", &iz, 0.1f, 1.0f, "%.2f");
+            ImGui::PopID();
+            State.ManualInput = FVector(ix, iy, iz);
+            ImGui::SameLine();
+            if (ImGui::Button("+ Add"))
+            {
+                State.ManualQueue.Add(State.ManualInput);
+                if (ActivePawn && ActivePawn->NavigationComponent)
+                {
+                    ActivePawn->NavigationComponent->SetNavigationPlan(State.ManualQueue);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Clear"))
+            {
+                State.ManualQueue.Reset();
+                if (ActivePawn && ActivePawn->NavigationComponent)
+                {
+                    ActivePawn->NavigationComponent->SetNavigationPlan(State.ManualQueue);
+                }
+            }
+
+            // List current queue
+            ImGui::Separator();
+            ImGui::TextUnformatted("Queue:");
+            for (int i = 0; i < State.ManualQueue.Num(); ++i)
+            {
+                const FVector& P = State.ManualQueue[i];
+                ImGui::BulletText("%d: (%.2f, %.2f, %.2f)", i, P.X, P.Y, P.Z);
+            }
+        }
+
         // Flight controls (collapsible)
         if (Controller && ImGui::CollapsingHeader("Flight Controls", ImGuiTreeNodeFlags_DefaultOpen))
         {
             const auto& Cfg = UDroneJSONConfig::Get().Config;
-            const float MaxVel   = Cfg.FlightParams.MaxVelocity;        // m/s
-            const float MaxAngle = Cfg.FlightParams.MaxAngle;            // deg
-            const float MaxRate  = Cfg.FlightParams.MaxAngleRate;        // deg/s
+            // Use session overrides if present so slider ranges update live
+            const float MaxVel   = State.bHasSessionMaxVel   ? State.SessionMaxVel   : Cfg.FlightParams.MaxVelocity;     // m/s
+            const float MaxAngle = State.bHasSessionMaxAngle ? State.SessionMaxAngle : Cfg.FlightParams.MaxAngle;        // deg
+            const float MaxRate  = State.bHasSessionMaxRate  ? State.SessionMaxRate  : Cfg.FlightParams.MaxAngleRate;    // deg/s
             const float MaxYawRate = Cfg.ControllerParams.YawRate;       // deg/s
 
             EFlightMode Mode = Controller->GetFlightMode();
 
             // Hover Mode quick controls (verbatim style)
-            const float minAlt = FMath::Max(0.0f, Cfg.FlightParams.MinAltitudeLocal);
-            if (State.HoverAlt <= 0.f) { State.HoverAlt = FMath::Max(250.f, minAlt); }
+            // Config stores MinAltitudeLocal in centimeters; UI works in meters
+            const float minAlt = FMath::Max(0.0f, Cfg.FlightParams.MinAltitudeLocal * 0.01f);
+            if (State.HoverAlt <= 0.f) { State.HoverAlt =2; }
             // Toggleable hover button with green highlight when active
             if (State.bHoverActive)
             {
@@ -202,7 +304,7 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
                 Controller->SetHoverMode(State.bHoverActive, State.HoverAlt);
             }
             if (State.bHoverActive) ImGui::PopStyleColor(3);
-            ImGui::SliderFloat("Hover Altitude (m)", &State.HoverAlt, minAlt, FMath::Max(minAlt + 500.f, State.HoverAlt + 100.f), "%.1f");
+            ImGui::SliderFloat("Hover Altitude (m)", &State.HoverAlt, minAlt, 500.0f, "%.1f");
 
             // Mode label above sliders
             const char* sectionLabel = "";
@@ -220,15 +322,53 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
                 ImGui::TextUnformatted(sectionLabel);
             }
 
-            // Position mode: XYZ position target (hidden in Gamepad UI)
+            // Position mode: show current setpoint; hide original sliders when Manual Destination is active
             if (!State.bGamepad && Mode == EFlightMode::AutoWaypoint)
             {
-                FVector pos = Controller->GetCurrentSetPoint();
-                float px = pos.X, py = pos.Y, pz = pos.Z;
-                ImGui::SliderFloat("Position X (m)", &px, -10000.f, 10000.f, "%.2f");
-                ImGui::SliderFloat("Position Y (m)", &py, -10000.f, 10000.f, "%.2f");
-                ImGui::SliderFloat("Position Z (m)", &pz, -10000.f, 10000.f, "%.2f");
-                Controller->SetDestination(FVector(px, py, pz));
+                // Main toggle: Manual Destination shows queue UI and hides old sliders
+                bool bManualDest = State.bManualPositionOverride;
+                if (ImGui::Checkbox("Manual Destination", &bManualDest))
+                {
+                    State.bManualPositionOverride = bManualDest;
+                    State.bManualPathMode = bManualDest; // keep controller debug spheres consistent
+                    if (Controller) Controller->SetManualPathMode(State.bManualPathMode);
+                    if (!State.bManualPositionOverride)
+                    {
+                        // Leaving manual: restore generic spiral/auto plan
+                        if (ActivePawn && ActivePawn->NavigationComponent)
+                        {
+                            const FVector currPosM = ActivePawn->GetActorLocation() / 100.0f;
+                            TArray<FVector> plan = ActivePawn->GenerateFigureEightWaypoints(currPosM);
+                            ActivePawn->NavigationComponent->SetNavigationPlan(plan);
+                        }
+                    }
+                    else if (ActivePawn && ActivePawn->NavigationComponent)
+                    {
+                        // Entering manual: apply current queue (may be empty)
+                        ActivePawn->NavigationComponent->SetNavigationPlan(State.ManualQueue);
+                    }
+                }
+                if (State.bManualPositionOverride)
+                {
+                    // Manual queue is driving nav; show read-only current setpoint for reference
+                    const FVector pos = Controller->GetCurrentSetPoint();
+                    ImGui::Text("Current Setpoint: X=%.2f Y=%.2f Z=%.2f m", pos.X, pos.Y, pos.Z);
+                }
+                else
+                {
+                    // Original single-target sliders: visible only when not using manual destination/queue
+                    FVector pos = Controller->GetCurrentSetPoint();
+                    float px = pos.X, py = pos.Y, pz = pos.Z;
+                    ImGui::SliderFloat("Position X (m)", &px, -500.f, 500.f, "%.2f");
+                    ImGui::SliderFloat("Position Y (m)", &py, -500.f, 500.f, "%.2f");
+                    ImGui::SliderFloat("Position Z (m)", &pz, -500.f, 500.f, "%.2f");
+                    const FVector dest(px, py, pz);
+                    Controller->SetDestination(dest);
+                    if (ActivePawn && ActivePawn->NavigationComponent)
+                    {
+                        ActivePawn->NavigationComponent->SetCurrentDestination(dest);
+                    }
+                }
             }
 
             // Velocity mode: XYZ velocity and yaw rate (hidden in Gamepad UI)
@@ -363,19 +503,24 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
         ImGui::SameLine();
         if (ImGui::Button("Reset High"))
         {
-            if (Controller) Controller->SetHoverMode(true, 250.0f);
+            // Do not force hover mode when resetting
+            if (Controller) Controller->SetHoverMode(false, 0.0f);
             if (ActivePawn) ActivePawn->ResetRotation();
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset Low"))
         {
-            const float lowAlt = FMath::Max(0.0f, UDroneJSONConfig::Get().Config.FlightParams.MinAltitudeLocal);
-            if (Controller) Controller->SetHoverMode(true, lowAlt);
+            // Do not force hover mode when resetting
+            if (Controller) Controller->SetHoverMode(false, 0.0f);
             if (ActivePawn) ActivePawn->ResetPosition();
         }
         ImGui::PopStyleVar();
-
-        // (removed duplicate Control Settings block)
+        
+        // Per-frame debug visuals when enabled
+        if (State.bDebug)
+        {
+            if (Controller) { Controller->SetDebugVisualsEnabled(true); Controller->DrawMagneticDebugVisuals(); }
+        }
     }
     ImGui::End();
 }

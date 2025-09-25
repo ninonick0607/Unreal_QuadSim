@@ -1,4 +1,4 @@
-# QuadSimPlugin — In-Depth Guide
+# QuadSimPlugin â€” In-Depth Guide
 
 This plugin provides a modular, deterministic quadrotor simulation stack for Unreal Engine, with:
 - A core flight stack (QuadSimCore) including the quad pawn, controllers, and managers
@@ -12,30 +12,30 @@ This README explains the structure, data flow, and key classes so you can naviga
 ## Overview: Actors, Components, and Modules
 
 - `QuadSimCore` (game logic)
-  - `AQuadPawn` — the quadcopter pawn actor with mesh, thrusters, cameras, sensors, and controller reference
-  - `UQuadDroneController` — the core flight controller (velocity/angle/rate joystick modes; PID cascades; hover)
-  - `ADroneManager` — spawns/manages drones, tracks selection, updates control each fixed step, and can broadcast flight modes
-  - `UPX4Component` — optional external controller (PX4 HIL style); streams state and receives motor commands
-  - `UDroneJSONConfig` — loads/saves flight and controller parameters (JSON)
-  - `UThrusterComponent` — applies forces/torques per motor
-  - `AQuadSimGameMode`, `AQuadSimPlayerController` — runtime glue (input routing, ImGui toggle, default possession)
+  - `AQuadPawn` â€” the quadcopter pawn actor with mesh, thrusters, cameras, sensors, and controller reference
+  - `UQuadDroneController` â€” the core flight controller (velocity/angle/rate joystick modes; PID cascades; hover)
+  - `ADroneManager` â€” spawns/manages drones, tracks selection, updates control each fixed step, and can broadcast flight modes
+  - `UPX4Component` â€” optional external controller (PX4 HIL style); streams state and receives motor commands
+  - `UDroneJSONConfig` â€” loads/saves flight and controller parameters (JSON)
+  - `UThrusterComponent` â€” applies forces/torques per motor
+  - `AQuadSimGameMode`, `AQuadSimPlayerController` â€” runtime glue (input routing, ImGui toggle, default possession)
 
 - `RobotCore` (sensors, utilities)
-  - `USensorManagerComponent` — owns sensors and provides fused `FSensorData`
-  - `UGPSSensor`, `UIMUSensor`, `UMagSensor`, `UBaroSensor` — key sensor components
+  - `USensorManagerComponent` â€” owns sensors and provides fused `FSensorData`
+  - `UGPSSensor`, `UIMUSensor`, `UMagSensor`, `UBaroSensor` â€” key sensor components
   - `CoordinateTransform` utilities
 
 - `SimulationCore` (time + stepping)
-  - `ASimulationManager` — fixed-step scheduling, simulation modes (Realtime, Paused, FastForward, Lockstep), robot registry
-  - `UTimeController` — accumulator-based fixed timestep (default 100 Hz) and time scaling
-  - `ISimulatable` — interface for actors to receive fixed updates
+  - `ASimulationManager` â€” fixed-step scheduling, simulation modes (Realtime, Paused, FastForward, Lockstep), robot registry
+  - `UTimeController` â€” accumulator-based fixed timestep (default 100 Hz) and time scaling
+  - `ISimulatable` â€” interface for actors to receive fixed updates
 
 - `SimHUD` (ImGui-based HUD)
-  - `USimHUDTaskbarSubsystem` + `ImGuiBootstrapSubsystem` — orchestrate HUD windows and input
-  - `ControlPanelUI.cpp/.h` — flight modes, setpoints, queue builder, PX4 controls
-  - `SettingsUI.cpp` — runtime settings (time scale, spawn toggles, etc.)
+  - `USimHUDTaskbarSubsystem` + `ImGuiBootstrapSubsystem` â€” orchestrate HUD windows and input
+  - `ControlPanelUI.cpp/.h` â€” flight modes, setpoints, queue builder, PX4 controls
+  - `SettingsUI.cpp` â€” runtime settings (time scale, spawn toggles, etc.)
 
-- `ThirdParty/MAVLink` (vendored) — generated headers for MAVLink; do not modify
+- `ThirdParty/MAVLink` (vendored) â€” generated headers for MAVLink; do not modify
 
 ## Data and Control Flow
 
@@ -43,7 +43,7 @@ High level loop:
 1. `ASimulationManager` ticks (pre-physics), accumulates `DeltaTime` in `UTimeController`, and executes one or more fixed steps (100 Hz default) per frame.
 2. Each fixed step calls `SimulationUpdate` on registered robots. `ADroneManager` is a registered robot and updates all `AQuadPawn` instances:
    - PX4 component update (if active)
-   - `AQuadPawn::UpdateControl(FixedDeltaTime)` — which ultimately calls `UQuadDroneController::Update(...)` with current `FSensorData`.
+   - `AQuadPawn::UpdateControl(FixedDeltaTime)` â€” which ultimately calls `UQuadDroneController::Update(...)` with current `FSensorData`.
 3. `UQuadDroneController` computes desired thrust/torques via PID cascades depending on the flight mode, and `UThrusterComponent` applies forces/torques to the pawn.
 4. `SimHUD` draws runtime UI for flight controls, configuration, PX4, debug visuals, and navigation queues.
 
@@ -173,7 +173,7 @@ SimHUD:
   - Time, spawn, and UI theme options
 
 ThirdParty:
-- `ThirdParty/MAVLink/*` — generated MAVLink message definitions, tests, and headers (do not edit)
+- `ThirdParty/MAVLink/*` â€” generated MAVLink message definitions, tests, and headers (do not edit)
 
 ## Typical Runtime Flow
 
@@ -189,7 +189,7 @@ ThirdParty:
   - `flight_parameters.max_velocity`, `max_angle`, `max_angle_rate`, `max_pid_output`, `max_thrust`
   - `flight_parameters.min_altitude_local` (cm), `acceptable_distance` (cm)
   - `controller.altitude_rate` (cm/s), `yaw_rate` (deg/s), `min_velocity_for_yaw` (m/s)
-- HUD sliders — session-only overrides for angle/rate/velocity
+- HUD sliders â€” session-only overrides for angle/rate/velocity
 - `ASimulationManager`: `MaxStepsPerFrame`, mode, and world time dilation
 
 ## Extending the System
@@ -216,9 +216,6 @@ ThirdParty:
 
 ## Repository Conventions
 - Follow Unreal C++ style; prefer UE containers/types
-- Don’t modify generated MAVLink headers; wrap them if needed
+- Donâ€™t modify generated MAVLink headers; wrap them if needed
 - Keep secrets out of source; use `Default*.ini`/JSON config patterns
 - Commit messages: Conventional Commits preferred (`feat:`, `fix:`, `refactor:`)
-
----
-If you want, I can add a module diagram or embed links to specific source files to jump directly into sections you’re most interested in.

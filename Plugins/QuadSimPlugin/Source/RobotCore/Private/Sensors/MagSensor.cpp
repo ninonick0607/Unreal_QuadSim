@@ -64,7 +64,6 @@ void UMagSensor::UpdateSensor(float DeltaTime, bool bNoise)
 	{
 		LastUpdateTime = World->GetTimeSeconds();
 	}
-    
     // First, update the Earth's magnetic field based on GPS position
     UpdateEarthMagField();
     
@@ -115,15 +114,8 @@ void UMagSensor::CalculateMagneticHeading()
 		{
 			MagneticHeading += 360.0f;
 		}
-        
-		// Get declination if available (difference between magnetic and true north)
-		if (GeoRefSystem && bEarthMagFieldValid)
-		{
-			// This would come from the World Magnetic Model
-			// For now, using a placeholder
-			MagneticDeclination = 0.0f; // You can calculate this from WMM if needed
-		}
-	}
+        // MagneticDeclination is computed in UpdateEarthMagField() from WMM
+    }
 }
 void UMagSensor::UpdateEarthMagField()
 {
@@ -152,8 +144,15 @@ void UMagSensor::UpdateEarthMagField()
 	float Longitude = GeoCoords.Longitude;
 	float Altitude = GeoCoords.Altitude;
     
-	// Get magnetic field vector from World Magnetic Model
-	FVector MagFieldNED = FGeoMagDeclination::GetMagFieldVector(Latitude, Longitude);
+    // Get magnetic field vector and declination from World Magnetic Model
+    FVector MagFieldNED = FGeoMagDeclination::GetMagFieldVector(Latitude, Longitude);
+    MagneticDeclination = FGeoMagDeclination::GetMagDeclinationDegrees(Latitude, Longitude);
+    if (!bDeclinationLogged)
+    {
+        UE_LOG(LogTemp, Display, TEXT("MagSensor: WMM Declination = %.2f deg (lat=%.6f lon=%.6f)"),
+               MagneticDeclination, Latitude, Longitude);
+        bDeclinationLogged = true;
+    }
     
 	// The magnetic field is already in NED (North-East-Down) frame
 	// We need to convert it to Unreal Engine coordinates

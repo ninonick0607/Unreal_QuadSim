@@ -56,7 +56,7 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 		return FVector::ZeroVector;
 
 
-	FVector RawAngVel = AttachedBody->GetPhysicsAngularVelocityInRadians();
+	FVector RawAngVel = AttachedBody->GetPhysicsAngularVelocityInDegrees();
 
 	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAngVel);
 }

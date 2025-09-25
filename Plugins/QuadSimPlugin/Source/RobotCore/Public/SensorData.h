@@ -39,7 +39,9 @@ struct FSensorData
     
 	UPROPERTY()
 	float MagHeadingDeg = 0.0f;
-    
+	
+	UPROPERTY()
+	float MagDeclinationDeg = 0.0f;
 	// Timestamps
 	UPROPERTY()
 	float IMUTimestamp = 0.0f;

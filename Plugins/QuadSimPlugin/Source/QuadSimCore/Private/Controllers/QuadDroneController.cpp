@@ -1,4 +1,4 @@
-﻿// QuadDroneController.cpp
+// QuadDroneController.cpp
 
 #include "Controllers/QuadDroneController.h"
 #include "Pawns/QuadPawn.h"
@@ -137,6 +137,8 @@ void UQuadDroneController::Update(const FSensorData& SensorData, float DeltaTime
 	// Store sensor data for use throughout the controller
 	LastSensorData = SensorData;
 	bHasValidSensorData = true;
+    // Reset per-frame debug draw guards
+    bDrewMagDebugThisFrame = false;
     
 	// Early exit if critical sensors are invalid
 	if (!SensorData.bIMUValid || !SensorData.bGPSValid)
@@ -193,7 +195,7 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
 	localAngularRateDeg = yawOnlyRot.UnrotateVector(worldAngDeg);
 
 	/* ---------------- altitude / throttle ---------------- */
-	hoverTargetAltitude += GP.Throttle * 150.f * DeltaTime;          // ±1 m s-¹
+	hoverTargetAltitude += GP.Throttle * 150.f * DeltaTime;          // �1 m s-�
 
 	double altVelSetpoint = AltitudePID->Calculate(hoverTargetAltitude, Altitude, DeltaTime);
 	double zEffort = PIDSet.ZPID->Calculate(altVelSetpoint, localVel.Z, DeltaTime);
@@ -221,7 +223,7 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	FFullPIDSet* CurrentSet = &PIDSet;
 	if (!CurrentSet || !dronePawn) return;
 	
-	/* â”€â”€â”€â”€â”€ World-space state â”€â”€â”€â”€â”€ */
+	/* ───── World-space state ───── */
 	FVector GPSData = SensorData.GPSPosMeters;
 	float Altitude = SensorData.BaroAltitudeM;
 	const FVector  currPos = {GPSData.X, GPSData.Y, Altitude};     
@@ -248,7 +250,7 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
     {
     case EFlightMode::AutoWaypoint:
         {
-            // â”€â”€â”€â”€â”€ Update / fetch next set-point â”€â”€â”€â”€â”€
+            // ───── Update / fetch next set-point ─────
             if (UNavigationComponent* Nav = dronePawn->FindComponentByClass<UNavigationComponent>())
             {
                 // Navigation operates in meters; pass meters and receive meters
@@ -344,8 +346,8 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 			}
 		}
 	}
-	//  Debug drawing and onâ€‘screen HUD (optional)
-	DrawDebugVisualsVel(FVector(desiredLocalVelocity.X, desiredLocalVelocity.Y, 0.f));
+        // (removed duplicate velocity debug draw to prevent double visuals per frame)
+
 }
 
 //=========================== Thrusts =========================== //
@@ -502,7 +504,7 @@ void UQuadDroneController::SetDestination(FVector desiredSetPoints) {
 //=========================== Helper Functions =========================== //
 void UQuadDroneController::DrawDebugVisuals(const FVector& currentPosition) const
 {
-   // Draw only a line connecting the current position to the setpoint (convert m â†’ cm for world debug)
+   // Draw only a line connecting the current position to the setpoint (convert m → cm for world debug)
    DrawDebugLine(
        dronePawn->GetWorld(),
        currentPosition * 100.0f,
@@ -548,88 +550,98 @@ void UQuadDroneController::DrawDebugVisualsVel(const FVector& horizontalVelocity
 void UQuadDroneController::DrawMagneticDebugVisuals()
 {
     if (!dronePawn || !bDebugVisualsEnabled) return;
-    
-    FVector DronePos = dronePawn->GetActorLocation();
-    
-    // Get georeferencing system
-    AGeoReferencingSystem* GeoRef = AGeoReferencingSystem::GetGeoReferencingSystem(dronePawn->GetWorld());
+    // Avoid duplicate draws within the same frame (can be called from UI and controller)
+    if (bDrewMagDebugThisFrame) return;
+    bDrewMagDebugThisFrame = true;
+    UWorld* World = dronePawn->GetWorld();
+    if (!World) return;
+    const FVector DronePos = dronePawn->GetActorLocation();
+    // Georeferencing and geographic context
+    AGeoReferencingSystem* GeoRef = AGeoReferencingSystem::GetGeoReferencingSystem(World);
     if (!GeoRef) return;
-    
-    // Get geographic coordinates for declination
     FGeographicCoordinates GeoCoords;
     GeoRef->EngineToGeographic(DronePos, GeoCoords);
-    
-    // Get magnetic declination at this location
-    float Declination = FGeoMagDeclination::GetMagDeclinationDegrees(GeoCoords.Latitude, GeoCoords.Longitude);
-    
-    // Get ENU vectors (East, North, Up) in Unreal coordinates
+    const float Declination = FGeoMagDeclination::GetMagDeclinationDegrees(GeoCoords.Latitude, GeoCoords.Longitude);
+    // Local ENU basis vectors
     FVector EastVector, NorthVector, UpVector;
     GeoRef->GetENUVectorsAtGeographicLocation(GeoCoords, EastVector, NorthVector, UpVector);
-    
-    // Draw True North (Green arrow)
-    FVector TrueNorthEnd = DronePos + NorthVector * 500.0f; // 5 meter arrow
-    DrawDebugDirectionalArrow(GetWorld(), DronePos, TrueNorthEnd, 100.0f, FColor::Green, false, -1.0f, 0, 5.0f);
-    DrawDebugString(GetWorld(), TrueNorthEnd + UpVector * 50.0f, TEXT("TRUE NORTH"), nullptr, FColor::Green, 0.0f, true, 1.5f);
-    
-    // Draw Magnetic North (Red arrow) - rotated by declination
-    FQuat DeclinationRot = FQuat(UpVector, FMath::DegreesToRadians(Declination));
-    FVector MagNorthVector = DeclinationRot.RotateVector(NorthVector);
-    FVector MagNorthEnd = DronePos + MagNorthVector * 500.0f;
-    DrawDebugDirectionalArrow(GetWorld(), DronePos, MagNorthEnd, 100.0f, FColor::Red, false, -1.0f, 0, 5.0f);
-    DrawDebugString(GetWorld(), MagNorthEnd + UpVector * 50.0f, 
-                    FString::Printf(TEXT("MAG NORTH (%.1fÂ°)"), Declination), 
-                    nullptr, FColor::Red, 0.0f, true, 1.5f);
-    
-    // Draw drone heading (Blue arrow)
-    FVector DroneForward = dronePawn->GetActorForwardVector();
-    FVector DroneHeadingEnd = DronePos + DroneForward * 400.0f;
-    DrawDebugDirectionalArrow(GetWorld(), DronePos, DroneHeadingEnd, 80.0f, FColor::Blue, false, -1.0f, 0, 4.0f);
-    
-    // Calculate and display heading relative to true north
-    float HeadingToTrueNorth = FMath::RadiansToDegrees(FMath::Atan2(
+    // Arrows: True North (green), Magnetic North (red), Drone heading (blue)
+    const FVector TrueNorthEnd = DronePos + NorthVector * 400.0f;
+    DrawDebugDirectionalArrow(World, DronePos, TrueNorthEnd, 80.0f, FColor::Green, false, 0.0f, 0, 4.0f);
+    const FQuat DeclinationRot(UpVector, FMath::DegreesToRadians(Declination));
+    const FVector MagNorthVector = DeclinationRot.RotateVector(NorthVector);
+    const FVector MagNorthEnd = DronePos + MagNorthVector * 400.0f;
+    DrawDebugDirectionalArrow(World, DronePos, MagNorthEnd, 80.0f, FColor::Red, false, 0.0f, 0, 4.0f);
+    const FVector DroneForward = dronePawn->GetActorForwardVector();
+    const FVector DroneHeadingEnd = DronePos + DroneForward * 350.0f;
+    DrawDebugDirectionalArrow(World, DronePos, DroneHeadingEnd, 72.0f, FColor::Blue, false, 0.0f, 0, 3.0f);
+    // Heading relative to True North (deg)
+    const float HeadingTrueDeg = FMath::RadiansToDegrees(FMath::Atan2(
         FVector::DotProduct(DroneForward, EastVector),
-        FVector::DotProduct(DroneForward, NorthVector)
-    ));
-    
-    DrawDebugString(GetWorld(), DroneHeadingEnd + UpVector * 50.0f, 
-                    FString::Printf(TEXT("DRONE (%.1fÂ°)"), HeadingToTrueNorth), 
-                    nullptr, FColor::Blue, 0.0f, true, 1.5f);
-    
-    // Draw magnetic field vector (Purple)
-    FVector MagField = dronePawn->SensorManager->Magnetometer->GetLastMagField();
-    FVector MagFieldWorld = dronePawn->GetActorRotation().RotateVector(MagField);
-    FVector MagFieldScaled = MagFieldWorld * 1000.0f; // Scale for visibility
-    DrawDebugLine(GetWorld(), DronePos, DronePos + MagFieldScaled, FColor::Purple, false, -1.0f, 0, 3.0f);
-    DrawDebugString(GetWorld(), DronePos + MagFieldScaled + UpVector * 30.0f, 
-                    FString::Printf(TEXT("MAG FIELD (%.2f G)"), MagField.Size()), 
-                    nullptr, FColor::Purple, 0.0f, true, 1.2f);
-	float MagneticHeading = FMath::RadiansToDegrees(FMath::Atan2(MagField.Y, MagField.X));
-    // Draw compass rose on ground
-    float CompassRadius = 300.0f;
-    DrawDebugCircle(GetWorld(), DronePos, CompassRadius, 64, FColor::White, false, -1.0f, 0, 2.0f, 
-                    FVector(0,0,1), FVector(1,0,0), false);
-	FVector TextPos = DronePos + UpVector * 200.0f;
-	DrawDebugString(GetWorld(), TextPos, 
-		FString::Printf(TEXT("True Heading: %.1fÂ°"), HeadingToTrueNorth), 
-		nullptr, FColor::Green, 0.0f, true, 1.5f);
-    
-	DrawDebugString(GetWorld(), TextPos - UpVector * 30.0f, 
-		FString::Printf(TEXT("Magnetic Heading: %.1fÂ°"), HeadingToTrueNorth + Declination), 
-		nullptr, FColor::Red, 0.0f, true, 1.5f);
-    
-	DrawDebugString(GetWorld(), TextPos - UpVector * 60.0f, 
-		FString::Printf(TEXT("Body Mag X: %.3f Y: %.3f Z: %.3f"), 
-		MagField.X, MagField.Y, MagField.Z), 
-		nullptr, FColor::Purple, 0.0f, true, 1.5f);
-    // Draw cardinal directions
-    DrawDebugString(GetWorld(), DronePos + NorthVector * (CompassRadius + 50.0f), TEXT("N"), 
-                    nullptr, FColor::White, 0.0f, true, 2.0f);
-    DrawDebugString(GetWorld(), DronePos + EastVector * (CompassRadius + 50.0f), TEXT("E"), 
-                    nullptr, FColor::White, 0.0f, true, 2.0f);
-    DrawDebugString(GetWorld(), DronePos - NorthVector * (CompassRadius + 50.0f), TEXT("S"), 
-                    nullptr, FColor::White, 0.0f, true, 2.0f);
-    DrawDebugString(GetWorld(), DronePos - EastVector * (CompassRadius + 50.0f), TEXT("W"), 
-                    nullptr, FColor::White, 0.0f, true, 2.0f);
+        FVector::DotProduct(DroneForward, NorthVector)));
+    // Magnetic field vector (purple)
+    if (dronePawn->SensorManager && dronePawn->SensorManager->Magnetometer)
+    {
+        const FVector MagFieldBody  = dronePawn->SensorManager->Magnetometer->GetLastMagField();
+        const FVector MagFieldWorld = dronePawn->GetActorRotation().RotateVector(MagFieldBody);
+        const FVector MagFieldScaled = MagFieldWorld * 1000.0f; // scale for visibility
+        DrawDebugLine(World, DronePos, DronePos + MagFieldScaled, FColor::Purple, false, 0.0f, 0, 2.5f);
+    }
+    // Compass ring (smaller) and ticks
+    const float CompassRadius = 220.0f;
+    DrawDebugCircle(World, DronePos, CompassRadius, 64, FColor::White, false, 0.0f, 0, 1.8f,
+                    EastVector, NorthVector, false);
+    // Cardinal ticks
+    const float TickLongLen = 18.0f;  const float TickShortLen = 10.0f;  const float TickThick = 1.5f;
+    const FVector NPos = DronePos + NorthVector * CompassRadius;
+    const FVector SPos = DronePos - NorthVector * CompassRadius;
+    const FVector EPos = DronePos + EastVector  * CompassRadius;
+    const FVector WPos = DronePos - EastVector  * CompassRadius;
+    DrawDebugLine(World, NPos - NorthVector * TickLongLen, NPos + NorthVector * TickShortLen, FColor::White, false, 0.0f, 0, TickThick);
+    DrawDebugLine(World, SPos + NorthVector * TickLongLen, SPos - NorthVector * TickShortLen, FColor::White, false, 0.0f, 0, TickThick);
+    DrawDebugLine(World, EPos - EastVector  * TickLongLen, EPos + EastVector  * TickShortLen, FColor::White, false, 0.0f, 0, TickThick);
+    DrawDebugLine(World, WPos + EastVector  * TickLongLen, WPos - EastVector  * TickShortLen, FColor::White, false, 0.0f, 0, TickThick);
+    // Inter-cardinal ticks
+    const FVector NE = (NorthVector + EastVector).GetSafeNormal();
+    const FVector SE = (-NorthVector + EastVector).GetSafeNormal();
+    const FVector SW = (-NorthVector - EastVector).GetSafeNormal();
+    const FVector NW = (NorthVector - EastVector).GetSafeNormal();
+    DrawDebugLine(World, DronePos + NE * CompassRadius - NE * TickShortLen, DronePos + NE * CompassRadius + NE * TickShortLen, FColor(220,220,220), false, 0.0f, 0, TickThick * 0.9f);
+    DrawDebugLine(World, DronePos + SE * CompassRadius - SE * TickShortLen, DronePos + SE * CompassRadius + SE * TickShortLen, FColor(220,220,220), false, 0.0f, 0, TickThick * 0.9f);
+    DrawDebugLine(World, DronePos + SW * CompassRadius - SW * TickShortLen, DronePos + SW * CompassRadius + SW * TickShortLen, FColor(220,220,220), false, 0.0f, 0, TickThick * 0.9f);
+    DrawDebugLine(World, DronePos + NW * CompassRadius - NW * TickShortLen, DronePos + NW * CompassRadius + NW * TickShortLen, FColor(220,220,220), false, 0.0f, 0, TickThick * 0.9f);
+    // Cardinal labels
+    DrawDebugString(World, NPos + UpVector * 12.0f, TEXT("N"), nullptr, FColor::White, 0.0f, true, 1.2f);
+    DrawDebugString(World, SPos + UpVector * 12.0f, TEXT("S"), nullptr, FColor::White, 0.0f, true, 1.2f);
+    DrawDebugString(World, EPos + UpVector * 12.0f, TEXT("E"), nullptr, FColor::White, 0.0f, true, 1.2f);
+    DrawDebugString(World, WPos + UpVector * 12.0f, TEXT("W"), nullptr, FColor::White, 0.0f, true, 1.2f);
+    // Screen-space legend in top-right (approximate via camera-relative anchor)
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+    {
+        if (PC->PlayerCameraManager)
+        {
+            FVector CamLoc; FRotator CamRot;
+            PC->PlayerCameraManager->GetCameraViewPoint(CamLoc, CamRot);
+            const FVector Fwd   = CamRot.Vector();
+            const FVector Right = FRotationMatrix(CamRot).GetScaledAxis(EAxis::Y);
+            const FVector Up    = FRotationMatrix(CamRot).GetScaledAxis(EAxis::Z);
+            const FVector LegendBase = CamLoc + Fwd * 600.0f + Right * 420.0f + Up * 260.0f;
+            const float LineStep = 20.0f;
+            DrawDebugString(World, LegendBase + (-Up * (0.0f * LineStep)),
+                            FString::Printf(TEXT("True Heading: %.1f deg"), HeadingTrueDeg),
+                            nullptr, FColor::Green, 0.0f, true, 1.2f);
+            DrawDebugString(World, LegendBase + (-Up * (1.0f * LineStep)),
+                            FString::Printf(TEXT("Mag Heading: %.1f deg"), HeadingTrueDeg + Declination),
+                            nullptr, FColor::Red, 0.0f, true, 1.2f);
+            if (dronePawn->SensorManager && dronePawn->SensorManager->Magnetometer)
+            {
+                const FVector MagField = dronePawn->SensorManager->Magnetometer->GetLastMagField();
+                DrawDebugString(World, LegendBase + (-Up * (2.0f * LineStep)),
+                                FString::Printf(TEXT("Body Mag X: %.3f Y: %.3f Z: %.3f"), MagField.X, MagField.Y, MagField.Z),
+                                nullptr, FColor::Purple, 0.0f, true, 1.2f);
+            }
+        }
+    }
 }
 float UQuadDroneController::GetCurrentThrustOutput(int32 ThrusterIndex) const
 {
@@ -714,7 +726,7 @@ void UQuadDroneController::ApplyMotorCommands(const TArray<float>& MotorCmd01)
 
         const float cmd01    = FMath::Clamp(MotorCmd01[i], 0.f, 1.f);
 
-        // Map 0..1 â†’ 0..MaxPerMotor_N
+        // Map 0..1 → 0..MaxPerMotor_N
         float thrustN = cmd01 * MaxPerMotor_N;
 
         // simple slew
@@ -722,7 +734,7 @@ void UQuadDroneController::ApplyMotorCommands(const TArray<float>& MotorCmd01)
         thrustN = prevN[i] + delta;
         prevN[i]= thrustN;
 
-        // Convert Newtons â†’ Unreal force units (kg*cm/s^2). 1 N = 100 Unreal units
+        // Convert Newtons → Unreal force units (kg*cm/s^2). 1 N = 100 Unreal units
         const float unrealForce = thrustN * 100.0f;
         const float appliedForce = FMath::Clamp(unrealForce, 0.0f, maxThrust);
 
@@ -758,3 +770,4 @@ void UQuadDroneController::SetUseExternalController(bool bUseExternal)
         }
     }
 }
+

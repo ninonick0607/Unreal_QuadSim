@@ -48,9 +48,10 @@ private:
 
 	float MagneticHeading = 0.0f;
 	float MagneticDeclination = 0.0f;
-	FVector LastMagField;       
-	FVector EarthMagField;      
-	bool bEarthMagFieldValid = false;
+    FVector LastMagField;       
+    FVector EarthMagField;      
+    bool bEarthMagFieldValid = false;
+    bool bDeclinationLogged = false;
     
 	// Noise parameters
 	float MagNoiseStdDev = 0.00001f;  

@@ -509,7 +509,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         }
 
                         ImGui::Separator();
-                        ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "Attitude");
+                        ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "State Info");
                         ImGui::Separator();
                         
                         FSensorData SensorData;
@@ -520,34 +520,42 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         // Drone Mass
                         ImGui::Text("Drone Mass: %.2f kg", Pawn->GetMass());
 
-                        // Attitude (current & desired)
+                        // IMU
+                        ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "IMU");
                         FRotator curAtt = Pawn->SensorManager ? SensorData.IMUAttitude : Pawn->GetActorRotation();
-                        ImGui::Text("Current Roll/Pitch: %.2f / %.2f deg", curAtt.Roll, curAtt.Pitch);
-                        ImGui::Text("Desired Roll/Pitch: %.2f / %.2f deg", Ctrl->GetDesiredRoll(), Ctrl->GetDesiredPitch());
-
-                        ImGui::TextColored(ImVec4(1.0f,0.6f,1.0f,1.0f), "Angular Rate");
-                        FVector curRates = Pawn->SensorManager ? Pawn->SensorManager->IMU->GetLastGyroscopeDegrees() : (Pawn->DroneBody ? Pawn->DroneBody->GetPhysicsAngularVelocityInDegrees() : FVector::ZeroVector);
-                        ImGui::Text("Current Rate Pitch/Roll: %.2f / %.2f deg/s", curRates.Y, curRates.X);
-                        ImGui::Text("Desired Rate Roll/Pitch: %.2f / %.2f deg/s", (float)Ctrl->GetDesiredRollRate(), (float)Ctrl->GetDesiredPitchRate());
-
-                        ImGui::TextColored(ImVec4(1.0f,0.9f,0.4f,1.0f), "Acceleration");
-                        FVector curAcc =SensorData.IMULinearAccelMS2;
-                        ImGui::Text("Current Acceleration: X %.2f Y %.2f Z %.2f m/s^2", curAcc.X, curAcc.Y, curAcc.Z);
-
-                        ImGui::TextColored(ImVec4(0.6f,1.0f,0.6f,1.0f), "Position");
-                        FVector curPos = SensorData.GPSPosMeters;
-                        ImGui::Text("Current Position: X %.1f Y %.1f Z %.1f", curPos.X, curPos.Y, curPos.Z);
-                        ImGui::TextColored(ImVec4(0.6f,1.0f,0.8f,1.0f), "Geo Position");
-                        FVector geo = SensorData.GPSLatLong;
-                        ImGui::Text("Geo Position: Lat %.3f Lon %.3f Alt %.1f", geo.X, geo.Y, geo.Z);
-
-                        ImGui::TextColored(ImVec4(0.5f,0.7f,1.0f,1.0f), "Velocity");
-                        FVector curVel = SensorData.IMUVelMS;
-                        ImGui::Text("Current Velocity: X %.2f Y %.2f Z %.2f m/s", curVel.X, curVel.Y, curVel.Z);
+                        FVector currRates = SensorData.IMUAngVelRADS;
+                        FVector currVel = SensorData.IMUVelMS;
+                        FVector currAcc = SensorData.IMULinearAccelMS2;
                         FVector desVel = Ctrl->GetDesiredVelocity();
+                        ImGui::Text("Current Roll/Pitch: %.2f / %.2f deg", curAtt.Roll, curAtt.Pitch);
+                        ImGui::Text("Current Angular Rates X,Y,Z  %.2f / %.2f / %.2f  deg/s", currRates.X, currRates.Y,currRates.Z);
+                        ImGui::Text("Current Velocity  X,Y,Z  %.2f / %.2f / %.2f  m/s", currVel.X, currVel.Y,currVel.Z);
+                        ImGui::Text("Current Linear Acceleration X,Y,Z  %.2f / %.2f / %.2f  m/s", currAcc.X, currAcc.Y,currAcc.Z);
+                        ImGui::Spacing();
+                        ImGui::Text("Desired Roll/Pitch: %.2f / %.2f deg", Ctrl->GetDesiredRoll(), Ctrl->GetDesiredPitch());
+                        ImGui::Text("Desired Rate Roll/Pitch: %.2f / %.2f deg/s", (float)Ctrl->GetDesiredRollRate(), (float)Ctrl->GetDesiredPitchRate());
                         ImGui::Text("Desired Velocity: X %.2f Y %.2f Z %.2f m/s", desVel.X, desVel.Y, desVel.Z);
+                        ImGui::Separator();
+
+                        // GPS
+                        FVector geo = SensorData.GPSLatLong;
+                        FVector curPos = SensorData.GPSPosMeters;
+                        ImGui::TextColored(ImVec4(1.0f,0.9f,0.4f,1.0f), "GPS");
+                        ImGui::Text("Current Position: X %.1f Y %.1f Z %.1f", curPos.X, curPos.Y, curPos.Z);
+                        ImGui::Text("Geo Position: Lat %.3f Lon %.3f Alt %.1f", geo.X, geo.Y, geo.Z);
+                        ImGui::Separator();
+
+                        //Magnetometer
+                        FVector magField = SensorData.MagFieldGauss;
+                        float magHeading = SensorData.MagHeadingDeg;
+                        float magDeclination = SensorData.MagDeclinationDeg;
+                        ImGui::TextColored(ImVec4(1.0f,0.9f,0.4f,1.0f), "Magnetometer");
+                        ImGui::Text("Current Mag Field: X %.1f Y %.1f Z %.1f Gauss", magField.X, magField.Y, magField.Z);
+                        ImGui::Text("Current Heading: %.1f Deg", magHeading);
+                        ImGui::Text("Current Declination: %.1f Deg", magDeclination);
 
                         ImGui::Separator();
+                        //Baro
                         ImGui::TextColored(ImVec4(0.8f,0.8f,1.0f,1.0f), "Barometer Sensor");
                         if (Pawn->SensorManager && Pawn->SensorManager->Barometer)
                         {
@@ -557,8 +565,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                             ImGui::Text("Altitude: %.1f m", SensorData.BaroAltitudeM);
                         }
 
-                        // (Removed legacy bottom thruster progress bars)
-
+                        
                         // --- PID Settings toggle and UI (copied from ImGuiUtil) ---
                         ImGui::Separator();
                         ImGui::Checkbox("Enable PID Settings", &bShowPIDSettings);

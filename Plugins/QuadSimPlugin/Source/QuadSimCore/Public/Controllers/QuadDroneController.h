@@ -192,4 +192,7 @@ private:
 
     bool bGamepadModeUI = false; 
     bool bManualPathMode = false;
+
+    // Debug-draw guard to avoid duplicate draws per frame from multiple callers
+    bool bDrewMagDebugThisFrame = false;
 };

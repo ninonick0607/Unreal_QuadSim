@@ -190,6 +190,7 @@ FSensorData USensorManagerComponent::GetCurrentSensorData() const
 	{
 		Data.MagFieldGauss = Magnetometer->GetLastMagField();
 		Data.MagHeadingDeg = Magnetometer->GetHeading();
+		Data.MagDeclinationDeg = Magnetometer->GetDeclination();
 		Data.bMagValid = !Magnetometer->IsCalibrating();
 	}
     

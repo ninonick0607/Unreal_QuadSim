@@ -21,11 +21,17 @@
 #include "Pawns/QuadPawn.h"
 #include "Controllers/QuadDroneController.h"
 #include "QuadSimCore/Public/QuadSimPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 // For PID settings and saving
 #include "Interfaces/IPluginManager.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
 #include <string>
+
+bool USimHUDTaskbarSubsystem::bPaused = false;
+int32 USimHUDTaskbarSubsystem::SpeedMode = 0;
+float USimHUDTaskbarSubsystem::SpeedScale = 1.0f;
+bool USimHUDTaskbarSubsystem::bSpeedInit = false;
 
 void USimHUDTaskbarSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -96,9 +102,6 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         SettingsUI = NewObject<USimSettingsUI>(this);
     }
 
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar(3);
-    ImGui::PopID();
     if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
     {
         const FIntPoint Vp = GEngine->GameViewport->Viewport->GetSizeXY();
@@ -121,8 +124,16 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 
 
 
-void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
+void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, const FSimImGuiStyle& Theme)
 {
+    const ImGuiStyle& Style = ImGui::GetStyle();
+    const float padX = Style.FramePadding.x;
+    const float padY = Style.FramePadding.y;
+    const float itemX = Style.ItemSpacing.x;
+    constexpr float LabelBoxW = 180.f;
+    constexpr float WMLabelW  = 170.f;
+    const float LabelH = BarHeight - 12.f;
+    constexpr float SpeedBoxW = 56.f;
     ImGuiWindowFlags Flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
@@ -214,7 +225,7 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
                 ImVec2 tsize = ImGui::CalcTextSize("Simulation Manager");
                 ImVec2 tpos(min.x + (LabelBoxW - tsize.x) * 0.5f, min.y + (LabelH - tsize.y) * 0.5f);
                 ImU32 tc = bSimMgrActive ? ImGui::GetColorU32(ImVec4(0.2f,0.9f,0.3f,1.0f))
-                                         : ImGui::GetColorU32(st.Colors[ImGuiCol_Text]);
+                                         : ImGui::GetColorU32(Style.Colors[ImGuiCol_Text]);
                 dl->AddText(tpos, tc, "Simulation Manager");
                 if (ImGui::IsItemClicked()) bSimMgrActive = !bSimMgrActive;
                 ImGui::SameLine();
@@ -280,7 +291,7 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
                 char buf[32]; snprintf(buf, sizeof(buf), "x%.2f", SpeedScale);
                 ImVec2 tsize = ImGui::CalcTextSize(buf);
                 ImVec2 tpos(min.x + (SpeedBoxW - tsize.x) * 0.5f, min.y + (BoxH - tsize.y) * 0.5f);
-                dl->AddText(tpos, ImGui::GetColorU32(st.Colors[ImGuiCol_Text]), buf);
+                dl->AddText(tpos, ImGui::GetColorU32(Style.Colors[ImGuiCol_Text]), buf);
             }
             ImGui::SameLine();
             ImGui::SetCursorPosY(btnTopY);
@@ -321,7 +332,7 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
                 ImVec2 tsize = ImGui::CalcTextSize("World Manager");
                 ImVec2 tpos(min.x + (WMLabelW - tsize.x) * 0.5f, min.y + (LabelH - tsize.y) * 0.5f);
                 ImU32 tc = bWorldMgrActive ? ImGui::GetColorU32(ImVec4(0.2f,0.9f,0.3f,1.0f))
-                                           : ImGui::GetColorU32(st.Colors[ImGuiCol_Text]);
+                                           : ImGui::GetColorU32(Style.Colors[ImGuiCol_Text]);
                 dl->AddText(tpos, tc, "World Manager");
                 if (ImGui::IsItemClicked()) bWorldMgrActive = !bWorldMgrActive;
                 ImGui::SameLine();
@@ -375,7 +386,7 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
                 if (dt > 0.f) snprintf(fps, sizeof(fps), "FPS: %.1f", 1.f / dt); else snprintf(fps, sizeof(fps), "FPS: --");
                 ImVec2 tsize = ImGui::CalcTextSize(fps);
                 ImVec2 tpos(min.x + (StatusW - tsize.x) * 0.5f, min.y + (BoxH - tsize.y) * 0.5f);
-                dl->AddText(tpos, ImGui::GetColorU32(st.Colors[ImGuiCol_Text]), fps);
+                dl->AddText(tpos, ImGui::GetColorU32(Style.Colors[ImGuiCol_Text]), fps);
             }
             ImGui::EndTable();
         }
@@ -390,8 +401,11 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
         }
     }
     ImGui::End();
+    ImGui::PopID();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
 }
-void USimHUDTaskbarSubsystem::ControlButtons(UWorld* World, FSimImGuiStyle Theme)
+void USimHUDTaskbarSubsystem::ControlButtons(UWorld* World, const FSimImGuiStyle& Theme)
 {
        // Bottom-right "Control Panel" floating button, visible only after a drone exists
     if (ADroneManager* DM = ADroneManager::Get(World))
@@ -1051,9 +1065,3 @@ void USimHUDTaskbarSubsystem::JoyStickHandles(UWorld* World)
 
 }
 
-
-//Taskbar Sim Man
-void USimHUDTaskbarSubsystem::TaskbarSimMan()
-{
-    
-}

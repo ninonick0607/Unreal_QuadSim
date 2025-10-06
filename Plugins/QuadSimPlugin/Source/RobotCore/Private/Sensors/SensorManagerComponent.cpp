@@ -163,6 +163,7 @@ FSensorData USensorManagerComponent::GetCurrentSensorData() const
 	if (IMU && IMU->IsInitialized())
 	{
 		Data.IMUAngVelRADS = IMU->GetLastGyroscope();
+		Data.IMUAngVelDEGS = IMU->GetLastGyroscopeDegrees();
 		Data.IMULinearAccelMS2 = IMU->GetLastAccelerometer();
 		Data.IMUAttitude = IMU->GetLastAttitude();
 		Data.IMUVelMS = IMU->GetLastVelocity();

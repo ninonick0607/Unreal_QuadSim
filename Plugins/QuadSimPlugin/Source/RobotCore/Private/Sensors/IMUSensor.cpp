@@ -55,12 +55,15 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	if (!bInitialized || !AttachedBody)
 		return FVector::ZeroVector;
 
+	// UE returns angular velocity in WORLD space (rad/s)
+	const FVector world_w_rad = AttachedBody->GetPhysicsAngularVelocityInRadians();
 
-	FVector RawAngVel = AttachedBody->GetPhysicsAngularVelocityInDegrees();
+	// Convert to BODY frame (p,q,r) using full inverse rotation (no scale)
+	const FTransform& Xform = AttachedBody->GetComponentTransform();
+	const FVector body_w_rad = Xform.InverseTransformVectorNoScale(world_w_rad);
 
-	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAngVel);
+	return body_w_rad; // rad/s in body axes: X=roll (p), Y=pitch (q), Z=yaw (r)
 }
-
 FVector UIMUSensor::SampleRawVelocity(){
 	if (!bInitialized || !AttachedBody)
 		return FVector::ZeroVector;
@@ -77,7 +80,9 @@ FRotator UIMUSensor::SampleRawAttitude(){
 	if (!bInitialized || !AttachedBody)
 		return FRotator::ZeroRotator;
 	FRotator WorldRotation = AttachedBody->GetComponentRotation();
-	return WorldRotation;
+	FRotator AdjustedRotation = WorldRotation;
+	AdjustedRotation.Pitch = -WorldRotation.Pitch;
+    return AdjustedRotation;
 }
 
 void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)

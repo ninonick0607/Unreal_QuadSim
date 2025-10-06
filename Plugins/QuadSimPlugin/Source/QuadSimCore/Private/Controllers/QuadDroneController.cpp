@@ -88,11 +88,11 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 
 	ControllerSet.RollRatePID = new QuadPIDController();
 	ControllerSet.RollRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.RollRatePID->SetGains(0.35f, 0.16f, 0.25f);
+	ControllerSet.RollRatePID->SetGains(0.0035f, 0.0016f, 0.0025f);
 	
 	ControllerSet.PitchRatePID = new QuadPIDController();
 	ControllerSet.PitchRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.PitchRatePID->SetGains(0.35f, 0.16f, 0.25f);
+	ControllerSet.PitchRatePID->SetGains(0.0035f, 0.0016f, 0.0025f);
 	
 	ControllerSet.YawRatePID = new QuadPIDController();
 	ControllerSet.YawRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
@@ -185,34 +185,44 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
 	const FGamepadInputs& GP = dronePawn->GamepadInputs;
 
 	/* ---------------- state ---------------- */
-	float Altitude = SensorData.BaroAltitudeM*100;
-	const FVector  currVel = SensorData.IMUVelMS*100;          
+	float Altitude = SensorData.BaroAltitudeM;
+	const FVector  currVel = SensorData.IMUVelMS;          
 	const FRotator currRot = SensorData.IMUAttitude;
-	const FRotator yawOnlyRot(0.f, currRot.Yaw, 0.f);
-	FVector localVel =(currVel);
+    const FVector imuRateDeg = FMath::RadiansToDegrees(SensorData.IMUAngVelRADS);
+    localAngularRateDeg = imuRateDeg;
 	
-	const FVector worldAngDeg = dronePawn->DroneBody->GetPhysicsAngularVelocityInDegrees();
-	localAngularRateDeg = yawOnlyRot.UnrotateVector(worldAngDeg);
 
 	/* ---------------- altitude / throttle ---------------- */
-	hoverTargetAltitude += GP.Throttle * 150.f * DeltaTime;          // ±1 m s-¹
+	hoverTargetAltitude += GP.Throttle * 1.5f * DeltaTime;          // ï¿½1 m s-ï¿½
+	UE_LOG(LogTemp, Warning, TEXT("Hover Output: %f m"), hoverTargetAltitude);
 
 	double altVelSetpoint = AltitudePID->Calculate(hoverTargetAltitude, Altitude, DeltaTime);
-	double zEffort = PIDSet.ZPID->Calculate(altVelSetpoint, localVel.Z, DeltaTime);
+	double zEffort = PIDSet.ZPID->Calculate(altVelSetpoint, currVel.Z, DeltaTime);
 
-	/* ---------------- desired attitudes from sticks ---------------- */
-	desiredRoll       =  GP.Roll   *  maxAngle;     // right-stick X
-	desiredPitch      = -GP.Pitch  *  maxAngle;     // right-stick Y (invert)
-	desiredYawRate    =  GP.Yaw    *  maxYawRate;   // left-stick X
+	desiredPitch      =  -GP.Pitch  *  maxAngle;
+	desiredRoll       =  GP.Roll   *  maxAngle;    
+    const double pitchOut = PIDSet.PitchPID->Calculate(desiredPitch,  currRot.Pitch, DeltaTime);
+    const double rollOut  = PIDSet.RollPID ->Calculate(desiredRoll,   currRot.Roll,  DeltaTime);
+	
+    desiredNewPitchRate =  -GP.Pitch *  maxAngleRate;
+    desiredNewRollRate  =  GP.Roll  *  maxAngleRate;
+    desiredPitchRate = (currentFlightMode == EFlightMode::JoyStickAcroControl)
+                        ? desiredNewPitchRate
+                        : FMath::Clamp(pitchOut, -maxAngleRate, maxAngleRate);
+    desiredRollRate  = (currentFlightMode == EFlightMode::JoyStickAcroControl)
+                        ? desiredNewRollRate
+                        : FMath::Clamp(rollOut, -maxAngleRate, maxAngleRate);
 
+    const double pitchRateOut = PIDSet.PitchRatePID->Calculate(desiredPitchRate, localAngularRateDeg.Y, DeltaTime);
+    const double rollRateOut  = PIDSet.RollRatePID ->Calculate(desiredRollRate,  localAngularRateDeg.X, DeltaTime);
+	
 	/* ---------------- PID cascades (same gains as normal) ---------- */
-	const double rollOut  = PIDSet.RollPID ->Calculate(desiredRoll,  currRot.Roll,      DeltaTime);
-	const double pitchOut = PIDSet.PitchPID->Calculate(desiredPitch, -currRot.Pitch,    DeltaTime);
+	desiredYawRate = GP.Yaw*maxAngleRate;
 	const float  yawOut   = YawRateControl(DeltaTime);   // uses desiredYawRate
 
 	/* no XY position hold in this simple ANGLE mode */
 	ThrustMixer(desiredRoll, desiredPitch, zEffort,
-				rollOut,   pitchOut,      yawOut);
+				rollRateOut,   pitchRateOut,      yawOut);
 
 	/* optional HUD / debug */
 	DrawDebugVisualsVel(FVector::ZeroVector);
@@ -230,10 +240,11 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	const FVector  currVel = SensorData.IMUVelMS;          
 	const FRotator currRot = SensorData.IMUAttitude;
 	const FRotator yawOnlyRot(0.f, currRot.Yaw, 0.f);
+	FVector AngularRate = SensorData.IMUAngVelDEGS;
+	localAngularRateDeg = AngularRate;
+	
 	
 	// Get world angular velocity and transform it to local frame using yaw-only rotation
-	const FVector worldAngularRateDeg = dronePawn->DroneBody->GetPhysicsAngularVelocityInDegrees();
-	localAngularRateDeg = yawOnlyRot.UnrotateVector(worldAngularRateDeg);
 
 	if (bUseExternalController)
 	{
@@ -270,12 +281,12 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 
 			break;
 		}
-	case EFlightMode::AngleControl:
-	case EFlightMode::RateControl:
-		{
-			desiredLocalVelocity = FVector(0.0f, 0.0f, desiredNewVelocity.Z);
-			break;
-		}
+    case EFlightMode::AngleControl:
+    case EFlightMode::RateControl:
+        {
+            desiredLocalVelocity = FVector(0.0f, 0.0f, desiredNewVelocity.Z);
+            break;
+        }
 	default:
 		desiredLocalVelocity = FVector::ZeroVector;
 		break;
@@ -292,34 +303,29 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	
 	const double xOut = CurrentSet->XPID -> Calculate(desiredLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
 	const double yOut = CurrentSet->YPID -> Calculate(desiredLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
-	const double zOut = CurrentSet->ZPID -> Calculate(desiredLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime)*100;
+	const double zOut = CurrentSet->ZPID -> Calculate(desiredLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
 	
 	/*-------- Angle P Control -------- */ 
 	desiredPitch = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewPitch: FMath::Clamp( xOut, -maxAngle,  maxAngle);
 	desiredRoll  = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewRoll: FMath::Clamp( yOut, -maxAngle,  maxAngle);
 	
 	const double rollOut  = CurrentSet ->RollPID->Calculate(desiredRoll,currRot.Roll , DeltaTime);
-	const double pitchOut = CurrentSet ->PitchPID->Calculate(desiredPitch,-currRot.Pitch, DeltaTime);
+	const double pitchOut = CurrentSet ->PitchPID->Calculate(desiredPitch,currRot.Pitch, DeltaTime);
 	// UE_LOG(LogTemp, Warning, TEXT("Roll Output: %f deg/s"), rollOut);
 	// UE_LOG(LogTemp, Warning, TEXT("Pitch Output: %f deg/s"), pitchOut);
 
 	/*-------- Angle Rate PID Control -------- */ 
 
-	// desiredPitchRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewPitchRate: FMath::Clamp(pitchOut, -maxAngleRate, maxAngleRate); // Implement switch here for angle control using DesiredNewPitchRate
-	// desiredRollRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewRollRate: FMath::Clamp(rollOut, -maxAngleRate,  maxAngleRate); // Implement switch here for angle control 
+	desiredPitchRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewPitchRate: FMath::Clamp(pitchOut, -maxAngleRate, maxAngleRate); // Implement switch here for angle control using DesiredNewPitchRate
+	desiredRollRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewRollRate: FMath::Clamp(rollOut, -maxAngleRate,  maxAngleRate); // Implement switch here for angle control 
 	//
-	// UE_LOG(LogTemp, Warning, TEXT("Desired Pitch Rate: %f deg/s"), desiredPitchRate);
-	// UE_LOG(LogTemp, Warning, TEXT("Desired Roll Rate: %f deg/s"), desiredRollRate);
-	// UE_LOG(LogTemp, Warning, TEXT("Current Pitch Angular Rate: %f deg/s"), localAngularRateDeg.Y);
-	// UE_LOG(LogTemp, Warning, TEXT("Current Roll Angular Rate: %f deg/s"), localAngularRateDeg.X);
-	//
-	// const double rollRateOut  = CurrentSet->RollRatePID->Calculate(desiredRollRate,localAngularRateDeg.X,  DeltaTime);
-	// const double pitchRateOut = CurrentSet->PitchRatePID->Calculate(desiredPitchRate,localAngularRateDeg.Y, DeltaTime);
+	const double rollRateOut  = CurrentSet->RollRatePID->Calculate(desiredRollRate,localAngularRateDeg.X,  DeltaTime);
+	const double pitchRateOut = CurrentSet->PitchRatePID->Calculate(desiredPitchRate,localAngularRateDeg.Y, DeltaTime);
 
 	const float yawOutput = YawRateControl(DeltaTime);
 
     //  Mix & apply motor thrusts / torques (use commanded tilt for compensation)
-    ThrustMixer(xOut, yOut, zOut, rollOut, pitchOut, yawOutput);
+    ThrustMixer(desiredPitch, desiredRoll, zOut, rollRateOut, pitchRateOut, yawOutput);
 	//  Debug drawing and on-screen HUD (optional)
 	DrawDebugVisualsVel(FVector(desiredLocalVelocity.X, desiredLocalVelocity.Y, 0.f));
 	
@@ -358,7 +364,7 @@ void UQuadDroneController::ThrustMixer(double xOut, double yOut, double zOut, do
 	const float gravity = 980.f	;
 	const float hoverThrust = (droneMass * gravity) / 4.0f; 
  
-	float baseThrust = hoverThrust + zOut / 4.0f;
+	float baseThrust = hoverThrust + (zOut*100) / 4.0f;
 	baseThrust /= FMath::Cos(FMath::DegreesToRadians(FMath::Sqrt(FMath::Pow(xOut, 2) + FMath::Pow(yOut, 2))));
  
 	Thrusts[0] = baseThrust - pitchOutput + rollOutput - yawOutput; //FL
@@ -546,7 +552,7 @@ void UQuadDroneController::DrawDebugVisualsVel(const FVector& horizontalVelocity
  			FString::Printf(TEXT("M%d\n%s"), i, *DirText),
  			nullptr, FColor::White, 0.0f, true, 1.2f);
  	}
- }
+}
 void UQuadDroneController::DrawMagneticDebugVisuals()
 {
     if (!dronePawn || !bDebugVisualsEnabled) return;
@@ -655,12 +661,12 @@ void UQuadDroneController::SetFlightMode(EFlightMode NewMode)
 {
 	switch (NewMode)
 	{
-	case EFlightMode::AngleControl:
-	case EFlightMode::JoyStickAngleControl:
-	case EFlightMode::JoyStickAcroControl:
-		hoverTargetAltitude = dronePawn ? dronePawn->GetActorLocation().Z : 0.f;
-		AltitudePID->Reset();                       // forget old integral wind-up
-		break;
+    case EFlightMode::AngleControl:
+    case EFlightMode::JoyStickAngleControl:
+    case EFlightMode::JoyStickAcroControl:
+        hoverTargetAltitude = dronePawn ? (dronePawn->GetActorLocation().Z / 100.0f) : 0.f;
+        AltitudePID->Reset();                       // forget old integral wind-up
+        break;
 
 	default:
 		break;

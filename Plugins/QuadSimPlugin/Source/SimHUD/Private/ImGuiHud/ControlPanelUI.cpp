@@ -512,6 +512,7 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
         {
             // Do not force hover mode when resetting
             if (Controller) Controller->SetHoverMode(false, 0.0f);
+            if (Controller) Controller->ResetControllerState();
             if (ActivePawn) ActivePawn->ResetPosition();
         }
         ImGui::PopStyleVar();

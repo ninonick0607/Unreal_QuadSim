@@ -96,8 +96,9 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         SettingsUI = NewObject<USimSettingsUI>(this);
     }
 
-    // Taskbar at top
-    FVector2D ViewSize(1280, 720);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
+    ImGui::PopID();
     if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
     {
         const FIntPoint Vp = GEngine->GameViewport->Viewport->GetSizeXY();
@@ -106,12 +107,25 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 
     static FSimImGuiStyle Theme;
     Theme.Apply();
+    
+    //Taskbar
+    HandleTaskbar(World,Theme);
+    //Control Panel and State Data button
+    ControlButtons(World,Theme);
+    //State Data
+    HandleStateData(World);
+    //Joystick Visualization
+    JoyStickHandles(World);
+    
+}
 
-    const float BarHeight = 58.f; // a bit taller for extra bottom padding
+
+
+void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, FSimImGuiStyle Theme)
+{
     ImGuiWindowFlags Flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                              ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
-
     ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
     ImGui::SetNextWindowSize(ImVec2(ViewSize.X, BarHeight));
     // Add a subtle dark outline around the entire taskbar window and inner padding
@@ -122,10 +136,6 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
     ImGui::PushID(World); // ensure unique IDs per-world if ever called twice
     if (ImGui::Begin("QuadSim Taskbar##Main", nullptr, Flags))
     {
-        static bool  bPaused        = false;
-        static int   SpeedMode      = 0;    // -1 = reverse, 0 = normal, 1 = fast
-        static float SpeedScale     = 1.0f; // displayed and applied in fast-forward
-        static bool  bSpeedInit     = false;
         if (!bSpeedInit)
         {
             float td = 1.0f;
@@ -151,14 +161,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             // Controls column
             ImGui::TableSetColumnIndex(0);
             // Pre-compute sizing to vertically center content
-            ImGuiStyle& st = ImGui::GetStyle();
-            const float padX = st.FramePadding.x;
-            const float padY = st.FramePadding.y;
-            const float itemX = st.ItemSpacing.x;
-            const float LabelBoxW = 180.f;
-            const float WMLabelW  = 170.f;
-            const float LabelH    = BarHeight - 12.f;
-            const float SpeedBoxW = 56.f;
+
             const char* PauseTxt  = bPaused ? "Play" : "Pause";
             float btnH   = ImGui::GetTextLineHeight() + padY * 2.f;
             float labelTopY = FMath::Max(0.f, (BarHeight - LabelH) * 0.5f);
@@ -196,9 +199,9 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             float startXWithin = FMath::Max(0.f, (remainingW - totalW) * 0.5f);
             ImGui::SetCursorPosY(labelTopY);
             ImGui::SetCursorPosX(colStartX + (ImGui::CalcTextSize("Settings").x + padX*2.f + itemX) + startXWithin);
-
             // Centered "Simulation Manager" clickable label with rounded background
             {
+                //@TODO SimManager
                 ImGui::InvisibleButton("##SimMgrLabelBtn", ImVec2(LabelBoxW, LabelH));
                 ImVec2 min = ImGui::GetItemRectMin();
                 ImVec2 max = ImGui::GetItemRectMax();
@@ -300,6 +303,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                     SM->ResetSimulation();
                 }
             }
+            //@TODO Drone Manager
             // Extra spacing before World Manager
             ImGui::SameLine(); ImGui::Dummy(ImVec2(40.f, 0.f)); ImGui::SameLine();
             // Centered clickable World Manager label with rounded background
@@ -386,11 +390,10 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         }
     }
     ImGui::End();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar(3);
-    ImGui::PopID();
-
-    // Bottom-right "Control Panel" floating button, visible only after a drone exists
+}
+void USimHUDTaskbarSubsystem::ControlButtons(UWorld* World, FSimImGuiStyle Theme)
+{
+       // Bottom-right "Control Panel" floating button, visible only after a drone exists
     if (ADroneManager* DM = ADroneManager::Get(World))
     {
         if (DM->GetDroneList().Num() > 0)
@@ -453,9 +456,10 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             bAppliedStartupSettings = true;
         }
         SettingsUI->TickAndDraw(World, this);
-    }
-
-    // Draw left-side State Data HUD when toggled
+    } 
+}
+void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
+{
     if (bShowStateHUD)
     {
         // Resolve active drone similar to control panel
@@ -473,6 +477,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                     ImGui::SetNextWindowSize(ImVec2(340.f, 460.f), ImGuiCond_FirstUseEver);
                     if (ImGui::Begin("State Data##HUD", &bShowStateHUD, ImGuiWindowFlags_NoCollapse))
                     {
+                        //@TODO ThrusterPower
                         // Thruster Power (vertical bars at top) - normalized by MaxThrust
                         ImGui::Text("Thruster Power");
                         const float MaxThrust = UDroneJSONConfig::Get().Config.FlightParams.MaxThrust;
@@ -511,7 +516,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         ImGui::Separator();
                         ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "State Info");
                         ImGui::Separator();
-                        
+                        //@TODO SensorData
                         FSensorData SensorData;
                         if (Pawn->SensorManager)
                         {
@@ -524,11 +529,13 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                         ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "IMU");
                         FRotator curAtt = Pawn->SensorManager ? SensorData.IMUAttitude : Pawn->GetActorRotation();
                         FVector currRates = SensorData.IMUAngVelRADS;
+                        FVector currRatesDEG = SensorData.IMUAngVelDEGS;
                         FVector currVel = SensorData.IMUVelMS;
                         FVector currAcc = SensorData.IMULinearAccelMS2;
                         FVector desVel = Ctrl->GetDesiredVelocity();
-                        ImGui::Text("Current Roll/Pitch: %.2f / %.2f deg", curAtt.Roll, curAtt.Pitch);
-                        ImGui::Text("Current Angular Rates X,Y,Z  %.2f / %.2f / %.2f  deg/s", currRates.X, currRates.Y,currRates.Z);
+                        ImGui::Text("Current Roll/Pitch: %.2f / %.2f / %.2f deg", curAtt.Roll, curAtt.Pitch,curAtt.Yaw);
+                        ImGui::Text("Current Angular Rates X,Y,Z  %.2f / %.2f / %.2f  rad/s", currRates.X, currRates.Y,currRates.Z);
+                        ImGui::Text("Current Angular Rates X,Y,Z  %.2f / %.2f / %.2f  deg/s", currRatesDEG.X, currRatesDEG.Y,currRatesDEG.Z);
                         ImGui::Text("Current Velocity  X,Y,Z  %.2f / %.2f / %.2f  m/s", currVel.X, currVel.Y,currVel.Z);
                         ImGui::Text("Current Linear Acceleration X,Y,Z  %.2f / %.2f / %.2f  m/s", currAcc.X, currAcc.Y,currAcc.Z);
                         ImGui::Spacing();
@@ -565,7 +572,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                             ImGui::Text("Altitude: %.1f m", SensorData.BaroAltitudeM);
                         }
 
-                        
+                        //@TODO PID Settings
                         // --- PID Settings toggle and UI (copied from ImGuiUtil) ---
                         ImGui::Separator();
                         ImGui::Checkbox("Enable PID Settings", &bShowPIDSettings);
@@ -706,17 +713,27 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                     ImGui::Indent();
                                     if (PIDSet->RollPID)
                                     {
+                                        float rollP = PIDSet->RollPID->ProportionalGain;
+                                        float rollI = PIDSet->RollPID->IntegralGain;
+                                        float rollD = PIDSet->RollPID->DerivativeGain;
+                                        bool changed = false;
                                         if (synchronizeGains && PIDSet->PitchPID)
                                         {
-                                            if (DrawPIDGainControl("Roll P", &PIDSet->RollPID->ProportionalGain, minRollPitchGain, maxRollPitchGain)) PIDSet->PitchPID->ProportionalGain = PIDSet->RollPID->ProportionalGain;
-                                            if (DrawPIDGainControl("Roll I", &PIDSet->RollPID->IntegralGain, minRollPitchGain, maxRollPitchGain)) PIDSet->PitchPID->IntegralGain = PIDSet->RollPID->IntegralGain;
-                                            if (DrawPIDGainControl("Roll D", &PIDSet->RollPID->DerivativeGain, minRollPitchGain, maxRollPitchGain)) PIDSet->PitchPID->DerivativeGain = PIDSet->RollPID->DerivativeGain;
+                                            if (DrawPIDGainControl("Roll P", &rollP, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->ProportionalGain = rollP; }
+                                            if (DrawPIDGainControl("Roll I", &rollI, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->IntegralGain     = rollI; }
+                                            if (DrawPIDGainControl("Roll D", &rollD, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->DerivativeGain  = rollD; }
                                         }
                                         else
                                         {
-                                            DrawPIDGainControl("Roll P", &PIDSet->RollPID->ProportionalGain, minRollPitchGain, maxRollPitchGain);
-                                            DrawPIDGainControl("Roll I", &PIDSet->RollPID->IntegralGain, minRollPitchGain, maxRollPitchGain);
-                                            DrawPIDGainControl("Roll D", &PIDSet->RollPID->DerivativeGain, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Roll P", &rollP, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Roll I", &rollI, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Roll D", &rollD, minRollPitchGain, maxRollPitchGain);
+                                        }
+                                        if (changed && PIDSet->RollPID)
+                                        {
+                                            PIDSet->RollPID->ProportionalGain = rollP;
+                                            PIDSet->RollPID->IntegralGain     = rollI;
+                                            PIDSet->RollPID->DerivativeGain   = rollD;
                                         }
                                     }
                                     else { ImGui::TextDisabled("Roll PID Unavailable"); }
@@ -727,17 +744,27 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                     ImGui::Indent();
                                     if (PIDSet->PitchPID)
                                     {
+                                        float pitchP = PIDSet->PitchPID->ProportionalGain;
+                                        float pitchI = PIDSet->PitchPID->IntegralGain;
+                                        float pitchD = PIDSet->PitchPID->DerivativeGain;
+                                        bool changed = false;
                                         if (synchronizeGains && PIDSet->RollPID)
                                         {
-                                            if (DrawPIDGainControl("Pitch P", &PIDSet->PitchPID->ProportionalGain, minRollPitchGain, maxRollPitchGain)) PIDSet->RollPID->ProportionalGain = PIDSet->PitchPID->ProportionalGain;
-                                            if (DrawPIDGainControl("Pitch I", &PIDSet->PitchPID->IntegralGain, minRollPitchGain, maxRollPitchGain)) PIDSet->RollPID->IntegralGain = PIDSet->PitchPID->IntegralGain;
-                                            if (DrawPIDGainControl("Pitch D", &PIDSet->PitchPID->DerivativeGain, minRollPitchGain, maxRollPitchGain)) PIDSet->RollPID->DerivativeGain = PIDSet->PitchPID->DerivativeGain;
+                                            if (DrawPIDGainControl("Pitch P", &pitchP, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->ProportionalGain = pitchP; }
+                                            if (DrawPIDGainControl("Pitch I", &pitchI, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->IntegralGain     = pitchI; }
+                                            if (DrawPIDGainControl("Pitch D", &pitchD, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->DerivativeGain  = pitchD; }
                                         }
                                         else
                                         {
-                                            DrawPIDGainControl("Pitch P", &PIDSet->PitchPID->ProportionalGain, minRollPitchGain, maxRollPitchGain);
-                                            DrawPIDGainControl("Pitch I", &PIDSet->PitchPID->IntegralGain, minRollPitchGain, maxRollPitchGain);
-                                            DrawPIDGainControl("Pitch D", &PIDSet->PitchPID->DerivativeGain, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Pitch P", &pitchP, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Pitch I", &pitchI, minRollPitchGain, maxRollPitchGain);
+                                            changed |= DrawPIDGainControl("Pitch D", &pitchD, minRollPitchGain, maxRollPitchGain);
+                                        }
+                                        if (changed && PIDSet->PitchPID)
+                                        {
+                                            PIDSet->PitchPID->ProportionalGain = pitchP;
+                                            PIDSet->PitchPID->IntegralGain     = pitchI;
+                                            PIDSet->PitchPID->DerivativeGain   = pitchD;
                                         }
                                     }
                                     else { ImGui::TextDisabled("Pitch PID Unavailable"); }
@@ -754,12 +781,31 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                     ImGui::Indent();
                                     if (PIDSet->RollRatePID)
                                     {
-                                        bool changed = DrawPIDGainControl("Roll Rate P", &PIDSet->RollRatePID->ProportionalGain, 0.0001f, 1.0f);
-                                        if (syncRateGains && changed && PIDSet->PitchRatePID) PIDSet->PitchRatePID->ProportionalGain = PIDSet->RollRatePID->ProportionalGain;
-                                        changed = DrawPIDGainControl("Roll Rate I", &PIDSet->RollRatePID->IntegralGain, 0.0001f, 1.0f);
-                                        if (syncRateGains && changed && PIDSet->PitchRatePID) PIDSet->PitchRatePID->IntegralGain = PIDSet->RollRatePID->IntegralGain;
-                                        changed = DrawPIDGainControl("Roll Rate D", &PIDSet->RollRatePID->DerivativeGain, 0.0001f, 1.0f);
-                                        if (syncRateGains && changed && PIDSet->PitchRatePID) PIDSet->PitchRatePID->DerivativeGain = PIDSet->RollRatePID->DerivativeGain;
+                                        float rP = PIDSet->RollRatePID->ProportionalGain;
+                                        float rI = PIDSet->RollRatePID->IntegralGain;
+                                        float rD = PIDSet->RollRatePID->DerivativeGain;
+                                        bool changed = false;
+                                        if (DrawPIDGainControl("Roll Rate P", &rP, 0.0001f, .01f))
+                                        {
+                                            changed = true;
+                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->ProportionalGain = rP;
+                                        }
+                                        if (DrawPIDGainControl("Roll Rate I", &rI, 0.0001f, .01f))
+                                        {
+                                            changed = true;
+                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->IntegralGain = rI;
+                                        }
+                                        if (DrawPIDGainControl("Roll Rate D", &rD, 0.0001f, .01f))
+                                        {
+                                            changed = true;
+                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->DerivativeGain = rD;
+                                        }
+                                        if (changed && PIDSet->RollRatePID)
+                                        {
+                                            PIDSet->RollRatePID->ProportionalGain = rP;
+                                            PIDSet->RollRatePID->IntegralGain     = rI;
+                                            PIDSet->RollRatePID->DerivativeGain   = rD;
+                                        }
                                     }
                                     else { ImGui::TextDisabled("Roll Rate PID Unavailable"); }
                                     ImGui::Unindent();
@@ -769,9 +815,19 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                     ImGui::Indent();
                                     if (PIDSet->PitchRatePID)
                                     {
-                                        DrawPIDGainControl("Pitch Rate P", &PIDSet->PitchRatePID->ProportionalGain, 0.0001f, 1.0f);
-                                        DrawPIDGainControl("Pitch Rate I", &PIDSet->PitchRatePID->IntegralGain, 0.0001f, 1.0f);
-                                        DrawPIDGainControl("Pitch Rate D", &PIDSet->PitchRatePID->DerivativeGain, 0.0001f, 1.0f);
+                                        float pP = PIDSet->PitchRatePID->ProportionalGain;
+                                        float pI = PIDSet->PitchRatePID->IntegralGain;
+                                        float pD = PIDSet->PitchRatePID->DerivativeGain;
+                                        bool changed = false;
+                                        changed |= DrawPIDGainControl("Pitch Rate P", &pP, 0.0001f, .01f);
+                                        changed |= DrawPIDGainControl("Pitch Rate I", &pI, 0.0001f, .01f);
+                                        changed |= DrawPIDGainControl("Pitch Rate D", &pD, 0.0001f, .01f);
+                                        if (changed && PIDSet->PitchRatePID)
+                                        {
+                                            PIDSet->PitchRatePID->ProportionalGain = pP;
+                                            PIDSet->PitchRatePID->IntegralGain     = pI;
+                                            PIDSet->PitchRatePID->DerivativeGain   = pD;
+                                        }
                                     }
                                     else { ImGui::TextDisabled("Pitch Rate PID Unavailable"); }
                                     ImGui::Unindent();
@@ -781,16 +837,26 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                     ImGui::Indent();
                                     if (PIDSet->YawRatePID)
                                     {
-                                        DrawPIDGainControl("Yaw Rate P", &PIDSet->YawRatePID->ProportionalGain, 0.0001f, 2.0f);
-                                        DrawPIDGainControl("Yaw Rate I", &PIDSet->YawRatePID->IntegralGain, 0.0001f, 2.0f);
-                                        DrawPIDGainControl("Yaw Rate D", &PIDSet->YawRatePID->DerivativeGain, 0.0001f, 2.0f);
+                                        float yP = PIDSet->YawRatePID->ProportionalGain;
+                                        float yI = PIDSet->YawRatePID->IntegralGain;
+                                        float yD = PIDSet->YawRatePID->DerivativeGain;
+                                        bool changed = false;
+                                        changed |= DrawPIDGainControl("Yaw Rate P", &yP, 0.0001f, 2.0f);
+                                        changed |= DrawPIDGainControl("Yaw Rate I", &yI, 0.0001f, 2.0f);
+                                        changed |= DrawPIDGainControl("Yaw Rate D", &yD, 0.0001f, 2.0f);
+                                        if (changed && PIDSet->YawRatePID)
+                                        {
+                                            PIDSet->YawRatePID->ProportionalGain = yP;
+                                            PIDSet->YawRatePID->IntegralGain     = yI;
+                                            PIDSet->YawRatePID->DerivativeGain   = yD;
+                                        }
                                     }
                                     else { ImGui::TextDisabled("Yaw Rate PID Unavailable"); }
                                     ImGui::Unindent();
 
                                     ImGui::Unindent(); // Attitude PID section
                                     ImGui::Separator();
-
+//@TODO Save PIDS
                                     // Save to CSV button (same as ImGuiUtil)
                                     if (ImGui::Button("Save PID Gains", ImVec2(200, 50)))
                                     {
@@ -836,7 +902,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 
                             // Render PID settings for the active controller and mode
                             DrawPIDSettings(Ctrl, Ctrl->GetFlightMode());
-
+//@TODO PID COnfig Window
                             // Render PID Configuration History window outside the lambda to avoid any Begin/End nesting issues
                             if (bShowPIDHistoryWindow)
                             {
@@ -923,8 +989,9 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
             }
         }
     }
-
-    // Bottom-center Joystick Visualization for Angle/Acro modes
+}
+void USimHUDTaskbarSubsystem::JoyStickHandles(UWorld* World)
+{
     if (ADroneManager* DMJ = ADroneManager::Get(World))
     {
         const TArray<AQuadPawn*> Drones = DMJ->GetDroneList();
@@ -982,15 +1049,11 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
         }
     }
 
-#if 0
-    // Legacy floating window (disabled)
-    if (bShowMain && ImGui::Begin("QuadSim Session HUD"))
-    {
-        static bool bDemo = false;
-        ImGui::Checkbox("Show ImGui Demo", &bDemo);
-        if (bDemo) ImGui::ShowDemoWindow(&bDemo);
-    }
-    if (bShowMain) ImGui::End();
-#endif
 }
 
+
+//Taskbar Sim Man
+void USimHUDTaskbarSubsystem::TaskbarSimMan()
+{
+    
+}

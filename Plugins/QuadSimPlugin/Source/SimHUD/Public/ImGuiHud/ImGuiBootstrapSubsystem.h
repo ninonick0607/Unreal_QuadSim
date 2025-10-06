@@ -16,7 +16,13 @@ private:
     // Try to bind once ImGui + viewport are ready.
     bool TryBindImGui(float DeltaSeconds);
     void HandleImGuiDraw(); // void()
+    void HandleTaskbar(UWorld* World, FSimImGuiStyle Theme);
+    void ControlButtons(UWorld* World, FSimImGuiStyle Theme);
+    void HandleStateData(UWorld* World);
+    void JoyStickHandles(UWorld* World);
 
+
+    void TaskbarSimMan(static int SpeedMode, static float SpeedScale, static bool bSimMgrActive, UWorld* World, FSimImGuiStyle Theme);
     FDelegateHandle DrawHandle;                // ImGui delegate handle
     FTSTicker::FDelegateHandle TickerHandle;   // late-bind ticker
     bool bShowMain = true;
@@ -34,6 +40,22 @@ private:
 
     bool bAppliedStartupSettings = false; // run-once gate
 
+    const float BarHeight = 58.f;
+    FVector2D ViewSize(1280, 720);
+    
+    static bool bPaused = false;
+    static int SpeedMode = 0;
+    static float SpeedScale = 1.0f;
+    static bool bSpeedInit = false;
+    ImGuiStyle& st = ImGui::GetStyle();
+    const float padX = st.FramePadding.x;
+    const float padY = st.FramePadding.y;
+    const float itemX = st.ItemSpacing.x;
+    const float LabelBoxW = 180.f;
+    const float WMLabelW  = 170.f;
+    const float LabelH    = BarHeight - 12.f;
+    const float SpeedBoxW = 56.f;
+    
 public:
     // Accessors for settings UI to control HUD state
     void SetStateHUDVisible(bool bVisible) { bShowStateHUD = bVisible; }

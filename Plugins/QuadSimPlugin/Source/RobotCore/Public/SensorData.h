@@ -13,6 +13,9 @@ struct FSensorData
 	FVector IMUAngVelRADS = FVector::ZeroVector;
     
 	UPROPERTY()
+	FVector IMUAngVelDEGS = FVector::ZeroVector;
+
+	UPROPERTY()
 	FVector IMULinearAccelMS2 = FVector::ZeroVector;
     
 	UPROPERTY()

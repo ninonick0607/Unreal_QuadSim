@@ -7,6 +7,9 @@
 
 class UControlPanelUI;
 class USimSettingsUI;
+class AQuadPawn;
+class UQuadDroneController;
+struct FSensorData;
 
 UCLASS()
 class SIMHUD_API USimHUDTaskbarSubsystem : public UGameInstanceSubsystem
@@ -29,28 +32,66 @@ private:
     void HandleStateData(UWorld* World);
     void JoyStickHandles(UWorld* World);
 
-    FDelegateHandle DrawHandle;
-    FTSTicker::FDelegateHandle TickerHandle;
-    bool bShowMain = true;
-    TWeakObjectPtr<UWorld> BoundWorld;
+    // PID config window (wrapper) -> calls DrawPIDSettingsPanel(...)
+    void DrawPIDConfigWindow(UWorld* World);
+    // Actual PID config controls (unchanged signature)
+    void DrawPIDSettingsPanel(UQuadDroneController* InController);
 
-    UPROPERTY()
-    UControlPanelUI* ControlPanels = nullptr;
+    // “Old RenderImPlot” plots (velocity/angles)
+    void UpdateControlPlotData(UWorld* World,
+                               AQuadPawn* Pawn,
+                               UQuadDroneController* Ctrl,
+                               float DeltaSeconds,
+                               const FRotator& CurrentAttitude,
+                               float DesiredRollDeg,
+                               float DesiredPitchDeg);
 
-    UPROPERTY()
-    USimSettingsUI* SettingsUI = nullptr;
+    void DrawControlPlotsWindow(float MaxAngleDeg);
 
-    bool bShowStateHUD = false;
-    bool bShowPIDSettings = false;
-    bool bShowPIDHistoryWindow = false;
+private:
+    FDelegateHandle                DrawHandle;
+    FTSTicker::FDelegateHandle     TickerHandle;
+    bool                           bShowMain = true;
+    TWeakObjectPtr<UWorld>         BoundWorld;
 
-    bool bAppliedStartupSettings = false;
+    UPROPERTY() UControlPanelUI*   ControlPanels = nullptr;
+    UPROPERTY() USimSettingsUI*    SettingsUI    = nullptr;
+
+    bool   bShowStateHUD            = false;
+    bool   bAppliedStartupSettings  = false;
 
     static constexpr float BarHeight = 58.f;
-    FVector2D ViewSize = FVector2D(1280.f, 720.f);
+    FVector2D               ViewSize = FVector2D(1280.f, 720.f);
 
-    static bool bPaused;
+    static bool  bPaused;
     static int32 SpeedMode;
     static float SpeedScale;
-    static bool bSpeedInit;
+    static bool  bSpeedInit;
+
+    // ---------------- PID plots (RenderImPlot style) ----------------
+    bool        bShowPIDPlots = false;   // single checkbox to open plots
+    bool        bShowPIDSettings = false;// single button to open PID config
+    bool        bShowPIDHistoryWindow = false;
+
+    // Timebase (float: MUST match Y type for ImPlot::PlotLine(xs,ys,...))
+    float       Control_CumulativeTime = 0.0f;
+    TArray<float> Control_Time;
+
+    // Velocity (local frame)
+    TArray<float> Control_CurrVelX;
+    TArray<float> Control_CurrVelY;
+    TArray<float> Control_CurrVelZ;
+    TArray<float> Control_DesVelX;
+    TArray<float> Control_DesVelY;
+    TArray<float> Control_DesVelZ;
+
+    // Angles
+    TArray<float> Control_CurrRollDeg;
+    TArray<float> Control_DesRollDeg;
+    TArray<float> Control_CurrPitchDeg;
+    TArray<float> Control_DesPitchDeg;
+
+    // Limits / pruning
+    float   Control_MaxPlotTime   = 10.0f;  // seconds of history to show
+    int32   Control_MaxDataPoints = 1000;   // cap arrays to avoid unbounded growth
 };

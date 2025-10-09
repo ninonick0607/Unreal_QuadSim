@@ -5,7 +5,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/PhysicsSettings.h"
 #include "Physics/PhysicsInterfaceCore.h"
+#include "Camera/PlayerCameraManager.h"
 #include "imgui.h"
+#include "EngineUtils.h"                 // TActorIterator
+#include "GameFramework/Pawn.h"          // APawn
+#include "Camera/CameraComponent.h"      // UCameraComponent
+#include "Camera/CameraActor.h"       
 #include "Physics/PhysicsInterfaceCore.h"
 
 ASimulationManager::ASimulationManager()
@@ -314,4 +319,80 @@ void ASimulationManager::StartNewEpisode()
     ResetSimulation();
     
     UE_LOG(LogTemp, Display, TEXT("Started episode %d"), CurrentEpisode);
+}
+
+void ASimulationManager::GetAvailableCameras(TArray<AActor*>& OutCameras) const
+{
+    OutCameras.Reset();
+
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    // 1) Any pawn that has a CameraComponent (eg. your TopDownCameraPawn or custom pawns)
+    for (TActorIterator<APawn> It(World); It; ++It)
+    {
+        APawn* P = *It;
+        if (!IsValid(P)) continue;
+        if (P->FindComponentByClass<UCameraComponent>())
+        {
+            OutCameras.Add(P);
+        }
+    }
+
+    // 2) Standalone ACameraActor
+    for (TActorIterator<ACameraActor> It(World); It; ++It)
+    {
+        ACameraActor* C = *It;
+        if (!IsValid(C)) continue;
+        OutCameras.Add(C);
+    }
+}
+
+bool ASimulationManager::PossessCamera(AActor* CameraActor)
+{
+    if (!IsValid(CameraActor)) return false;
+
+    UWorld* World = GetWorld();
+    if (!World) return false;
+
+    APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+    if (!PC) return false;
+
+    if (APawn* PawnCam = Cast<APawn>(CameraActor))
+    {
+        PC->Possess(PawnCam);
+        PC->SetViewTarget(PawnCam);
+        return true;
+    }
+
+    if (ACameraActor* CamActor = Cast<ACameraActor>(CameraActor))
+    {
+        PC->SetViewTarget(CamActor);
+        return true;
+    }
+
+    // Fallback: if it has a camera component but isn't a pawn/camera actor, just SetViewTarget
+    if (CameraActor->FindComponentByClass<UCameraComponent>())
+    {
+        PC->SetViewTarget(CameraActor);
+        return true;
+    }
+
+    return false;
+}
+
+bool ASimulationManager::GetCurrentCamera(AActor*& OutCamera) const
+{
+    OutCamera = nullptr;
+
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        AActor* VT = PC->GetViewTarget();
+        if (IsValid(VT))
+        {
+            OutCamera = VT;
+            return true;
+        }
+    }
+    return false;
 }

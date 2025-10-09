@@ -123,7 +123,7 @@ void AQuadSimGameMode::BeginPlay()
         // Prefer an actor tagged "StartupCamera"
         for (TActorIterator<APawn> It(World); It; ++It)
         {
-            if (It->ActorHasTag(FName("StartupCamera"))) { CameraPawn = *It; break; }
+                if (It->ActorHasTag(FName("StartupCamera"))) { CameraPawn = *It; break; }
         }
         // Fallback: first pawn found
         if (!CameraPawn)

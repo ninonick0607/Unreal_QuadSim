@@ -5,6 +5,8 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pawns/QuadPawn.h"
+#include "Engine/StaticMeshActor.h"
+#include "Components/StaticMeshComponent.h"
 
 const FName ObstacleManager_ObstacleTag = FName("Obstacle");
 
@@ -81,8 +83,8 @@ FVector AObstacleManager::GetRandomInnerPoint() {
 }
 
 AActor* AObstacleManager::SpawnObstacle() {
-    if (!ObstacleClass || !GetWorld()) {
-        UE_LOG(LogTemp, Warning, TEXT("No obstacle class set!"));
+    if (!ObstacleMesh || !GetWorld()) {
+        UE_LOG(LogTemp, Warning, TEXT("No obstacle mesh set!"));
         return nullptr;
     }
     
@@ -99,31 +101,31 @@ AActor* AObstacleManager::SpawnObstacle() {
     SpawnParams.Owner = this;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     
-    AActor* Obstacle = GetWorld()->SpawnActor<AActor>(ObstacleClass, 
-                                                     SpawnLocation, 
-                                                     SpawnRotation, 
-                                                     SpawnParams);
-    if (Obstacle)
+    AStaticMeshActor* ObstacleActor = GetWorld()->SpawnActor<AStaticMeshActor>(
+        SpawnLocation,
+        SpawnRotation,
+        SpawnParams);
+    if (ObstacleActor)
     {
-        UStaticMeshComponent* MeshComp = Obstacle->FindComponentByClass<UStaticMeshComponent>();
+        UStaticMeshComponent* MeshComp = ObstacleActor->GetStaticMeshComponent();
         if (MeshComp)
         {
+            MeshComp->SetStaticMesh(ObstacleMesh);
             MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
             MeshComp->SetCollisionResponseToAllChannels(ECR_Block);
         }
-        Obstacle->Tags.Add(ObstacleManager_ObstacleTag);
-        UE_LOG(LogTemp, Log, TEXT("Spawned obstacle %s with tag '%s'"), *Obstacle->GetName(), *ObstacleManager_ObstacleTag.ToString());
+        ObstacleActor->Tags.Add(ObstacleManager_ObstacleTag);
+        UE_LOG(LogTemp, Log, TEXT("Spawned obstacle %s with tag '%s'"), *ObstacleActor->GetName(), *ObstacleManager_ObstacleTag.ToString());
+        return ObstacleActor;
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to spawn obstacle actor!"));
-    }
-    return Obstacle;
+
+    UE_LOG(LogTemp, Error, TEXT("Failed to spawn obstacle actor!"));
+    return nullptr;
 }
 
 AActor* AObstacleManager::SpawnGoal(EGoalPosition Position) {
-    if (!GoalClass || !GetWorld()) {
-        UE_LOG(LogTemp, Warning, TEXT("No goal class set!"));
+    if (!GoalMesh || !GetWorld()) {
+        UE_LOG(LogTemp, Warning, TEXT("No goal mesh set!"));
         return nullptr;
     }
     
@@ -176,13 +178,26 @@ AActor* AObstacleManager::SpawnGoal(EGoalPosition Position) {
 
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     
-    // Create goal actor using the class directly
-    AActor* Goal = GetWorld()->SpawnActor<AActor>(GoalClass, 
-                                                 SpawnLocation, 
-                                                 SpawnRotation, 
-                                                 SpawnParams);
-    
-    return Goal;
+    // Spawn goal actor from the configured static mesh
+    AStaticMeshActor* GoalActor = GetWorld()->SpawnActor<AStaticMeshActor>(
+        SpawnLocation,
+        SpawnRotation,
+        SpawnParams);
+
+    if (GoalActor)
+    {
+        UStaticMeshComponent* MeshComp = GoalActor->GetStaticMeshComponent();
+        if (MeshComp)
+        {
+            MeshComp->SetStaticMesh(GoalMesh);
+            MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+        GoalPosition = GoalActor->GetActorLocation();
+        return GoalActor;
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("Failed to spawn goal actor!"));
+    return nullptr;
 }
 
 void AObstacleManager::CreateObstacles(int32 NumObstacles, EGoalPosition GoalPos) {

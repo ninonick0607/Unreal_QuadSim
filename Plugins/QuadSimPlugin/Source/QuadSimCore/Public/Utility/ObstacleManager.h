@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "ObstacleManager.generated.h"
 
+class UStaticMesh;
 UENUM(BlueprintType)
 enum class EGoalPosition : uint8
 {
@@ -33,10 +34,10 @@ public:
     float ObstacleSpawnHeight;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Obstacle Settings")
-    TSubclassOf<AActor> ObstacleClass;
+    UStaticMesh* ObstacleMesh;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Obstacle Settings")
-    TSubclassOf<AActor> GoalClass;
+    UStaticMesh* GoalMesh;
    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* VisualMarker;

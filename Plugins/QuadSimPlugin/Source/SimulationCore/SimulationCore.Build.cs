@@ -4,6 +4,7 @@ public class SimulationCore : ModuleRules
 {
     public SimulationCore(ReadOnlyTargetRules Target) : base(Target)
     {
+        PrivateDependencyModuleNames.AddRange(new string[] { "GeoReferencing" });
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         
         PublicDependencyModuleNames.AddRange(new string[] {
@@ -11,6 +12,7 @@ public class SimulationCore : ModuleRules
             "CoreUObject",
             "Engine",
             "ImGui",
+            "GeoReferencing"
         });
         
         // We'll add QuadSimCore dependency later if needed

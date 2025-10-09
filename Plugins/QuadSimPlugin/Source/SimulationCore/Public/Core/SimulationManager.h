@@ -87,11 +87,19 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Simulation")
     void StartNewEpisode();
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
-	
 	bool IsControllingSimulation() const 
 	{ 
 		return CurrentSimulationMode != ESimulationMode::Realtime; 
 	}
+	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+	void GetAvailableCameras(TArray<AActor*>& OutCameras) const;
+
+	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+	bool PossessCamera(AActor* CameraActor);
+
+	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+	bool GetCurrentCamera(AActor*& OutCamera) const;
+	
     
 	// Get simulation time in microseconds (for PX4)
 	UFUNCTION(BlueprintCallable, Category = "Simulation")

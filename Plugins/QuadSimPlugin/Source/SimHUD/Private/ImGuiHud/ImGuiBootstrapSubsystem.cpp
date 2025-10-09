@@ -1,7 +1,8 @@
-#include "ImGuiHud/ImGuiBootstrapSubsystem.h"
+﻿#include "ImGuiHud/ImGuiBootstrapSubsystem.h"
 
 #include "ImGuiDelegates.h"
 #include "imgui.h"
+#include "implot.h"
 #include "Containers/Ticker.h"
 #include "Modules/ModuleManager.h"
 #include "Engine/Engine.h"
@@ -27,6 +28,7 @@
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
 #include <string>
+#include <limits>
 
 bool USimHUDTaskbarSubsystem::bPaused = false;
 int32 USimHUDTaskbarSubsystem::SpeedMode = 0;
@@ -81,26 +83,49 @@ bool USimHUDTaskbarSubsystem::TryBindImGui(float /*DeltaSeconds*/)
 
 void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 {
-    
     UWorld* World = GetWorld();
-    if (!World)
-        return;
-    // Draw only for our bound world to avoid duplicates.
-    if (BoundWorld.Get() != World)
-        return;
-    if (!(World->IsGameWorld() || World->WorldType == EWorldType::PIE))
-        return;
+    if (!World) return;
+    if (BoundWorld.Get() != World) return;
+    if (!(World->IsGameWorld() || World->WorldType == EWorldType::PIE)) return;
 
-    // Lazy-create control panels manager
-    if (!ControlPanels)
+    AQuadPawn* ResolvedPawn = nullptr;
+    UQuadDroneController* ResolvedCtrl = nullptr;
+    FSensorData ResolvedSensorData{};
+    FRotator CurrentAtt = FRotator::ZeroRotator;
+
+    if (ADroneManager* DM = ADroneManager::Get(World))
     {
-        ControlPanels = NewObject<UControlPanelUI>(this);
+        const TArray<AQuadPawn*> Drones = DM->GetDroneList();
+        if (Drones.Num() > 0)
+        {
+            const int32 ActiveIndex = FMath::Clamp(DM->SelectedDroneIndex, 0, Drones.Num() - 1);
+            ResolvedPawn = Drones.IsValidIndex(ActiveIndex) ? Drones[ActiveIndex] : nullptr;
+            ResolvedCtrl = ResolvedPawn ? ResolvedPawn->QuadController : nullptr;
+
+            if (ResolvedPawn && ResolvedPawn->SensorManager)
+            {
+                ResolvedSensorData = ResolvedPawn->SensorManager->GetCurrentSensorData();
+            }
+
+            CurrentAtt = (ResolvedPawn && ResolvedPawn->SensorManager)
+                ? ResolvedSensorData.IMUAttitude
+                : (ResolvedPawn ? ResolvedPawn->GetActorRotation() : FRotator::ZeroRotator);
+
+            const float DesiredRollDeg  = ResolvedCtrl ? ResolvedCtrl->GetDesiredRoll()  : 0.f;
+            const float DesiredPitchDeg = ResolvedCtrl ? ResolvedCtrl->GetDesiredPitch() : 0.f;
+
+            UpdateControlPlotData(World,
+                                  ResolvedPawn,
+                                  ResolvedCtrl,
+                                  World->GetDeltaSeconds(),
+                                  CurrentAtt,
+                                  DesiredRollDeg,
+                                  DesiredPitchDeg);
+        }
     }
-    // Lazy-create settings panel
-    if (!SettingsUI)
-    {
-        SettingsUI = NewObject<USimSettingsUI>(this);
-    }
+
+    if (!ControlPanels) ControlPanels = NewObject<UControlPanelUI>(this);
+    if (!SettingsUI)    SettingsUI    = NewObject<USimSettingsUI>(this);
 
     if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
     {
@@ -110,16 +135,24 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
 
     static FSimImGuiStyle Theme;
     Theme.Apply();
-    
-    //Taskbar
-    HandleTaskbar(World,Theme);
-    //Control Panel and State Data button
-    ControlButtons(World,Theme);
-    //State Data
+
+    HandleTaskbar(World, Theme);
+    ControlButtons(World, Theme);
     HandleStateData(World);
-    //Joystick Visualization
     JoyStickHandles(World);
-    
+
+    // PID plots (your old RenderImPlot content)
+    if (bShowPIDPlots)
+    {
+        const float MaxAngleDeg = 45.0f; // pull from config if you have one
+        DrawControlPlotsWindow(MaxAngleDeg);
+    }
+
+    // Dedicated PID Config window (wrapper)
+    if (bShowPIDSettings)
+    {
+        DrawPIDConfigWindow(World);
+    }
 }
 
 
@@ -314,6 +347,7 @@ void USimHUDTaskbarSubsystem::HandleTaskbar(UWorld* World, const FSimImGuiStyle&
                     SM->ResetSimulation();
                 }
             }
+            
             //@TODO Drone Manager
             // Extra spacing before World Manager
             ImGui::SameLine(); ImGui::Dummy(ImVec2(40.f, 0.f)); ImGui::SameLine();
@@ -492,6 +526,12 @@ void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
                     if (ImGui::Begin("State Data##HUD", &bShowStateHUD, ImGuiWindowFlags_NoCollapse))
                     {
                         //@TODO ThrusterPower
+                        FSensorData SensorData;
+                        if (Pawn->SensorManager)
+                        {
+                            SensorData = Pawn->SensorManager->GetCurrentSensorData();
+                        }
+
                         // Thruster Power (vertical bars at top) - normalized by MaxThrust
                         ImGui::Text("Thruster Power");
                         const float MaxThrust = UDroneJSONConfig::Get().Config.FlightParams.MaxThrust;
@@ -530,12 +570,6 @@ void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
                         ImGui::Separator();
                         ImGui::TextColored(ImVec4(0.6f,0.9f,1.0f,1.0f), "State Info");
                         ImGui::Separator();
-                        //@TODO SensorData
-                        FSensorData SensorData;
-                        if (Pawn->SensorManager)
-                        {
-                            SensorData = Pawn->SensorManager->GetCurrentSensorData();
-                        }
                         // Drone Mass
                         ImGui::Text("Drone Mass: %.2f kg", Pawn->GetMass());
 
@@ -588,414 +622,16 @@ void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
 
                         //@TODO PID Settings
                         // --- PID Settings toggle and UI (copied from ImGuiUtil) ---
-                        ImGui::Separator();
-                        ImGui::Checkbox("Enable PID Settings", &bShowPIDSettings);
-                        if (bShowPIDSettings)
+                        ImGui::SameLine();
+                        ImGui::Dummy(ImVec2(20.f, 0.f));
+
+                        // PID controls: Button opens config window, checkbox toggles plots (errors/old RenderControlPlots)
+                        ImGui::Checkbox("PID Gain Config", &bShowPIDSettings);
+                        ImGui::Checkbox("PID Plots", &bShowPIDPlots);
+                        
+                        if (!bShowPIDSettings)
                         {
-                            // Helper lambda to render the PID settings for the active controller and mode
-                            auto DrawPIDSettings = [this](UQuadDroneController* InController, EFlightMode Mode)
-                            {
-                                if (!InController) { ImGui::Text("No controller."); return; }
-                                FFullPIDSet* PIDSet = InController->GetPIDSet(Mode);
-                                if (!PIDSet)
-                                {
-                                    ImGui::Text("No PID Set found for this mode.");
-                                    return;
-                                }
-
-                                static bool synchronizeXYGains = false;
-                                static bool synchronizeGains   = false;
-
-                                auto DrawPIDGainControl = [](const char* label, float* value, float minValue, float maxValue)
-                                {
-                                    float totalWidth = ImGui::GetContentRegionAvail().x;
-                                    float inputWidth = 80.0f;
-                                    float sliderWidth = totalWidth > (inputWidth + 20.0f) ? totalWidth - inputWidth - 20.0f : 100.0f;
-                                    ImGui::PushItemWidth(sliderWidth);
-                                    bool changed = ImGui::SliderFloat(label, value, minValue, maxValue);
-                                    ImGui::PopItemWidth();
-                                    ImGui::SameLine();
-                                    ImGui::PushItemWidth(inputWidth);
-                                    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 1));
-                                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
-                                    std::string inputLabel = std::string("##Input_") + label;
-                                    changed |= ImGui::InputFloat(inputLabel.c_str(), value, 0.0f, 0.0f, "%.4f");
-                                    ImGui::PopStyleColor(2);
-                                    ImGui::PopItemWidth();
-                                    return changed;
-                                };
-
-                                if (ImGui::CollapsingHeader("PID Settings", ImGuiTreeNodeFlags_DefaultOpen))
-                                {
-                                    ImGui::Text("Position PID Gains");
-                                    ImGui::Checkbox("Synchronize X and Y Axis Gains", &synchronizeXYGains);
-                                    ImGui::Indent();
-
-                                    float totalWidth = ImGui::GetContentRegionAvail().x;
-                                    float inputWidth = 80.0f;
-                                    float sliderWidth = totalWidth > (inputWidth + 20.0f) ? totalWidth - inputWidth - 20.0f : 100.0f;
-
-                                    const float minXYGain = 0.0001f;
-                                    const float maxXYGain = 30.f;
-                                    const float minRollPitchGain = 0.0001f;
-                                    const float maxRollPitchGain = 30.f;
-
-                                    // X Axis
-                                    ImGui::Text("X Axis");
-                                    ImGui::Indent();
-                                    if (PIDSet->XPID)
-                                    {
-                                        float xP = PIDSet->XPID->ProportionalGain;
-                                        float xI = PIDSet->XPID->IntegralGain;
-                                        float xD = PIDSet->XPID->DerivativeGain;
-                                        bool x_changed = false;
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("X P", &xP, minXYGain, maxXYGain, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##XP_Input", &xP, 0.0f, 0.0f, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (x_changed) { PIDSet->XPID->ProportionalGain = xP; if (synchronizeXYGains && PIDSet->YPID) { PIDSet->YPID->ProportionalGain = xP; } x_changed = false; }
-
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("X I", &xI, minXYGain, maxXYGain, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##XI_Input", &xI, 0.0f, 0.0f, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (x_changed) { PIDSet->XPID->IntegralGain = xI; if (synchronizeXYGains && PIDSet->YPID) { PIDSet->YPID->IntegralGain = xI; } x_changed = false; }
-
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("X D", &xD, minXYGain, maxXYGain, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##XD_Input", &xD, 0.0f, 0.0f, "%.4f")) x_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (x_changed) { PIDSet->XPID->DerivativeGain = xD; if (synchronizeXYGains && PIDSet->YPID) { PIDSet->YPID->DerivativeGain = xD; } }
-                                    }
-                                    else { ImGui::TextDisabled("X PID Controller Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Y Axis
-                                    ImGui::Text("Y Axis");
-                                    ImGui::Indent();
-                                    if (PIDSet->YPID)
-                                    {
-                                        float yP = PIDSet->YPID->ProportionalGain;
-                                        float yI = PIDSet->YPID->IntegralGain;
-                                        float yD = PIDSet->YPID->DerivativeGain;
-                                        bool y_changed = false;
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("Y P", &yP, minXYGain, maxXYGain, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##YP_Input", &yP, 0.0f, 0.0f, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (y_changed) { PIDSet->YPID->ProportionalGain = yP; if (synchronizeXYGains && PIDSet->XPID) { PIDSet->XPID->ProportionalGain = yP; } y_changed = false; }
-
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("Y I", &yI, minXYGain, maxXYGain, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##YI_Input", &yI, 0.0f, 0.0f, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (y_changed) { PIDSet->YPID->IntegralGain = yI; if (synchronizeXYGains && PIDSet->XPID) { PIDSet->XPID->IntegralGain = yI; } y_changed = false; }
-
-                                        ImGui::PushItemWidth(sliderWidth);
-                                        if (ImGui::SliderFloat("Y D", &yD, minXYGain, maxXYGain, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth(); ImGui::SameLine(); ImGui::PushItemWidth(inputWidth);
-                                        if (ImGui::InputFloat("##YD_Input", &yD, 0.0f, 0.0f, "%.4f")) y_changed = true;
-                                        ImGui::PopItemWidth();
-                                        if (y_changed) { PIDSet->YPID->DerivativeGain = yD; if (synchronizeXYGains && PIDSet->XPID) { PIDSet->XPID->DerivativeGain = yD; } }
-                                    }
-                                    else { ImGui::TextDisabled("Y PID Controller Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Z Axis
-                                    if (PIDSet->ZPID)
-                                    {
-                                        DrawPIDGainControl("Z P", &PIDSet->ZPID->ProportionalGain, 0.0001f, 10.0f);
-                                        DrawPIDGainControl("Z I", &PIDSet->ZPID->IntegralGain, 0.0001f, 10.0f);
-                                        DrawPIDGainControl("Z D", &PIDSet->ZPID->DerivativeGain, 0.0001f, 10.0f);
-                                    }
-                                    else { ImGui::TextDisabled("Z PID Controller Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Attitude PID
-                                    ImGui::Separator();
-                                    ImGui::Text("Attitude PID Gains");
-                                    ImGui::Checkbox("Synchronize Roll and Pitch Gains", &synchronizeGains);
-                                    ImGui::Indent();
-
-                                    // Roll
-                                    ImGui::Text("Roll");
-                                    ImGui::Indent();
-                                    if (PIDSet->RollPID)
-                                    {
-                                        float rollP = PIDSet->RollPID->ProportionalGain;
-                                        float rollI = PIDSet->RollPID->IntegralGain;
-                                        float rollD = PIDSet->RollPID->DerivativeGain;
-                                        bool changed = false;
-                                        if (synchronizeGains && PIDSet->PitchPID)
-                                        {
-                                            if (DrawPIDGainControl("Roll P", &rollP, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->ProportionalGain = rollP; }
-                                            if (DrawPIDGainControl("Roll I", &rollI, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->IntegralGain     = rollI; }
-                                            if (DrawPIDGainControl("Roll D", &rollD, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->PitchPID->DerivativeGain  = rollD; }
-                                        }
-                                        else
-                                        {
-                                            changed |= DrawPIDGainControl("Roll P", &rollP, minRollPitchGain, maxRollPitchGain);
-                                            changed |= DrawPIDGainControl("Roll I", &rollI, minRollPitchGain, maxRollPitchGain);
-                                            changed |= DrawPIDGainControl("Roll D", &rollD, minRollPitchGain, maxRollPitchGain);
-                                        }
-                                        if (changed && PIDSet->RollPID)
-                                        {
-                                            PIDSet->RollPID->ProportionalGain = rollP;
-                                            PIDSet->RollPID->IntegralGain     = rollI;
-                                            PIDSet->RollPID->DerivativeGain   = rollD;
-                                        }
-                                    }
-                                    else { ImGui::TextDisabled("Roll PID Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Pitch
-                                    ImGui::Text("Pitch");
-                                    ImGui::Indent();
-                                    if (PIDSet->PitchPID)
-                                    {
-                                        float pitchP = PIDSet->PitchPID->ProportionalGain;
-                                        float pitchI = PIDSet->PitchPID->IntegralGain;
-                                        float pitchD = PIDSet->PitchPID->DerivativeGain;
-                                        bool changed = false;
-                                        if (synchronizeGains && PIDSet->RollPID)
-                                        {
-                                            if (DrawPIDGainControl("Pitch P", &pitchP, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->ProportionalGain = pitchP; }
-                                            if (DrawPIDGainControl("Pitch I", &pitchI, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->IntegralGain     = pitchI; }
-                                            if (DrawPIDGainControl("Pitch D", &pitchD, minRollPitchGain, maxRollPitchGain)) { changed = true; PIDSet->RollPID->DerivativeGain  = pitchD; }
-                                        }
-                                        else
-                                        {
-                                            changed |= DrawPIDGainControl("Pitch P", &pitchP, minRollPitchGain, maxRollPitchGain);
-                                            changed |= DrawPIDGainControl("Pitch I", &pitchI, minRollPitchGain, maxRollPitchGain);
-                                            changed |= DrawPIDGainControl("Pitch D", &pitchD, minRollPitchGain, maxRollPitchGain);
-                                        }
-                                        if (changed && PIDSet->PitchPID)
-                                        {
-                                            PIDSet->PitchPID->ProportionalGain = pitchP;
-                                            PIDSet->PitchPID->IntegralGain     = pitchI;
-                                            PIDSet->PitchPID->DerivativeGain   = pitchD;
-                                        }
-                                    }
-                                    else { ImGui::TextDisabled("Pitch PID Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Angular Rate PIDs
-                                    ImGui::Separator();
-                                    ImGui::Text("Angular Rate PID Gains");
-                                    static bool syncRateGains = false;
-                                    ImGui::Checkbox("Synchronize Roll and Pitch Rate Gains", &syncRateGains);
-                                    ImGui::Indent();
-                                    // Roll Rate
-                                    ImGui::Text("Roll Rate");
-                                    ImGui::Indent();
-                                    if (PIDSet->RollRatePID)
-                                    {
-                                        float rP = PIDSet->RollRatePID->ProportionalGain;
-                                        float rI = PIDSet->RollRatePID->IntegralGain;
-                                        float rD = PIDSet->RollRatePID->DerivativeGain;
-                                        bool changed = false;
-                                        if (DrawPIDGainControl("Roll Rate P", &rP, 0.0001f, .01f))
-                                        {
-                                            changed = true;
-                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->ProportionalGain = rP;
-                                        }
-                                        if (DrawPIDGainControl("Roll Rate I", &rI, 0.0001f, .01f))
-                                        {
-                                            changed = true;
-                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->IntegralGain = rI;
-                                        }
-                                        if (DrawPIDGainControl("Roll Rate D", &rD, 0.0001f, .01f))
-                                        {
-                                            changed = true;
-                                            if (syncRateGains && PIDSet->PitchRatePID) PIDSet->PitchRatePID->DerivativeGain = rD;
-                                        }
-                                        if (changed && PIDSet->RollRatePID)
-                                        {
-                                            PIDSet->RollRatePID->ProportionalGain = rP;
-                                            PIDSet->RollRatePID->IntegralGain     = rI;
-                                            PIDSet->RollRatePID->DerivativeGain   = rD;
-                                        }
-                                    }
-                                    else { ImGui::TextDisabled("Roll Rate PID Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Pitch Rate
-                                    ImGui::Text("Pitch Rate");
-                                    ImGui::Indent();
-                                    if (PIDSet->PitchRatePID)
-                                    {
-                                        float pP = PIDSet->PitchRatePID->ProportionalGain;
-                                        float pI = PIDSet->PitchRatePID->IntegralGain;
-                                        float pD = PIDSet->PitchRatePID->DerivativeGain;
-                                        bool changed = false;
-                                        changed |= DrawPIDGainControl("Pitch Rate P", &pP, 0.0001f, .01f);
-                                        changed |= DrawPIDGainControl("Pitch Rate I", &pI, 0.0001f, .01f);
-                                        changed |= DrawPIDGainControl("Pitch Rate D", &pD, 0.0001f, .01f);
-                                        if (changed && PIDSet->PitchRatePID)
-                                        {
-                                            PIDSet->PitchRatePID->ProportionalGain = pP;
-                                            PIDSet->PitchRatePID->IntegralGain     = pI;
-                                            PIDSet->PitchRatePID->DerivativeGain   = pD;
-                                        }
-                                    }
-                                    else { ImGui::TextDisabled("Pitch Rate PID Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    // Yaw Rate
-                                    ImGui::Text("Yaw Rate");
-                                    ImGui::Indent();
-                                    if (PIDSet->YawRatePID)
-                                    {
-                                        float yP = PIDSet->YawRatePID->ProportionalGain;
-                                        float yI = PIDSet->YawRatePID->IntegralGain;
-                                        float yD = PIDSet->YawRatePID->DerivativeGain;
-                                        bool changed = false;
-                                        changed |= DrawPIDGainControl("Yaw Rate P", &yP, 0.0001f, 2.0f);
-                                        changed |= DrawPIDGainControl("Yaw Rate I", &yI, 0.0001f, 2.0f);
-                                        changed |= DrawPIDGainControl("Yaw Rate D", &yD, 0.0001f, 2.0f);
-                                        if (changed && PIDSet->YawRatePID)
-                                        {
-                                            PIDSet->YawRatePID->ProportionalGain = yP;
-                                            PIDSet->YawRatePID->IntegralGain     = yI;
-                                            PIDSet->YawRatePID->DerivativeGain   = yD;
-                                        }
-                                    }
-                                    else { ImGui::TextDisabled("Yaw Rate PID Unavailable"); }
-                                    ImGui::Unindent();
-
-                                    ImGui::Unindent(); // Attitude PID section
-                                    ImGui::Separator();
-//@TODO Save PIDS
-                                    // Save to CSV button (same as ImGuiUtil)
-                                    if (ImGui::Button("Save PID Gains", ImVec2(200, 50)))
-                                    {
-                                        TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("QuadSimPlugin"));
-                                        FString PluginDir = Plugin.IsValid() ? Plugin->GetBaseDir() : FPaths::Combine(FPaths::ProjectPluginsDir(), TEXT("QuadSimPlugin"));
-                                        FString FilePath = FPaths::Combine(PluginDir, TEXT("PIDGains.csv"));
-                                        IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-                                        bool bFileExists = PlatformFile.FileExists(*FilePath);
-                                        FString Header = TEXT("Timestamp,xP,xI,xD,yP,yI,yD,zP,zI,zD,rollP,rollI,rollD,pitchP,pitchI,pitchD,yawP,yawI,yawD\n");
-                                        if (!bFileExists) { FFileHelper::SaveStringToFile(Header, *FilePath); }
-                                        FString GainData = FDateTime::Now().ToString() + TEXT(",");
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
-                                            PIDSet->XPID ? PIDSet->XPID->ProportionalGain : 0.f,
-                                            PIDSet->XPID ? PIDSet->XPID->IntegralGain     : 0.f,
-                                            PIDSet->XPID ? PIDSet->XPID->DerivativeGain   : 0.f);
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
-                                            PIDSet->YPID ? PIDSet->YPID->ProportionalGain : 0.f,
-                                            PIDSet->YPID ? PIDSet->YPID->IntegralGain     : 0.f,
-                                            PIDSet->YPID ? PIDSet->YPID->DerivativeGain   : 0.f);
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
-                                            PIDSet->ZPID ? PIDSet->ZPID->ProportionalGain : 0.f,
-                                            PIDSet->ZPID ? PIDSet->ZPID->IntegralGain     : 0.f,
-                                            PIDSet->ZPID ? PIDSet->ZPID->DerivativeGain   : 0.f);
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
-                                            PIDSet->RollPID ? PIDSet->RollPID->ProportionalGain : 0.f,
-                                            PIDSet->RollPID ? PIDSet->RollPID->IntegralGain     : 0.f,
-                                            PIDSet->RollPID ? PIDSet->RollPID->DerivativeGain   : 0.f);
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
-                                            PIDSet->PitchPID ? PIDSet->PitchPID->ProportionalGain : 0.f,
-                                            PIDSet->PitchPID ? PIDSet->PitchPID->IntegralGain     : 0.f,
-                                            PIDSet->PitchPID ? PIDSet->PitchPID->DerivativeGain   : 0.f);
-                                        GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f\n"),
-                                            PIDSet->YawRatePID ? PIDSet->YawRatePID->ProportionalGain : 0.f,
-                                            PIDSet->YawRatePID ? PIDSet->YawRatePID->IntegralGain     : 0.f,
-                                            PIDSet->YawRatePID ? PIDSet->YawRatePID->DerivativeGain   : 0.f);
-                                        FFileHelper::SaveStringToFile(GainData, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
-                                    }
-
-                                    ImGui::SameLine();
-                                    ImGui::Checkbox("PID Configuration History", &bShowPIDHistoryWindow);
-                                }
-                            };
-
-                            // Render PID settings for the active controller and mode
-                            DrawPIDSettings(Ctrl, Ctrl->GetFlightMode());
-//@TODO PID COnfig Window
-                            // Render PID Configuration History window outside the lambda to avoid any Begin/End nesting issues
-                            if (bShowPIDHistoryWindow)
-                            {
-                                ImGui::SetNextWindowPos(ImVec2(420, 520), ImGuiCond_FirstUseEver);
-                                ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-                                if (ImGui::Begin("PID Configurations History", &bShowPIDHistoryWindow))
-                                {
-                                    TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("QuadSimPlugin"));
-                                    FString PluginDir = Plugin.IsValid() ? Plugin->GetBaseDir() : FPaths::Combine(FPaths::ProjectPluginsDir(), TEXT("QuadSimPlugin"));
-                                    FString FilePath = FPaths::Combine(PluginDir, TEXT("PIDGains.csv"));
-
-                                    IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-                                    if (!PlatformFile.FileExists(*FilePath))
-                                    {
-                                        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "PID history file not found: %s", TCHAR_TO_UTF8(*FilePath));
-                                    }
-                                    else
-                                    {
-                                        FString FileContent;
-                                        if (!FFileHelper::LoadFileToString(FileContent, *FilePath))
-                                        {
-                                            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Failed to read PID history file");
-                                        }
-                                        else
-                                        {
-                                            TArray<FString> Lines;
-                                            FileContent.ParseIntoArrayLines(Lines, false);
-                                            if (Lines.Num() < 2)
-                                            {
-                                                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "PID history file is empty or invalid");
-                                            }
-                                            else
-                                            {
-                                                static ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
-                                                if (ImGui::BeginTable("PIDHistoryTable", 19, TableFlags, ImVec2(0, 0), 0.0f))
-                                                {
-                                                    TArray<FString> Headers;
-                                                    Lines[0].ParseIntoArray(Headers, TEXT(","), true);
-                                                    ImGui::TableSetupScrollFreeze(1, 1);
-                                                    for (int32 ColIdx = 0; ColIdx < Headers.Num(); ColIdx++)
-                                                    {
-                                                        ImGui::TableSetupColumn(TCHAR_TO_UTF8(*Headers[ColIdx]), ImGuiTableColumnFlags_WidthFixed);
-                                                    }
-                                                    ImGui::TableHeadersRow();
-
-                                                    for (int32 RowIdx = 1; RowIdx < Lines.Num(); RowIdx++)
-                                                    {
-                                                        if (Lines[RowIdx].IsEmpty()) continue;
-                                                        ImGui::TableNextRow();
-                                                        TArray<FString> Values;
-                                                        Lines[RowIdx].ParseIntoArray(Values, TEXT(","), true);
-                                                        for (int32 ColIdx = 0; ColIdx < Values.Num() && ColIdx < Headers.Num(); ColIdx++)
-                                                        {
-                                                            ImGui::TableSetColumnIndex(ColIdx);
-                                                            if (ColIdx == 0)
-                                                            {
-                                                                ImGui::TextUnformatted(TCHAR_TO_UTF8(*Values[ColIdx]));
-                                                                ImGui::SameLine();
-                                                                FString ButtonLabel = "Load##" + FString::FromInt(RowIdx);
-                                                                if (ImGui::SmallButton(TCHAR_TO_UTF8(*ButtonLabel)))
-                                                                {
-                                                                    // TODO: apply selected row gains
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                float Value = FCString::Atof(*Values[ColIdx]);
-                                                                ImGui::Text("%6.3f", Value);
-                                                            }
-                                                        }
-                                                    }
-                                                    ImGui::EndTable();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                ImGui::End();
-                            }
+                            bShowPIDHistoryWindow = false;
                         }
                     }
                     ImGui::End();
@@ -1004,6 +640,493 @@ void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
         }
     }
 }
+void USimHUDTaskbarSubsystem::DrawPIDSettingsPanel(UQuadDroneController* InController)
+{
+    if (!InController)
+    {
+        ImGui::Text("No controller.");
+        return;
+    }
+
+    FFullPIDSet* PIDSet = InController->GetPIDSet(InController->GetFlightMode());
+    if (!PIDSet)
+    {
+        ImGui::Text("No PID Set found for this mode.");
+        return;
+    }
+
+    static bool synchronizeXYGains = false;
+    static bool synchronizeGains = false;
+    static bool synchronizeRateGains = false;
+
+    auto DrawPIDGainControl = [](const char* label, float* value, float minValue, float maxValue)
+    {
+        float totalWidth = ImGui::GetContentRegionAvail().x;
+        float inputWidth = 80.0f;
+        float sliderWidth = totalWidth > (inputWidth + 20.0f) ? totalWidth - inputWidth - 20.0f : 100.0f;
+        ImGui::PushItemWidth(sliderWidth);
+        bool changed = ImGui::SliderFloat(label, value, minValue, maxValue);
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 1));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
+        std::string inputLabel = std::string("##Input_") + label;
+        changed |= ImGui::InputFloat(inputLabel.c_str(), value, 0.0f, 0.0f, "%.4f");
+        ImGui::PopStyleColor(2);
+        ImGui::PopItemWidth();
+        return changed;
+    };
+
+    if (ImGui::CollapsingHeader("PID Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("Position PID Gains");
+        ImGui::Checkbox("Synchronize X and Y Axis Gains", &synchronizeXYGains);
+        ImGui::Indent();
+
+        const float minXYGain = 0.0001f;
+        const float maxXYGain = 30.f;
+        const float minRollPitchGain = 0.0001f;
+        const float maxRollPitchGain = 30.f;
+
+        ImGui::Text("X Axis");
+        ImGui::Indent();
+        if (PIDSet->XPID)
+        {
+            float xP = PIDSet->XPID->ProportionalGain;
+            float xI = PIDSet->XPID->IntegralGain;
+            float xD = PIDSet->XPID->DerivativeGain;
+            bool xChanged = false;
+            if (DrawPIDGainControl("X P", &xP, minXYGain, maxXYGain)) xChanged = true;
+            if (DrawPIDGainControl("X I", &xI, minXYGain, maxXYGain)) xChanged = true;
+            if (DrawPIDGainControl("X D", &xD, minXYGain, maxXYGain)) xChanged = true;
+            if (xChanged)
+            {
+                PIDSet->XPID->ProportionalGain = xP;
+                PIDSet->XPID->IntegralGain = xI;
+                PIDSet->XPID->DerivativeGain = xD;
+                if (synchronizeXYGains && PIDSet->YPID)
+                {
+                    PIDSet->YPID->ProportionalGain = xP;
+                    PIDSet->YPID->IntegralGain = xI;
+                    PIDSet->YPID->DerivativeGain = xD;
+                }
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("X PID Controller Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Y Axis");
+        ImGui::Indent();
+        if (PIDSet->YPID)
+        {
+            float yP = PIDSet->YPID->ProportionalGain;
+            float yI = PIDSet->YPID->IntegralGain;
+            float yD = PIDSet->YPID->DerivativeGain;
+            bool yChanged = false;
+            if (DrawPIDGainControl("Y P", &yP, minXYGain, maxXYGain)) yChanged = true;
+            if (DrawPIDGainControl("Y I", &yI, minXYGain, maxXYGain)) yChanged = true;
+            if (DrawPIDGainControl("Y D", &yD, minXYGain, maxXYGain)) yChanged = true;
+            if (yChanged)
+            {
+                PIDSet->YPID->ProportionalGain = yP;
+                PIDSet->YPID->IntegralGain = yI;
+                PIDSet->YPID->DerivativeGain = yD;
+                if (synchronizeXYGains && PIDSet->XPID)
+                {
+                    PIDSet->XPID->ProportionalGain = yP;
+                    PIDSet->XPID->IntegralGain = yI;
+                    PIDSet->XPID->DerivativeGain = yD;
+                }
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("Y PID Controller Unavailable");
+        }
+        ImGui::Unindent();
+
+        if (PIDSet->ZPID)
+        {
+            DrawPIDGainControl("Z P", &PIDSet->ZPID->ProportionalGain, 0.0001f, 10.0f);
+            DrawPIDGainControl("Z I", &PIDSet->ZPID->IntegralGain, 0.0001f, 10.0f);
+            DrawPIDGainControl("Z D", &PIDSet->ZPID->DerivativeGain, 0.0001f, 10.0f);
+        }
+        else
+        {
+            ImGui::TextDisabled("Z PID Controller Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Separator();
+        ImGui::Text("Attitude PID Gains");
+        ImGui::Checkbox("Synchronize Roll and Pitch Gains", &synchronizeGains);
+        ImGui::Indent();
+
+        ImGui::Text("Roll");
+        ImGui::Indent();
+        if (PIDSet->RollPID)
+        {
+            if (synchronizeGains && PIDSet->PitchPID)
+            {
+                if (DrawPIDGainControl("Roll P", &PIDSet->RollPID->ProportionalGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->PitchPID->ProportionalGain = PIDSet->RollPID->ProportionalGain;
+                }
+                if (DrawPIDGainControl("Roll I", &PIDSet->RollPID->IntegralGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->PitchPID->IntegralGain = PIDSet->RollPID->IntegralGain;
+                }
+                if (DrawPIDGainControl("Roll D", &PIDSet->RollPID->DerivativeGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->PitchPID->DerivativeGain = PIDSet->RollPID->DerivativeGain;
+                }
+            }
+            else
+            {
+                DrawPIDGainControl("Roll P", &PIDSet->RollPID->ProportionalGain, minRollPitchGain, maxRollPitchGain);
+                DrawPIDGainControl("Roll I", &PIDSet->RollPID->IntegralGain, minRollPitchGain, maxRollPitchGain);
+                DrawPIDGainControl("Roll D", &PIDSet->RollPID->DerivativeGain, minRollPitchGain, maxRollPitchGain);
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("Roll PID Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Pitch");
+        ImGui::Indent();
+        if (PIDSet->PitchPID)
+        {
+            if (synchronizeGains && PIDSet->RollPID)
+            {
+                if (DrawPIDGainControl("Pitch P", &PIDSet->PitchPID->ProportionalGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->RollPID->ProportionalGain = PIDSet->PitchPID->ProportionalGain;
+                }
+                if (DrawPIDGainControl("Pitch I", &PIDSet->PitchPID->IntegralGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->RollPID->IntegralGain = PIDSet->PitchPID->IntegralGain;
+                }
+                if (DrawPIDGainControl("Pitch D", &PIDSet->PitchPID->DerivativeGain, minRollPitchGain, maxRollPitchGain))
+                {
+                    PIDSet->RollPID->DerivativeGain = PIDSet->PitchPID->DerivativeGain;
+                }
+            }
+            else
+            {
+                DrawPIDGainControl("Pitch P", &PIDSet->PitchPID->ProportionalGain, minRollPitchGain, maxRollPitchGain);
+                DrawPIDGainControl("Pitch I", &PIDSet->PitchPID->IntegralGain, minRollPitchGain, maxRollPitchGain);
+                DrawPIDGainControl("Pitch D", &PIDSet->PitchPID->DerivativeGain, minRollPitchGain, maxRollPitchGain);
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("Pitch PID Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Separator();
+        ImGui::Text("Angular Rate PID Gains");
+        ImGui::Checkbox("Synchronize Roll and Pitch Rate Gains", &synchronizeRateGains);
+        ImGui::Indent();
+
+        ImGui::Text("Roll Rate");
+        ImGui::Indent();
+        if (PIDSet->RollRatePID)
+        {
+            bool changed = DrawPIDGainControl("Roll Rate P", &PIDSet->RollRatePID->ProportionalGain, 0.0001f, 1.0f);
+            if (synchronizeRateGains && changed && PIDSet->PitchRatePID)
+            {
+                PIDSet->PitchRatePID->ProportionalGain = PIDSet->RollRatePID->ProportionalGain;
+            }
+            changed = DrawPIDGainControl("Roll Rate I", &PIDSet->RollRatePID->IntegralGain, 0.0001f, 1.0f);
+            if (synchronizeRateGains && changed && PIDSet->PitchRatePID)
+            {
+                PIDSet->PitchRatePID->IntegralGain = PIDSet->RollRatePID->IntegralGain;
+            }
+            changed = DrawPIDGainControl("Roll Rate D", &PIDSet->RollRatePID->DerivativeGain, 0.0001f, 1.0f);
+            if (synchronizeRateGains && changed && PIDSet->PitchRatePID)
+            {
+                PIDSet->PitchRatePID->DerivativeGain = PIDSet->RollRatePID->DerivativeGain;
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("Roll Rate PID Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Pitch Rate");
+        ImGui::Indent();
+        if (PIDSet->PitchRatePID)
+        {
+            DrawPIDGainControl("Pitch Rate P", &PIDSet->PitchRatePID->ProportionalGain, 0.0001f, 1.0f);
+            DrawPIDGainControl("Pitch Rate I", &PIDSet->PitchRatePID->IntegralGain, 0.0001f, 1.0f);
+            DrawPIDGainControl("Pitch Rate D", &PIDSet->PitchRatePID->DerivativeGain, 0.0001f, 1.0f);
+        }
+        else
+        {
+            ImGui::TextDisabled("Pitch Rate PID Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Yaw Rate");
+        ImGui::Indent();
+        if (PIDSet->YawRatePID)
+        {
+            DrawPIDGainControl("Yaw Rate P", &PIDSet->YawRatePID->ProportionalGain, 0.0001f, 2.0f);
+            DrawPIDGainControl("Yaw Rate I", &PIDSet->YawRatePID->IntegralGain, 0.0001f, 2.0f);
+            DrawPIDGainControl("Yaw Rate D", &PIDSet->YawRatePID->DerivativeGain, 0.0001f, 2.0f);
+        }
+        else
+        {
+            ImGui::TextDisabled("Yaw Rate PID Unavailable");
+        }
+        ImGui::Unindent();
+
+        ImGui::Unindent();
+        ImGui::Separator();
+
+        if (ImGui::Button("Save PID Gains", ImVec2(200.f, 50.f)))
+        {
+            TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("QuadSimPlugin"));
+            FString PluginDir = Plugin.IsValid() ? Plugin->GetBaseDir() : FPaths::Combine(FPaths::ProjectPluginsDir(), TEXT("QuadSimPlugin"));
+            FString FilePath = FPaths::Combine(PluginDir, TEXT("PIDGains.csv"));
+            IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+            bool bFileExists = PlatformFile.FileExists(*FilePath);
+            FString Header = TEXT("Timestamp,xP,xI,xD,yP,yI,yD,zP,zI,zD,rollP,rollI,rollD,pitchP,pitchI,pitchD,yawP,yawI,yawD\n");
+            if (!bFileExists)
+            {
+                FFileHelper::SaveStringToFile(Header, *FilePath);
+            }
+            FString GainData = FDateTime::Now().ToString() + TEXT(",");
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
+                PIDSet->XPID ? PIDSet->XPID->ProportionalGain : 0.f,
+                PIDSet->XPID ? PIDSet->XPID->IntegralGain     : 0.f,
+                PIDSet->XPID ? PIDSet->XPID->DerivativeGain   : 0.f);
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
+                PIDSet->YPID ? PIDSet->YPID->ProportionalGain : 0.f,
+                PIDSet->YPID ? PIDSet->YPID->IntegralGain     : 0.f,
+                PIDSet->YPID ? PIDSet->YPID->DerivativeGain   : 0.f);
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
+                PIDSet->ZPID ? PIDSet->ZPID->ProportionalGain : 0.f,
+                PIDSet->ZPID ? PIDSet->ZPID->IntegralGain     : 0.f,
+                PIDSet->ZPID ? PIDSet->ZPID->DerivativeGain   : 0.f);
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
+                PIDSet->RollPID ? PIDSet->RollPID->ProportionalGain : 0.f,
+                PIDSet->RollPID ? PIDSet->RollPID->IntegralGain     : 0.f,
+                PIDSet->RollPID ? PIDSet->RollPID->DerivativeGain   : 0.f);
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f,"),
+                PIDSet->PitchPID ? PIDSet->PitchPID->ProportionalGain : 0.f,
+                PIDSet->PitchPID ? PIDSet->PitchPID->IntegralGain     : 0.f,
+                PIDSet->PitchPID ? PIDSet->PitchPID->DerivativeGain   : 0.f);
+            GainData += FString::Printf(TEXT("%.6f,%.6f,%.6f\n"),
+                PIDSet->YawRatePID ? PIDSet->YawRatePID->ProportionalGain : 0.f,
+                PIDSet->YawRatePID ? PIDSet->YawRatePID->IntegralGain     : 0.f,
+                PIDSet->YawRatePID ? PIDSet->YawRatePID->DerivativeGain   : 0.f);
+            FFileHelper::SaveStringToFile(GainData, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
+        }
+
+        ImGui::SameLine();
+        ImGui::Checkbox("PID Configuration History", &bShowPIDHistoryWindow);
+    }
+}
+void USimHUDTaskbarSubsystem::DrawPIDConfigWindow(UWorld* World)
+{
+    ImGui::SetNextWindowPos(ImVec2(360.f, 120.f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(520.f, 600.f), ImGuiCond_FirstUseEver);
+
+    if (ImGui::Begin("PID Configuration", &bShowPIDSettings, ImGuiWindowFlags_NoCollapse))
+    {
+        // Resolve controller each frame (in case selection changes)
+        UQuadDroneController* Ctrl = nullptr;
+        if (ADroneManager* DMc = ADroneManager::Get(World))
+        {
+            const TArray<AQuadPawn*> Drones = DMc->GetDroneList();
+            if (Drones.Num() > 0)
+            {
+                const int32 ActiveIndex = FMath::Clamp(DMc->SelectedDroneIndex, 0, Drones.Num()-1);
+                AQuadPawn* Pawn = Drones.IsValidIndex(ActiveIndex) ? Drones[ActiveIndex] : nullptr;
+                Ctrl = Pawn ? Pawn->QuadController : nullptr;
+            }
+        }
+
+        DrawPIDSettingsPanel(Ctrl);
+
+        ImGui::Separator();
+        ImGui::Checkbox("PID Configuration History", &bShowPIDHistoryWindow);
+    }
+    ImGui::End();
+
+    if (bShowPIDHistoryWindow)
+    {
+        ImGui::SetNextWindowPos(ImVec2(420.f, 520.f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(800.f, 400.f), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("PID Configurations History", &bShowPIDHistoryWindow))
+        {
+            // === moved from your old HandleStateData ===
+            TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("QuadSimPlugin"));
+            FString PluginDir = Plugin.IsValid() ? Plugin->GetBaseDir() : FPaths::Combine(FPaths::ProjectPluginsDir(), TEXT("QuadSimPlugin"));
+            FString FilePath = FPaths::Combine(PluginDir, TEXT("PIDGains.csv"));
+
+            IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+            if (!PlatformFile.FileExists(*FilePath))
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "PID history file not found: %s", TCHAR_TO_UTF8(*FilePath));
+            }
+            else
+            {
+                FString FileContent;
+                if (!FFileHelper::LoadFileToString(FileContent, *FilePath))
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Failed to read PID history file");
+                }
+                else
+                {
+                    TArray<FString> Lines;
+                    FileContent.ParseIntoArrayLines(Lines, false);
+                    if (Lines.Num() < 2)
+                    {
+                        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "PID history file is empty or invalid");
+                    }
+                    else
+                    {
+                        static ImGuiTableFlags TableFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedFit;
+                        if (ImGui::BeginTable("PIDHistoryTable", 19, TableFlags, ImVec2(0, 0), 0.0f))
+                        {
+                            TArray<FString> Headers;
+                            Lines[0].ParseIntoArray(Headers, TEXT(","), true);
+                            ImGui::TableSetupScrollFreeze(1, 1);
+                            for (int32 ColIdx = 0; ColIdx < Headers.Num(); ColIdx++)
+                            {
+                                ImGui::TableSetupColumn(TCHAR_TO_UTF8(*Headers[ColIdx]), ImGuiTableColumnFlags_WidthFixed);
+                            }
+                            ImGui::TableHeadersRow();
+
+                            for (int32 RowIdx = 1; RowIdx < Lines.Num(); RowIdx++)
+                            {
+                                if (Lines[RowIdx].IsEmpty()) continue;
+                                ImGui::TableNextRow();
+                                TArray<FString> Values;
+                                Lines[RowIdx].ParseIntoArray(Values, TEXT(","), true);
+                                for (int32 ColIdx = 0; ColIdx < Values.Num() && ColIdx < Headers.Num(); ColIdx++)
+                                {
+                                    ImGui::TableSetColumnIndex(ColIdx);
+                                    if (ColIdx == 0)
+                                    {
+                                        ImGui::TextUnformatted(TCHAR_TO_UTF8(*Values[ColIdx]));
+                                        ImGui::SameLine();
+                                        FString ButtonLabel = "Load##" + FString::FromInt(RowIdx);
+                                        if (ImGui::SmallButton(TCHAR_TO_UTF8(*ButtonLabel)))
+                                        {
+                                            // TODO: apply selected row gains
+                                        }
+                                    }
+                                    else
+                                    {
+                                        float Value = FCString::Atof(*Values[ColIdx]);
+                                        ImGui::Text("%6.3f", Value);
+                                    }
+                                }
+                            }
+                            ImGui::EndTable();
+                        }
+                    }
+                }
+            }
+        }
+        ImGui::End();
+    }
+}
+
+void USimHUDTaskbarSubsystem::DrawControlPlotsWindow(float MaxAngleDeg)
+{
+    ImGui::SetNextWindowSize(ImVec2(600, 700), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(950, 10),   ImGuiCond_FirstUseEver);
+
+    // Title + visibility are tied to PID Plots now
+    if (!ImGui::Begin("PID Plots", &bShowPIDPlots))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    float plotHeight = (avail.y / 3.0f) - (ImGui::GetStyle().ItemSpacing.y * 2);
+    ImVec2 plotSize(avail.x, plotHeight);
+
+    const int dataCount = Control_Time.Num();
+    if (dataCount <= 0)
+    {
+        ImGui::TextUnformatted("Collecting control telemetry...");
+        ImGui::End();
+        return;
+    }
+
+    const double tEnd  = Control_CumulativeTime;
+    const double tBeg  = tEnd - static_cast<double>(Control_MaxPlotTime);
+
+    if (ImPlot::BeginPlot("Velocity (Local Frame)", plotSize, ImPlotFlags_None))
+    {
+        ImPlot::SetupAxes("Time (s)", "Velocity (units/s)", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
+        ImPlot::SetupAxisLimits(ImAxis_X1, tBeg, tEnd, ImGuiCond_Always);
+
+        ImPlot::SetNextLineStyle(ImVec4(1.f, 0.f, 0.f, 1.f), 1.5f);
+        ImPlot::PlotLine("Current Vel X", Control_Time.GetData(), Control_CurrVelX.GetData(), dataCount);
+        ImPlot::SetNextLineStyle(ImVec4(0.f, 1.f, 0.f, 1.f), 1.5f);
+        ImPlot::PlotLine("Current Vel Y", Control_Time.GetData(), Control_CurrVelY.GetData(), dataCount);
+
+        ImPlot::PushStyleVar(ImPlotStyleVar_LineWeight, 1.0f);
+        ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.6f, 0.6f, 1.f));
+        ImPlot::PlotLine("Desired Vel X", Control_Time.GetData(), Control_DesVelX.GetData(), dataCount);
+        ImPlot::SetNextLineStyle(ImVec4(0.6f, 1.0f, 0.6f, 1.f));
+        ImPlot::PlotLine("Desired Vel Y", Control_Time.GetData(), Control_DesVelY.GetData(), dataCount);
+        ImPlot::PopStyleVar();
+
+        ImPlot::EndPlot();
+    }
+
+    ImGui::Spacing();
+
+    if (ImPlot::BeginPlot("Roll Angle", plotSize, ImPlotFlags_None))
+    {
+        ImPlot::SetupAxes("Time (s)", "Angle (deg)", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
+        ImPlot::SetupAxisLimits(ImAxis_X1, tBeg, tEnd, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, -MaxAngleDeg - 10.f, MaxAngleDeg + 10.f, ImGuiCond_Once);
+
+        ImPlot::SetNextLineStyle(ImVec4(1.f, 0.f, 0.f, 1.f), 1.5f);
+        ImPlot::PlotLine("Current Roll", Control_Time.GetData(), Control_CurrRollDeg.GetData(), dataCount);
+        ImPlot::SetNextLineStyle(ImVec4(1.f, 0.6f, 0.6f, 1.f), 1.0f);
+        ImPlot::PlotLine("Desired Roll", Control_Time.GetData(), Control_DesRollDeg.GetData(), dataCount);
+
+        ImPlot::EndPlot();
+    }
+
+    ImGui::Spacing();
+
+    if (ImPlot::BeginPlot("Pitch Angle", plotSize, ImPlotFlags_None))
+    {
+        ImPlot::SetupAxes("Time (s)", "Angle (deg)", ImPlotAxisFlags_None, ImPlotAxisFlags_None);
+        ImPlot::SetupAxisLimits(ImAxis_X1, tBeg, tEnd, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, -MaxAngleDeg - 10.f, MaxAngleDeg + 10.f, ImGuiCond_Once);
+
+        ImPlot::SetNextLineStyle(ImVec4(0.f, 1.f, 0.f, 1.f), 1.5f);
+        ImPlot::PlotLine("Current Pitch", Control_Time.GetData(), Control_CurrPitchDeg.GetData(), dataCount);
+        ImPlot::SetNextLineStyle(ImVec4(0.6f, 1.f, 0.6f, 1.f), 1.0f);
+        ImPlot::PlotLine("Desired Pitch", Control_Time.GetData(), Control_DesPitchDeg.GetData(), dataCount);
+
+        ImPlot::EndPlot();
+    }
+
+    ImGui::End();
+}
+
+
 void USimHUDTaskbarSubsystem::JoyStickHandles(UWorld* World)
 {
     if (ADroneManager* DMJ = ADroneManager::Get(World))
@@ -1064,4 +1187,75 @@ void USimHUDTaskbarSubsystem::JoyStickHandles(UWorld* World)
     }
 
 }
+
+void USimHUDTaskbarSubsystem::UpdateControlPlotData(UWorld* World,
+                                                    AQuadPawn* Pawn,
+                                                    UQuadDroneController* Ctrl,
+                                                    float DeltaSeconds,
+                                                    const FRotator& CurrentAttitude,
+                                                    float DesiredRollDeg,
+                                                    float DesiredPitchDeg)
+{
+    if (!World || !Pawn || !Ctrl) return;
+
+    // Advance timeline
+    Control_CumulativeTime += FMath::Max(0.f, DeltaSeconds);
+    Control_Time.Add(Control_CumulativeTime);
+
+    // --- Velocity (Local Frame) ---
+    // Try to obtain local-frame current velocity. If your controller already exposes
+    // GetCurrentLocalVelocity(), you can swap in that call here.
+    FVector worldVel = Pawn->GetVelocity();
+    const FRotationMatrix rot(Pawn->GetActorRotation());
+    const FVector localVel = rot.GetTransposed().TransformVector(worldVel); // world->local
+
+    // Desired velocity already in controller (assumed local or control frame)
+    const FVector desVel = Ctrl->GetDesiredVelocity();
+
+    Control_CurrVelX.Add(static_cast<float>(localVel.X));
+    Control_CurrVelY.Add(static_cast<float>(localVel.Y));
+    Control_CurrVelZ.Add(static_cast<float>(localVel.Z));
+    Control_DesVelX.Add(static_cast<float>(desVel.X));
+    Control_DesVelY.Add(static_cast<float>(desVel.Y));
+    Control_DesVelZ.Add(static_cast<float>(desVel.Z));
+
+    // --- Angles (deg) ---
+    Control_CurrRollDeg.Add(CurrentAttitude.Roll);
+    Control_DesRollDeg.Add(DesiredRollDeg);
+    Control_CurrPitchDeg.Add(CurrentAttitude.Pitch);
+    Control_DesPitchDeg.Add(DesiredPitchDeg);
+
+    // --- Prune by time window ---
+    while (Control_Time.Num() > 0 && (Control_CumulativeTime - Control_Time[0] > Control_MaxPlotTime))
+    {
+        Control_Time.RemoveAt(0);
+        if (Control_CurrVelX.Num()     > 0) Control_CurrVelX.RemoveAt(0);
+        if (Control_CurrVelY.Num()     > 0) Control_CurrVelY.RemoveAt(0);
+        if (Control_CurrVelZ.Num()     > 0) Control_CurrVelZ.RemoveAt(0);
+        if (Control_DesVelX.Num()      > 0) Control_DesVelX.RemoveAt(0);
+        if (Control_DesVelY.Num()      > 0) Control_DesVelY.RemoveAt(0);
+        if (Control_DesVelZ.Num()      > 0) Control_DesVelZ.RemoveAt(0);
+        if (Control_CurrRollDeg.Num()  > 0) Control_CurrRollDeg.RemoveAt(0);
+        if (Control_DesRollDeg.Num()   > 0) Control_DesRollDeg.RemoveAt(0);
+        if (Control_CurrPitchDeg.Num() > 0) Control_CurrPitchDeg.RemoveAt(0);
+        if (Control_DesPitchDeg.Num()  > 0) Control_DesPitchDeg.RemoveAt(0);
+    }
+
+    // --- Prune by max points (stable array sizes) ---
+    while (Control_Time.Num() > Control_MaxDataPoints)
+    {
+        Control_Time.RemoveAt(0);
+        if (Control_CurrVelX.Num()     > 0) Control_CurrVelX.RemoveAt(0);
+        if (Control_CurrVelY.Num()     > 0) Control_CurrVelY.RemoveAt(0);
+        if (Control_CurrVelZ.Num()     > 0) Control_CurrVelZ.RemoveAt(0);
+        if (Control_DesVelX.Num()      > 0) Control_DesVelX.RemoveAt(0);
+        if (Control_DesVelY.Num()      > 0) Control_DesVelY.RemoveAt(0);
+        if (Control_DesVelZ.Num()      > 0) Control_DesVelZ.RemoveAt(0);
+        if (Control_CurrRollDeg.Num()  > 0) Control_CurrRollDeg.RemoveAt(0);
+        if (Control_DesRollDeg.Num()   > 0) Control_DesRollDeg.RemoveAt(0);
+        if (Control_CurrPitchDeg.Num() > 0) Control_CurrPitchDeg.RemoveAt(0);
+        if (Control_DesPitchDeg.Num()  > 0) Control_DesPitchDeg.RemoveAt(0);
+    }
+}
+
 

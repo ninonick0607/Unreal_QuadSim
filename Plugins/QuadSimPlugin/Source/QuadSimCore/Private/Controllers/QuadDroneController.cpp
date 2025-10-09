@@ -191,7 +191,6 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
     const FVector imuRateDeg = FMath::RadiansToDegrees(SensorData.IMUAngVelRADS);
     localAngularRateDeg = imuRateDeg;
 	
-
 	/* ---------------- altitude / throttle ---------------- */
 	hoverTargetAltitude += GP.Throttle * 1.5f * DeltaTime;          // �1 m s-�
 	UE_LOG(LogTemp, Warning, TEXT("Hover Output: %f m"), hoverTargetAltitude);
@@ -222,7 +221,7 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
 
 	/* no XY position hold in this simple ANGLE mode */
 	ThrustMixer(desiredRoll, desiredPitch, zEffort,
-				rollRateOut,   pitchRateOut,      yawOut);
+				rollOut,   pitchOut,      yawOut);
 
 	/* optional HUD / debug */
 	DrawDebugVisualsVel(FVector::ZeroVector);

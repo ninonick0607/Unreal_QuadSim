@@ -1,5 +1,6 @@
 ﻿#include "Core/SimGameMode.h"
 #include "Camera/TopDownCameraPawn.h"
+#include "UObject/SoftObjectPath.h"
 #include "GeoReferencingSystem.h"
 
 #include "Engine/Engine.h"
@@ -9,10 +10,12 @@
 #include "GameFramework/PlayerStart.h"
 #include "HAL/IConsoleManager.h"
 #include "PhysicsEngine/PhysicsSettings.h"
+#include <type_traits>
+#include "UObject/UnrealType.h"
 
 // --- tiny reflection setter to be version-safe ---
 template<typename T>
-static bool SetPropIfExists(UObject* Obj, const TCHAR* Name, const T& Value)
+inline static bool SetPropIfExists(UObject* Obj, const TCHAR* Name, const T& Value)
 {
     if (!Obj) return false;
     FProperty* P = Obj->GetClass()->FindPropertyByName(FName(Name));
@@ -31,7 +34,7 @@ static bool SetPropIfExists(UObject* Obj, const TCHAR* Name, const T& Value)
     return false;
 }
 
-static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
+inline static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
 {
     if (!World) return nullptr;
     for (TActorIterator<AGeoReferencingSystem> It(World); It; ++It) return *It;
@@ -46,9 +49,12 @@ static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
 
 ASimGameMode::ASimGameMode()
 {
-    // Use your existing PlayerController
-    extern UClass* Z_Construct_UClass_AQuadSimPlayerController(); // or include header directly
-    PlayerControllerClass = Z_Construct_UClass_AQuadSimPlayerController();
+    // Set PlayerController via soft reference to avoid module dependency cycles
+    const FSoftClassPath PCPath(TEXT("/Script/QuadSimCore.QuadSimPlayerController"));
+    if (UClass* PCC = PCPath.TryLoadClass<APlayerController>())
+    {
+        PlayerControllerClass = PCC;
+    }
 
     DefaultPawnClass = nullptr; // we possess a camera pawn explicitly
     bStartPlayersAsSpectators = true;

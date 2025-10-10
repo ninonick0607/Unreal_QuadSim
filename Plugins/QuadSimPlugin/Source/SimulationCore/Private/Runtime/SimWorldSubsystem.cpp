@@ -6,9 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "SimulationCore/Public/Core/SimulationManager.h"
 #include "UObject/UnrealType.h"
+#include <type_traits>
 
 template<typename T>
-static bool SetPropIfExists(UObject* Obj, const TCHAR* PropName, const T& Value)
+inline static bool SetPropIfExists(UObject* Obj, const TCHAR* PropName, const T& Value)
 {
     if (!Obj) return false;
     FProperty* P = Obj->GetClass()->FindPropertyByName(FName(PropName));
@@ -34,7 +35,7 @@ static bool SetPropIfExists(UObject* Obj, const TCHAR* PropName, const T& Value)
     return false;
 }
 
-static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
+inline static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
 {
     if (!World) return nullptr;
     for (TActorIterator<AGeoReferencingSystem> It(World); It; ++It) return *It;

@@ -15,6 +15,6 @@ public class SimulationCore : ModuleRules
             "GeoReferencing"
         });
         
-        // We'll add QuadSimCore dependency later if needed
+        // Note: QuadSimCore needed for AQuadSimPlayerController and shared types
     }
 }

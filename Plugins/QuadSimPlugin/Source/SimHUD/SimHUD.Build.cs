@@ -13,9 +13,9 @@ public class SimHUD : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
-            "QuadSimCore",
             "SimulationCore",
             "RobotCore",
+            "QuadSimCore",
             "ImGui",
             "ImPlotLibrary",
             "Projects"

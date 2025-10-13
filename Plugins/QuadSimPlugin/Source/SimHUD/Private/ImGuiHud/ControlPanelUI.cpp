@@ -409,16 +409,65 @@ void UControlPanelUI::TickAndDraw(UWorld* World)
             // Acro/Rate mode: roll rate, pitch rate, yaw rate, and Z velocity
             if (Mode == EFlightMode::RateControl || Mode == EFlightMode::JoyStickAcroControl)
             {
+                // Auto-reset toggle for PID tuning (step response testing)
+                ImGui::Checkbox("Auto-Reset Rates", &State.bAcroAutoReset);
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("Automatically reset roll/pitch rates to 0 after %.1fs\nUseful for PID tuning step response", State.AcroResetDelay);
+                }
+
+                if (State.bAcroAutoReset)
+                {
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(80.f);
+                    ImGui::SliderFloat("##ResetDelay", &State.AcroResetDelay, 0.3f, 3.0f, "%.1fs");
+
+                    // Show countdown if reset is pending
+                    if (State.bAcroResetPending && State.AcroResetTimer > 0.0f)
+                    {
+                        ImGui::SameLine();
+                        ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f), "Resetting in %.1fs", State.AcroResetTimer);
+                    }
+                }
+
                 double rollRate = Controller->GetDesiredRollRate();
                 double pitchRate = Controller->GetDesiredPitchRate();
                 float yawR  = Controller->GetDesiredYawRate();
                 float rr = (float)rollRate, pr = (float)pitchRate;
-                ImGui::SliderFloat("Roll Rate (deg/s)",  &rr, -MaxRate, MaxRate, "%.1f");
-                ImGui::SliderFloat("Pitch Rate (deg/s)", &pr, -MaxRate, MaxRate, "%.1f");
+
+                bool rollChanged = ImGui::SliderFloat("Roll Rate (deg/s)",  &rr, -MaxRate, MaxRate, "%.1f");
+                bool pitchChanged = ImGui::SliderFloat("Pitch Rate (deg/s)", &pr, -MaxRate, MaxRate, "%.1f");
                 ImGui::SliderFloat("Yaw Rate (deg/s)",   &yawR, -MaxYawRate, MaxYawRate, "%.1f");
+
                 Controller->SetDesiredRollRate(rr);
                 Controller->SetDesiredPitchRate(pr);
                 Controller->SetDesiredYawRate(yawR);
+
+                // Trigger auto-reset timer when roll or pitch rate changes
+                if (State.bAcroAutoReset && (rollChanged || pitchChanged))
+                {
+                    // Only restart timer if we're setting a non-zero rate
+                    if (FMath::Abs(rr) > 0.1f || FMath::Abs(pr) > 0.1f)
+                    {
+                        State.bAcroResetPending = true;
+                        State.AcroResetTimer = State.AcroResetDelay;
+                    }
+                }
+
+                // Update timer and auto-reset
+                if (State.bAcroResetPending && State.AcroResetTimer > 0.0f)
+                {
+                    State.AcroResetTimer -= World->GetDeltaSeconds();
+
+                    if (State.AcroResetTimer <= 0.0f)
+                    {
+                        // Reset roll and pitch rates to zero
+                        Controller->SetDesiredRollRate(0.0f);
+                        Controller->SetDesiredPitchRate(0.0f);
+                        State.bAcroResetPending = false;
+                        State.AcroResetTimer = 0.0f;
+                    }
+                }
 
                 FVector vel = Controller->GetDesiredVelocity();
                 float zVel = vel.Z;

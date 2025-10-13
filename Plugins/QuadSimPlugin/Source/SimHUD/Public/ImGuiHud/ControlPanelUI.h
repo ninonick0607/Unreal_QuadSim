@@ -36,6 +36,12 @@ struct FDronePanelState
     bool  bManualPathMode = false;     // when true, nav follows ManualQueue
     FVector ManualInput = FVector::ZeroVector; // meters
     TArray<FVector> ManualQueue;       // meters, in order
+
+    // Auto-reset for Acro mode (step response testing for PID tuning)
+    bool  bAcroAutoReset = true;       // enable auto-reset after setting rate
+    float AcroResetDelay = 1.0f;       // seconds to wait before resetting to zero
+    float AcroResetTimer = 0.0f;       // countdown timer
+    bool  bAcroResetPending = false;   // true when waiting to reset
 };
 
 UCLASS()

@@ -20,14 +20,6 @@ public:
 	UPROPERTY(EditAnywhere, Category="Sim|Camera") bool  bPreferPlacedStartupCamera = true;
 	UPROPERTY(EditAnywhere, Category="Sim|Camera") TSubclassOf<APawn> DefaultCameraPawnClass;
 
-	// GeoRef defaults (your request)
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") bool   bRoundPlanet = true;
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") double OriginLonDeg = -86.5732;
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") double OriginLatDeg =  30.4752;
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") double OriginHeightM = 0.0;
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") FString GeographicCRS = TEXT("EPSG:4326");
-	UPROPERTY(EditAnywhere, Category="Sim|GeoRef") FString ProjectedCRS  = TEXT("EPSG:32631");
-
 	virtual void BeginPlay() override;
 
 protected:
@@ -38,7 +30,6 @@ protected:
 	void ConfigureEngineAndPhysics() const;
 
 private:
-	void EnsureGeoReferencingAndApplyDefaults(UWorld* World);
 	AActor* FindExistingByClass(UWorld* World, UClass* Class) const;
 	AActor* FindExistingByTag(UWorld* World, FName Tag) const;
 	AActor* SpawnActorSoft(UWorld* World, const TSoftClassPtr<AActor>& SoftClass, const FTransform& Xform) const;

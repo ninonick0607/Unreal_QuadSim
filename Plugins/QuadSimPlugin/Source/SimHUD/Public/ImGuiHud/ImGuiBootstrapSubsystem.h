@@ -37,15 +37,8 @@ private:
     // Actual PID config controls (unchanged signature)
     void DrawPIDSettingsPanel(UQuadDroneController* InController);
 
-    // “Old RenderImPlot” plots (velocity/angles)
-    void UpdateControlPlotData(UWorld* World,
-                               AQuadPawn* Pawn,
-                               UQuadDroneController* Ctrl,
-                               float DeltaSeconds,
-                               const FRotator& CurrentAttitude,
-                               float DesiredRollDeg,
-                               float DesiredPitchDeg);
-
+    // "Old RenderImPlot" plots (velocity/angles)
+    void UpdateControlPlotData(UWorld* World, AQuadPawn* Pawn, UQuadDroneController* Ctrl, float DeltaSeconds, const FRotator& CurrentAttitude, float DesiredRollDeg, float DesiredPitchDeg, const FVector& CurrentRateDeg, float DesiredRollRateDeg, float DesiredPitchRateDeg, float DesiredYawRateDeg);
     void DrawControlPlotsWindow(float MaxAngleDeg);
 
 private:
@@ -90,6 +83,23 @@ private:
     TArray<float> Control_DesRollDeg;
     TArray<float> Control_CurrPitchDeg;
     TArray<float> Control_DesPitchDeg;
+
+    // Angle Errors (for Angle tab)
+    TArray<float> Control_RollErrorDeg;
+    TArray<float> Control_PitchErrorDeg;
+
+    // Angular Rates (for Acro tab)
+    TArray<float> Control_CurrRollRateDeg;
+    TArray<float> Control_DesRollRateDeg;
+    TArray<float> Control_CurrPitchRateDeg;
+    TArray<float> Control_DesPitchRateDeg;
+    TArray<float> Control_CurrYawRateDeg;
+    TArray<float> Control_DesYawRateDeg;
+
+    // Rate Errors (for Acro tab)
+    TArray<float> Control_RollRateErrorDeg;
+    TArray<float> Control_PitchRateErrorDeg;
+    TArray<float> Control_YawRateErrorDeg;
 
     // Limits / pruning
     float   Control_MaxPlotTime   = 10.0f;  // seconds of history to show

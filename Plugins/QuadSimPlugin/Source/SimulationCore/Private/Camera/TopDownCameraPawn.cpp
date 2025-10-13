@@ -21,7 +21,7 @@ ATopDownCameraPawn::ATopDownCameraPawn()
 void ATopDownCameraPawn::SetCameraTransform(const FVector& Location, const FRotator& Rotation)
 {
 	SetActorLocation(Location);
-	SetActorRotation(Rotation);
+	SetActorRotation(FRotator(Rotation));
 	Camera->SetWorldLocation(Location);
 	Camera->SetWorldRotation(Rotation);
 }

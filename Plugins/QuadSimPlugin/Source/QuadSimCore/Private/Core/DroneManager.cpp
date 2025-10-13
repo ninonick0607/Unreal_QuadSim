@@ -29,7 +29,7 @@ ADroneManager::ADroneManager()
 void ADroneManager::BeginPlay()
 {
     Super::BeginPlay();
-    
+
     if (UWorld* World = GetWorld())
     {
         // Subscribe to actor-spawn events.
@@ -39,6 +39,28 @@ void ADroneManager::BeginPlay()
                 this->OnActorSpawned(SpawnedActor);
             })
         );
+    }
+
+    // If QuadPawnClass is not set, try to use the first existing drone's class
+    if (!QuadPawnClass)
+    {
+        TArray<AActor*> FoundDrones;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), AQuadPawn::StaticClass(), FoundDrones);
+        if (FoundDrones.Num() > 0)
+        {
+            if (AQuadPawn* FirstDrone = Cast<AQuadPawn>(FoundDrones[0]))
+            {
+                QuadPawnClass = FirstDrone->GetClass();
+                UE_LOG(LogTemp, Warning, TEXT("DroneManager: Auto-detected QuadPawnClass as %s from existing drone"),
+                    *QuadPawnClass->GetName());
+            }
+        }
+        else
+        {
+            // Fallback to base AQuadPawn class
+            QuadPawnClass = AQuadPawn::StaticClass();
+            UE_LOG(LogTemp, Warning, TEXT("DroneManager: No existing drones found. Using base AQuadPawn class. Consider setting QuadPawnClass in BP_DroneManager!"));
+        }
     }
 
     // Populate the list with any already existing QuadPawns.
@@ -156,27 +178,39 @@ AQuadPawn* ADroneManager::SpawnDrone(const FVector& SpawnLocation, const FRotato
         SpawnParams.Owner = this;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-        // Spawn 1 meter from the currently possessed drone if any; otherwise at PlayerStart
+        // Spawn 1 meter from the last spawned drone if any; otherwise at PlayerStart
         FVector UseLoc = FVector::ZeroVector;
         FRotator UseRot = SpawnRotation;
 
-        if (APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0))
+        // First, try to spawn relative to the last spawned drone (not camera!)
+        if (AllDrones.Num() > 0)
         {
-            if (AQuadPawn* Cur = Cast<AQuadPawn>(PC->GetPawn()))
+            if (AQuadPawn* LastDrone = AllDrones.Last().Get())
             {
-                // Offset 1 meter to the right to avoid overlap
-                const FVector Right = Cur->GetActorRightVector();
-                UseLoc = Cur->GetActorLocation() + Right * 100.0f; // 100 cm = 1 m
-                UseRot = Cur->GetActorRotation();
+                // Only use last drone location if it's actually a drone (not a camera pawn)
+                if (LastDrone->IsA<AQuadPawn>())
+                {
+                    const FVector Right = LastDrone->GetActorRightVector();
+                    UseLoc = LastDrone->GetActorLocation() + Right * 100.0f; // 100 cm = 1 m
+                    UseRot = LastDrone->GetActorRotation();
+                }
             }
         }
 
+        // Otherwise, use PlayerStart
         if (UseLoc.IsZero())
         {
             if (AActor* PS = UGameplayStatics::GetActorOfClass(World, APlayerStart::StaticClass()))
             {
                 UseLoc = PS->GetActorLocation();
                 UseRot = PS->GetActorRotation();
+
+                // Safety: If PlayerStart is very high (like with camera), spawn at ground level
+                if (UseLoc.Z > 1000.0f) // If higher than 10 meters
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("PlayerStart at height %.1f cm - spawning drone at ground level instead"), UseLoc.Z);
+                    UseLoc.Z = 100.0f; // 1 meter above ground
+                }
             }
         }
 

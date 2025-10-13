@@ -59,10 +59,10 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	const FVector world_w_rad = AttachedBody->GetPhysicsAngularVelocityInRadians();
 
 	// Convert to BODY frame (p,q,r) using full inverse rotation (no scale)
-	const FTransform& Xform = AttachedBody->GetComponentTransform();
-	const FVector body_w_rad = Xform.InverseTransformVectorNoScale(world_w_rad);
+	const FVector w_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(world_w_rad);
 
-	return body_w_rad; // rad/s in body axes: X=roll (p), Y=pitch (q), Z=yaw (r)
+	// FRU → FLU (flip Y)
+	return FVector(-w_fru.X, w_fru.Y, w_fru.Z);
 }
 FVector UIMUSensor::SampleRawVelocity(){
 	if (!bInitialized || !AttachedBody)

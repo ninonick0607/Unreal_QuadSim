@@ -88,11 +88,11 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 
 	ControllerSet.RollRatePID = new QuadPIDController();
 	ControllerSet.RollRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.RollRatePID->SetGains(0.0035f, 0.0016f, 0.0025f);
+	ControllerSet.RollRatePID->SetGains(1.4f, 0.5f, 0.25f);
 	
 	ControllerSet.PitchRatePID = new QuadPIDController();
 	ControllerSet.PitchRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.PitchRatePID->SetGains(0.0035f, 0.0016f, 0.0025f);
+	ControllerSet.PitchRatePID->SetGains(1.4f, 0.5f, 0.25f);
 	
 	ControllerSet.YawRatePID = new QuadPIDController();
 	ControllerSet.YawRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);

@@ -5,10 +5,16 @@ void AQuadSimPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Don’t create UI here (HUD does that in Option B).
-	// Just set friendly defaults so when HUD calls into us, things behave.
+	// Enable ImGui input and mouse cursor by default
 	SetDefaultMouseFlags(/*bEnable=*/true);
-	bShowMouseCursor = false; // HUD will turn this on when it creates the widget
+	bShowMouseCursor = true;
+	bImGuiInputActive = true;
+
+	// Force ImGui input to be always on
+	ConsoleCommand(TEXT("ImGui.ToggleInput on"));
+
+	// Set input mode to Game and UI (allows both game input and UI clicks)
+	ApplyGameAndUIFocus(nullptr, /*bShowCursor=*/true);
 }
 
 void AQuadSimPlayerController::SetupInputComponent()

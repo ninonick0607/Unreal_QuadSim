@@ -108,10 +108,10 @@ public:
     
     float GetDesiredRoll() const { return desiredRoll; }
     float GetDesiredPitch() const { return desiredPitch; }
-    float GetDesiredYawRate() const { return desiredYawRate; }
     
     double GetDesiredRollRate() const {return desiredRollRate;}
     double GetDesiredPitchRate() const {return desiredPitchRate;}
+    float GetDesiredYawRate() const { return desiredYawRate; }
 
     EFlightMode GetFlightMode() const { return currentFlightMode; }
     

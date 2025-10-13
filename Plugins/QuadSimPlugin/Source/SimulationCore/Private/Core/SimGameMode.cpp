@@ -1,7 +1,6 @@
 ﻿#include "Core/SimGameMode.h"
 #include "Camera/TopDownCameraPawn.h"
 #include "UObject/SoftObjectPath.h"
-#include "GeoReferencingSystem.h"
 
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
@@ -10,42 +9,6 @@
 #include "GameFramework/PlayerStart.h"
 #include "HAL/IConsoleManager.h"
 #include "PhysicsEngine/PhysicsSettings.h"
-#include <type_traits>
-#include "UObject/UnrealType.h"
-
-// --- tiny reflection setter to be version-safe ---
-template<typename T>
-inline static bool SetPropIfExists(UObject* Obj, const TCHAR* Name, const T& Value)
-{
-    if (!Obj) return false;
-    FProperty* P = Obj->GetClass()->FindPropertyByName(FName(Name));
-    if (!P) return false;
-
-    if constexpr (std::is_same_v<T, bool>)
-    { if (auto* BP = CastField<FBoolProperty>(P)) { BP->SetPropertyValue_InContainer(Obj, Value); return true; } }
-    else if constexpr (std::is_same_v<T, double>)
-    {
-        if (auto* DP = CastField<FDoubleProperty>(P)) { DP->SetPropertyValue_InContainer(Obj, Value); return true; }
-        if (auto* FP = CastField<FFloatProperty>(P))  { FP->SetPropertyValue_InContainer(Obj, (float)Value); return true; }
-    }
-    else if constexpr (std::is_same_v<T, FString>)
-    { if (auto* SP = CastField<FStrProperty>(P)) { SP->SetPropertyValue_InContainer(Obj, Value); return true; } }
-
-    return false;
-}
-
-inline static AGeoReferencingSystem* FindOrSpawnGeoRef(UWorld* World)
-{
-    if (!World) return nullptr;
-    for (TActorIterator<AGeoReferencingSystem> It(World); It; ++It) return *It;
-
-    FActorSpawnParameters P;
-    P.Name = TEXT("GeoReferencingSystem");
-    P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-    return World->SpawnActor<AGeoReferencingSystem>(AGeoReferencingSystem::StaticClass(),
-                                                    FTransform::Identity, P);
-}
 
 ASimGameMode::ASimGameMode()
 {
@@ -76,25 +39,6 @@ void ASimGameMode::ConfigureEngineAndPhysics() const
         PS->bSubstepping        = true;
         PS->MaxSubstepDeltaTime = 0.016667f;
         PS->MaxSubsteps         = 6;
-    }
-}
-
-void ASimGameMode::EnsureGeoReferencingAndApplyDefaults(UWorld* World)
-{
-    if (AGeoReferencingSystem* Geo = FindOrSpawnGeoRef(World))
-    {
-        // Round planet / ECEF-ish flags (varies by version)
-        SetPropIfExists<bool>(Geo, TEXT("bUseRoundEarth"), bRoundPlanet)
-        || SetPropIfExists<bool>(Geo, TEXT("bOriginAtPlanetCenter"), bRoundPlanet)
-        || SetPropIfExists<bool>(Geo, TEXT("bUseECEF"), bRoundPlanet);
-
-        SetPropIfExists<FString>(Geo, TEXT("GeographicCRS"), GeographicCRS);
-        SetPropIfExists<FString>(Geo, TEXT("ProjectedCRS"),  ProjectedCRS);
-
-        SetPropIfExists<double>(Geo, TEXT("OriginLongitude"), OriginLonDeg);
-        SetPropIfExists<double>(Geo, TEXT("OriginLatitude"),  OriginLatDeg);
-        SetPropIfExists<double>(Geo, TEXT("OriginAltitude"),  OriginHeightM)
-        || SetPropIfExists<double>(Geo, TEXT("OriginHeight"), OriginHeightM);
     }
 }
 
@@ -178,8 +122,6 @@ void ASimGameMode::BeginPlay()
 
     UWorld* World = GetWorld();
     if (!World) return;
-
-    EnsureGeoReferencingAndApplyDefaults(World);
 
     // Look-at from PlayerStart if present
     FVector LookAt = FVector::ZeroVector;

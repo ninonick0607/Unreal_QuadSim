@@ -112,7 +112,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                 : (ResolvedPawn ? ResolvedPawn->GetActorRotation() : FRotator::ZeroRotator);
 
 
-            const float DesiredXVel = ResolvedCtrl ? ResolvedCtrl
+           // const float DesiredXVel = ResolvedCtrl ? ResolvedCtrl
             const float DesiredRollDeg  = ResolvedCtrl ? ResolvedCtrl->GetDesiredRoll()  : 0.f;
             const float DesiredPitchDeg = ResolvedCtrl ? ResolvedCtrl->GetDesiredPitch() : 0.f;
 

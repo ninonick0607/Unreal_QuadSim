@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "Core/DroneJSONConfig.h"
+#include "Camera/CameraRigComponent.h"
 #include "GameFramework/PlayerStart.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -78,11 +79,7 @@ TArray<FVector> AQuadPawn::GenerateFigureEightWaypoints(FVector Altitude) const
 //=========================== Constructor =========================== //
 AQuadPawn::AQuadPawn()
 	: DroneBody(nullptr)
-	, SpringArm(nullptr)
-	, Camera(nullptr)
-	, CameraFPV(nullptr)
-	, CameraGroundTrack(nullptr)
-	, QuadController(nullptr)	
+	, QuadController(nullptr)
 	, WaypointMode(EWaypointMode::WaitingForModeSelection)
 	, NewWaypoint(FVector::ZeroVector)
 	, bHasCollidedWithObstacle(false)
@@ -122,24 +119,8 @@ AQuadPawn::AQuadPawn()
 void AQuadPawn::SetupCameras()
 {
     // Camera setup code moved to separate function for clarity
-    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-    SpringArm->SetupAttachment(DroneBody);
-    SpringArm->TargetArmLength = 200.f;
-    SpringArm->SetRelativeRotation(FRotator(-20.f, 0.f, 0.f));
-    SpringArm->bDoCollisionTest = false;
-    SpringArm->bInheritPitch = false;
-    SpringArm->bInheritRoll = false;
-    
-    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-    Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-    Camera->bAutoActivate = false;
-    
-    CameraFPV = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraFPV"));
-    CameraFPV->SetupAttachment(DroneBody, TEXT("FPVCam"));
-    CameraFPV->bAutoActivate = true;
-    
-    CameraGroundTrack = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraGroundTrack"));
-    CameraGroundTrack->bAutoActivate = false;
+	CameraRig = CreateDefaultSubobject<UCameraRigComponent>(TEXT("CameraRig"));
+	CameraRig->SetupAttachment(DroneBody);
 }
 void AQuadPawn::SetupPropellers()
 {
@@ -173,23 +154,26 @@ void AQuadPawn::SetupPropellers()
 void AQuadPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	ToggleImguiInput();
 	
     DroneID = GetName();
 	UE_LOG(LogTemp, Display, TEXT("QuadPawn BeginPlay: DroneID set to %s"), *DroneID);
 
-    // Initialize sensors and mark readiness
-    if (SensorManager)
-    {
-        SensorManager->InitializeSensors();
-        bSensorsReady = SensorManager->AreSensorsInitialized();
-        UE_LOG(LogTemp, Display, TEXT("QuadPawn: SensorManager init complete (ready=%d)"), bSensorsReady);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("QuadPawn: SensorManager is null!"));
-    }
-    
+	if (SensorManager)
+	{	
+		SensorManager->InitializeSensors();
+		bSensorsReady = SensorManager->AreSensorsInitialized();
+		UE_LOG(LogTemp, Display, TEXT("QuadPawn: SensorManager init complete (ready=%d)"), bSensorsReady);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("QuadPawn: SensorManager is null!"));
+	}
+
+	if (CameraRig && DroneBody)
+	{
+		CameraRig->InitializeRig(DroneBody, TEXT("FPVCam")); // your FPV socket name
+		SetCameraMode(ECameraMode::ThirdPerson); // Start in third-person view
+	}
     // Ensure controller exists and is initialized once sensors are ready
     if (!QuadController)
     {
@@ -209,12 +193,9 @@ void AQuadPawn::BeginPlay()
 		DroneBody->OnComponentHit.AddDynamic(this, &AQuadPawn::OnDroneHit);
 	}
 	ResetCollisionStatus();
-
-	SetCameraMode(ECameraMode::FPV);
 }
 void AQuadPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	
 	Super::EndPlay(EndPlayReason);
 }
 void AQuadPawn::Tick(float DeltaTime)
@@ -230,11 +211,6 @@ void AQuadPawn::Tick(float DeltaTime)
     }
 	
 	UpdatePropellerVisuals(DeltaTime);
-
-	if (CurrentCameraMode == ECameraMode::GroundTrack)
-	{
-		UpdateGroundCameraTracking();
-	}
 	
 	if (bHasCollidedWithObstacle)
 	{
@@ -307,8 +283,7 @@ void AQuadPawn::UpdatePropellerVisuals(float DeltaTime)
             float ThrustVal = QuadController->GetCurrentThrustOutput(i);
             PropellerRPMs[i] = FMath::Abs(ThrustVal);
             
-            float Direction = (MotorClockwiseDirections.IsValidIndex(i) && 
-                             MotorClockwiseDirections[i]) ? -1.0f : 1.0f;
+            float Direction = (MotorClockwiseDirections.IsValidIndex(i) && MotorClockwiseDirections[i]) ? -1.0f : 1.0f;
             float DeltaRotation = PropellerRPMs[i] * 6.0f * DeltaTime * Direction;
             
             Propellers[i]->AddLocalRotation(FRotator(0.f, DeltaRotation, 0.f));
@@ -318,32 +293,45 @@ void AQuadPawn::UpdatePropellerVisuals(float DeltaTime)
 
 //=========================== Cam Settings =========================== //
 
+static ERigCameraMode ToRigMode(ECameraMode M)
+{
+	switch (M)
+	{
+	case ECameraMode::ThirdPerson: return ERigCameraMode::ThirdPerson;
+	case ECameraMode::FPV:         return ERigCameraMode::FPV;
+	case ECameraMode::GroundTrack: return ERigCameraMode::GroundTrack;
+	case ECameraMode::FreeOrbit:   return ERigCameraMode::FreeOrbit;
+	default:                       return ERigCameraMode::ThirdPerson;
+	}
+}
+
 void AQuadPawn::SetCameraMode(ECameraMode NewMode)
 {
-    // Deactivate all cameras
-    if (Camera) Camera->SetActive(false);
-    if (CameraFPV) CameraFPV->SetActive(false);
-    if (CameraGroundTrack) CameraGroundTrack->SetActive(false);
-    
-    // Activate the selected camera
-    CurrentCameraMode = NewMode;
-    switch (NewMode)
-    {
-        case ECameraMode::ThirdPerson:
-            if (Camera) Camera->SetActive(true);
-            break;
-        case ECameraMode::FPV:
-            if (CameraFPV) CameraFPV->SetActive(true);
-            break;
-        case ECameraMode::GroundTrack:
-            if (CameraGroundTrack) 
-            {
-                CameraGroundTrack->SetActive(true);
-                ResetGroundCameraPosition();
-            }
-            break;
-    }
+	CurrentCameraMode = NewMode;
+	if (CameraRig)
+	{
+		CameraRig->SetMode(ToRigMode(NewMode));
+	}
 }
+
+void AQuadPawn::SwitchCameraCycle()
+{
+	ECameraMode NextMode = ECameraMode::ThirdPerson;
+	switch (CurrentCameraMode)
+	{
+	case ECameraMode::ThirdPerson: NextMode = ECameraMode::FPV;        break;
+	case ECameraMode::FPV:         NextMode = ECameraMode::GroundTrack;break;
+	case ECameraMode::GroundTrack: NextMode = ECameraMode::FreeOrbit;  break;
+	case ECameraMode::FreeOrbit:   NextMode = ECameraMode::ThirdPerson;break;
+	}
+	SetCameraMode(NextMode);
+}
+
+void AQuadPawn::ForceFPVCameraActive()
+{
+	SetCameraMode(ECameraMode::FPV);
+}
+
 void AQuadPawn::SwitchCamera()
 {
     // Cycle through camera modes
@@ -362,65 +350,13 @@ void AQuadPawn::SwitchCamera()
     }
     SetCameraMode(NextMode);
 }
-void AQuadPawn::ForceFPVCameraActive()
-{
-	if (!Camera || !CameraFPV || !CameraGroundTrack) return;
-	Camera->SetActive(false);
-	CameraGroundTrack->SetActive(false);
-	CameraFPV->SetActive(true);
-	CurrentCameraMode = ECameraMode::FPV;
-}
-void AQuadPawn::ResetGroundCameraPosition()
-{
-	if (!CameraGroundTrack || !DroneBody) return;
-
-	const float GroundOffsetDistance = 200.0f; // 5 meters
-
-	FVector DroneLocation = GetActorLocation();
-	FRotator DroneYawRotation(0, GetActorRotation().Yaw, 0);
-
-	FVector RightVector = UKismetMathLibrary::GetRightVector(DroneYawRotation);
-
-	FVector GroundPos = FVector(DroneLocation.X, DroneLocation.Y, 10.0f);
-	FVector CameraTargetPosition = GroundPos + RightVector * GroundOffsetDistance;
-
-	CameraGroundTrack->SetWorldLocation(CameraTargetPosition);
-
-	UpdateGroundCameraTracking();
-}
-void AQuadPawn::UpdateGroundCameraTracking()
-{
-	if (CurrentCameraMode == ECameraMode::GroundTrack && CameraGroundTrack && CameraGroundTrack->IsActive() && DroneBody)
-	{
-		FVector CameraLocation = CameraGroundTrack->GetComponentLocation();
-		FVector DroneLocation = GetActorLocation(); 
-
-		if (FVector::DistSquaredXY(CameraLocation, DroneLocation) < 1.0f) 
-		{
-			return;
-		}
-
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(CameraLocation, DroneLocation);
-
-		FRotator CurrentRotation = CameraGroundTrack->GetComponentRotation();
-		FRotator TargetRotation = FMath::RInterpTo(CurrentRotation, LookAtRotation, GetWorld()->GetDeltaSeconds(), 10.0f); // Adjust interp speed
-		CameraGroundTrack->SetWorldRotation(TargetRotation);
-
-	}
-}
 
 //=========================== Control Input =========================== //
 
-void AQuadPawn::ToggleImguiInput()
-{
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->ConsoleCommand("ImGui.ToggleInput");
-}
 void AQuadPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("ToggleImGui", IE_Pressed, this, &AQuadPawn::ToggleImguiInput);
-	PlayerInputComponent->BindAction("ReloadJSON", IE_Pressed, this, &AQuadPawn::ReloadJSONConfig);
 	PlayerInputComponent->BindAction("GP_ToggleFlightMode", IE_Pressed, this, &AQuadPawn::ToggleGamepadMode);
 
 	PlayerInputComponent->BindAxis("GP_Throttle", this, &AQuadPawn::OnThrottleAxis);
@@ -431,6 +367,7 @@ void AQuadPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("GP_SwitchCamera", IE_Pressed, this, &AQuadPawn::SwitchCamera);
 	PlayerInputComponent->BindAction("GP_ResetRotation", IE_Pressed, this, &AQuadPawn::ResetRotation);
 	PlayerInputComponent->BindAction("GP_ResetPosition", IE_Pressed, this, &AQuadPawn::ResetPosition);
+	
 }
 void AQuadPawn::ToggleGamepadMode()
 {
@@ -474,7 +411,8 @@ float AQuadPawn::GetMass()
 void AQuadPawn::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
-    ForceFPVCameraActive();
+    // Start in third-person, not FPV
+    SetCameraMode(ECameraMode::ThirdPerson);
 }
 void AQuadPawn::UnPossessed()
 {

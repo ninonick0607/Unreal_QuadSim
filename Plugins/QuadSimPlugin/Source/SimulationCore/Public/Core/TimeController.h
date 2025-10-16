@@ -4,7 +4,7 @@
 #include "UObject/NoExportTypes.h"
 #include "TimeController.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class SIMULATIONCORE_API UTimeController : public UObject
 {
     GENERATED_BODY()

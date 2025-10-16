@@ -1,0 +1,17 @@
+# …/Plugins/UnrealRosFlight/Config/ros2_custom_pkgs.repos
+repositories:
+  rosflight_ros_pkgs:
+    type: git
+    url: https://github.com/rosflight/rosflight_ros_pkgs.git
+    version: main
+
+  rcl_interfaces:                # gives builtin_interfaces, unique_identifier_msgs…
+    type: git
+    url: https://github.com/ros2/rcl_interfaces.git
+    version: humble
+
+  common_interfaces:             # gives geometry_msgs, std_msgs, sensor_msgs…
+    type: git
+    url: https://github.com/ros2/common_interfaces.git
+    version: humble
+

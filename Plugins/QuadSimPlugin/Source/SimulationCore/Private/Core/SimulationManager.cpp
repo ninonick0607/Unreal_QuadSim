@@ -396,3 +396,4 @@ bool ASimulationManager::GetCurrentCamera(AActor*& OutCamera) const
     }
     return false;
 }
+

@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "QuadSim_ROSPlugin",
+	"Description": "ROSFlight Support and ROS2 communication provider for QuadSim. Provides external communication capabilities.",
+	"Category": "Other",
+	"CreatedBy": "Nico",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "UnrealRosFlight",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

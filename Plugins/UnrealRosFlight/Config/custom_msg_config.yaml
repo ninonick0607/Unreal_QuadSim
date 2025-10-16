@@ -1,0 +1,21 @@
+# …/Plugins/UnrealRosFlight/Config/custom_msg_config.yaml
+args:
+    ue_path: '/home/ninonick0426/UnrealEngine'
+
+    # ***POINT AT THE PROJECT FOLDER, NOT THE .uproject FILE***
+    ue_proj_path: '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim'
+
+    ue_plugin_folder_name: 'UnrealRosFlight'
+    ue_plugin_name:        'UnrealRosFlight'
+    ue_target_3rd_name:    'ros'
+
+repos: '/home/ninonick0426/Desktop/Quadcopter/Unreal_QuadSim/Plugins/UnrealRosFlight/Config/ros2_custom_pkgs.repos'
+
+target_pkgs:
+  rosflight_msgs: ''
+
+dependency:
+  std_msgs: ''
+  geometry_msgs: ''
+  builtin_interfaces: ''
+

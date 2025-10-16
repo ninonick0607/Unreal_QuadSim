@@ -86,36 +86,41 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Simulation")
     void StartNewEpisode();
-	UFUNCTION(BlueprintCallable, Category = "Simulation")
-	bool IsControllingSimulation() const 
-	{ 
-		return CurrentSimulationMode != ESimulationMode::Realtime; 
-	}
-	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
-	void GetAvailableCameras(TArray<AActor*>& OutCameras) const;
-
-	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
-	bool PossessCamera(AActor* CameraActor);
-
-	UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
-	bool GetCurrentCamera(AActor*& OutCamera) const;
-	
+    UFUNCTION(BlueprintCallable, Category = "Simulation")
+    bool IsControllingSimulation() const 
+    { 
+    	return CurrentSimulationMode != ESimulationMode::Realtime; 
+    }
+    UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+    void GetAvailableCameras(TArray<AActor*>& OutCameras) const;
     
-	// Get simulation time in microseconds (for PX4)
-	UFUNCTION(BlueprintCallable, Category = "Simulation")
-	double GetSimulationTimeMicroseconds() const 
-	{ 
-		return CurrentSimulationTime * 1000000.0; 
-	}
+    UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+    bool PossessCamera(AActor* CameraActor);
     
-	// Static helper to find SimulationManager in world
-	static ASimulationManager* Get(UWorld* World)
-	{
-		if (!World) return nullptr;
-		TArray<AActor*> Found;
-		UGameplayStatics::GetAllActorsOfClass(World, ASimulationManager::StaticClass(), Found);
-		return Found.Num() > 0 ? Cast<ASimulationManager>(Found[0]) : nullptr;
-	}
+    UFUNCTION(BlueprintCallable, Category="Simulation|Camera")
+    bool GetCurrentCamera(AActor*& OutCamera) const;
+    
+    // Get simulation time in microseconds (for PX4)
+    UFUNCTION(BlueprintCallable, Category = "Simulation")
+    double GetSimulationTimeMicroseconds() const 
+    { 
+    	return CurrentSimulationTime * 1000000.0; 
+    }
+        
+    // Static helper to find SimulationManager in world
+    static ASimulationManager* Get(UWorld* World)
+    {
+    	if (!World) return nullptr;
+    	TArray<AActor*> Found;
+    	UGameplayStatics::GetAllActorsOfClass(World, ASimulationManager::StaticClass(), Found);
+    	return Found.Num() > 0 ? Cast<ASimulationManager>(Found[0]) : nullptr;
+    }
+    
+    UFUNCTION(BlueprintPure, Category="Simulation")
+    float GetCurrentSimTimeSeconds() const { return CurrentSimulationTime; }
+
+    UFUNCTION(BlueprintPure, Category="Simulation")
+    UTimeController* GetTimeController() const { return TimeController; }
 protected:
     // Robot Registry
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Simulation")

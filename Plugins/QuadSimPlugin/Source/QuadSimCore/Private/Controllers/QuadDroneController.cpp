@@ -2,6 +2,7 @@
 
 #include "Controllers/QuadDroneController.h"
 #include "Pawns/QuadPawn.h"
+#include "Core/ThrusterComponent.h"
 #include "DrawDebugHelpers.h"
 #include <random>
 
@@ -17,7 +18,7 @@
 #include "Sensors/MagSensor.h"
 #include "Sensors/SensorManagerComponent.h"
 #include "WorldMagneticModel/GeoMagDeclination.h"
-#include "GeoReferencingSystem.h"         
+#include "GeoReferencingSystem.h"
 #include "Sensors/BaroSensor.h"
 #include "Sensors/IMUSensor.h"
 
@@ -88,11 +89,11 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 
 	ControllerSet.RollRatePID = new QuadPIDController();
 	ControllerSet.RollRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.RollRatePID->SetGains(1.4f, 0.5f, 0.25f);
+	ControllerSet.RollRatePID->SetGains(0.65f, 0.4f, 0.05f);
 	
 	ControllerSet.PitchRatePID = new QuadPIDController();
 	ControllerSet.PitchRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.PitchRatePID->SetGains(1.4f, 0.5f, 0.25f);
+	ControllerSet.PitchRatePID->SetGains(0.65f, 0.4f, 0.05f);
 	
 	ControllerSet.YawRatePID = new QuadPIDController();
 	ControllerSet.YawRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);

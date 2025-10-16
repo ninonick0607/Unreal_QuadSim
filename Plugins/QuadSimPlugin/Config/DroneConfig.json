@@ -3,9 +3,9 @@
 	{
 		"max_velocity_bound": 8,
 		"max_velocity": 4,
-		"max_angle_bound": 45,
-		"max_angle": 45,
-		"max_angle_rate": 90,
+		"max_angle_bound": 180,
+		"max_angle": 90,
+		"max_angle_rate": 120,
 		"max_pid_output": 10000,
 		"max_thrust": 700,
 		"altitude_threshold": 0.60000002384185791,

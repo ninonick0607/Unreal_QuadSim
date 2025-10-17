@@ -130,6 +130,13 @@ void AROS2Controller::BeginPlay()
         ImuHz, &AROS2Controller::UpdateImuMessage,
         UROS2QoS::SensorData, ImuPublisher);
 
+    // /ref/vel_local
+    ROS2_CREATE_LOOP_PUBLISHER_WITH_QOS(
+        Node, this, T_RefVel,
+        UROS2Publisher::StaticClass(), UROS2ImuMsg::StaticClass(),
+        ImuHz, &AROS2Controller::UpdateDesiredVel,
+        UROS2QoS::Default, VelRef);
+    
     // /tf
     ROS2_CREATE_LOOP_PUBLISHER_WITH_QOS(
         Node, this, TEXT("/tf"),
@@ -328,6 +335,65 @@ void AROS2Controller::UpdateImuMessage(UROS2GenericMsg* InMessage)
 
     Msg->SetMsg(I);
 }
+
+void AROS2Controller::UpdateDesiredVel(UROS2GenericMsg* InMessage)
+{
+    auto* QP  = GetQuadPawn();
+    auto* Msg = Cast<UROS2ImuMsg>(InMessage);
+
+    if (!QP)
+    {
+        static bool bLoggedOnce = false;
+        if (!bLoggedOnce)
+        {
+            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: QuadPawn is NULL. Is ROS2Controller set up correctly?"));
+            bLoggedOnce = true;
+        }
+        return;
+    }
+    if (!QP->SensorManager)
+    {
+        static bool bLoggedOnce = false;
+        if (!bLoggedOnce)
+        {
+            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: SensorManager is NULL."));
+            bLoggedOnce = true;
+        }
+        return;
+    }
+    if (!QP->SensorManager->IMU)
+    {
+        static bool bLoggedOnce = false;
+        if (!bLoggedOnce)
+        {
+            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: IMU sensor is NULL."));
+            bLoggedOnce = true;
+        }
+        return;
+    }
+    if (!Msg)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: Message is NULL."));
+        return;
+    }
+
+    FROSImu I{};
+    I.Header.Stamp   = GetSimTimeStamp();
+    I.Header.FrameId = TEXT("imu_link");
+
+    // Orientation from your IMU (deg → quat done inside Quaternion())
+    const FRotator att_d = QP->SensorManager->IMU->GetLastAttitude();
+    I.Orientation = att_d.Quaternion();
+
+    // Angular velocity [rad/s]
+    I.AngularVelocity = QP->SensorManager->IMU->GetLastGyroscope();
+
+    // Linear acceleration [m/s^2]
+    I.LinearAcceleration = QP->SensorManager->IMU->GetLastAccelerometer();
+
+    Msg->SetMsg(I);
+}
+
 
 void AROS2Controller::HandleHoverCommand(const UROS2GenericMsg* InMsg)
 {

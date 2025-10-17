@@ -39,6 +39,7 @@ protected:
     UFUNCTION() void UpdateImuMessage(class UROS2GenericMsg* InMessage);       // NEW
     UFUNCTION() void UpdateTFMessage(class UROS2GenericMsg* InMessage);
     UFUNCTION() void UpdateClockMessage(class UROS2GenericMsg* InMessage);     // NEW
+    UFUNCTION() void UpdateDesiredVel(class UROS2GenericMsg* InMessage);       // NEW
 
     // Sub handlers
     UFUNCTION() void HandleCmdRateStamped(const class UROS2GenericMsg* InMessage); // NEW TwistStamped
@@ -79,12 +80,15 @@ private:
     UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
     FString T_Imu    = TEXT("/quadsim/imu");
     UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
-    FString T_CmdRate= TEXT("/resnet/cmd_rate");
-
+    FString T_CmdRate= TEXT("/resnet/cmd_vel_residual");
+    UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
+    FString T_RefVel= TEXT("/ref/vel_local");
+    
     // Node & Pubs
     UPROPERTY() UROS2NodeComponent* Node            = nullptr;
     UPROPERTY() UROS2Publisher*     OdomPublisher   = nullptr;
     UPROPERTY() UROS2Publisher*     ImuPublisher    = nullptr; // NEW
+    UPROPERTY() UROS2Publisher*     VelRef    = nullptr;
     UPROPERTY() UROS2Publisher*     TfPublisher     = nullptr;
     UPROPERTY() UROS2Publisher*     TfStaticPublisher = nullptr; // NEW (one-shot)
     UPROPERTY() UROS2Publisher*     ClockPublisher  = nullptr; // NEW

@@ -55,35 +55,58 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	if (!bInitialized || !AttachedBody)
 		return FVector::ZeroVector;
 
-	// UE returns angular velocity in WORLD space (rad/s)
+	// UE world ω (rad/s) -> body(FRU) ω (rad/s)
 	const FVector world_w_rad = AttachedBody->GetPhysicsAngularVelocityInRadians();
-
-	// Convert to BODY frame (p,q,r) using full inverse rotation (no scale)
 	const FVector w_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(world_w_rad);
-
-	// FRU → FLU (flip Y)
-	return FVector(-w_fru.X, w_fru.Y, w_fru.Z);
-}
-FVector UIMUSensor::SampleRawVelocity(){
-	if (!bInitialized || !AttachedBody)
-		return FVector::ZeroVector;
-	
-	FVector CurrVel = AttachedBody->GetPhysicsLinearVelocity()/100;
-	FRotator ComponentRot = AttachedBody->GetComponentRotation();
-	FRotator YawOnlyRot(0.f, ComponentRot.Yaw, 0.f);
-    
-	// Transform using only yaw
-	return YawOnlyRot.UnrotateVector(CurrVel);
+	const FVector pqr_frd =  FVector(w_fru.X,-w_fru.Y,-w_fru.Z);
+	return pqr_frd;  // X=roll rate, Y=pitch rate, Z=yaw rate (UE, FRD)
 }
 
-FRotator UIMUSensor::SampleRawAttitude(){
-	if (!bInitialized || !AttachedBody)
-		return FRotator::ZeroRotator;
-	FRotator WorldRotation = AttachedBody->GetComponentRotation();
-	FRotator AdjustedRotation = WorldRotation;
-	AdjustedRotation.Pitch = -WorldRotation.Pitch;
-    return AdjustedRotation;
+FVector UIMUSensor::SampleRawVelocity()
+{
+	if (!bInitialized || !AttachedBody) return FVector::ZeroVector;
+
+	const FVector v_world_cms = AttachedBody->GetPhysicsLinearVelocity(); // cm/s
+	const FVector v_world     = v_world_cms / 100.f;                      // m/s
+
+	// Bring to body(FRU)
+	const FVector v_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(v_world);
+
+	// FRU -> FRD (X = X, Y = Y, Z = -Z)
+	return FVector(v_fru.X, v_fru.Y, -v_fru.Z);
 }
+
+
+// FVector UIMUSensor::SampleRawVelocity()
+// {
+// 	if (!bInitialized || !AttachedBody)
+// 		return FVector::ZeroVector;
+//
+// 	const FVector v_world = AttachedBody->GetPhysicsLinearVelocity() / 100.f; // m/s
+// 	const float   yaw_deg = AttachedBody->GetComponentRotation().Yaw;
+// 	const FRotator yawOnly(0.f, yaw_deg, 0.f);
+// 	return yawOnly.UnrotateVector(v_world); // X=fwd-in-heading, Y=lateral, Z=up
+// }
+
+FRotator UIMUSensor::SampleRawAttitude()
+{
+	if (!bInitialized || !AttachedBody) return FRotator::ZeroRotator;
+
+	const FRotator fru = AttachedBody->GetComponentRotation(); // UE: Roll+=RWD, Pitch+=nose down, Yaw+=turn right (about +Up)
+	FRotator frd;
+	frd.Roll  =  fru.Roll;   // same
+	frd.Pitch = -fru.Pitch;  // nose up positive
+	frd.Yaw   = -fru.Yaw;    // right-turn positive in NED
+	return frd;
+}
+
+// FRotator UIMUSensor::SampleRawAttitude()
+// {
+// 	if (!bInitialized || !AttachedBody)
+// 		return FRotator::ZeroRotator;
+//
+// 	return AttachedBody->GetComponentRotation(); // UE: Pitch += nose down, Roll += right
+// }
 
 void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)
 {

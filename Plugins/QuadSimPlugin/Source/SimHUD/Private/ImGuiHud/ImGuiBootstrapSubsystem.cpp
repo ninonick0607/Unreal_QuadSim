@@ -92,6 +92,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
     UQuadDroneController* ResolvedCtrl = nullptr;
     FSensorData ResolvedSensorData{};
     FRotator CurrentAtt = FRotator::ZeroRotator;
+    FVector CurrentVel = FVector::ZeroVector;
 
     if (ADroneManager* DM = ADroneManager::Get(World))
     {
@@ -111,6 +112,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                 ? ResolvedSensorData.IMUAttitude
                 : (ResolvedPawn ? ResolvedPawn->GetActorRotation() : FRotator::ZeroRotator);
 
+            CurrentVel = ResolvedSensorData.IMUVelMS;
 
            // const float DesiredXVel = ResolvedCtrl ? ResolvedCtrl
             const float DesiredRollDeg  = ResolvedCtrl ? ResolvedCtrl->GetDesiredRoll()  : 0.f;
@@ -132,6 +134,7 @@ void USimHUDTaskbarSubsystem::HandleImGuiDraw()
                                   ResolvedCtrl,
                                   World->GetDeltaSeconds(),
                                   CurrentAtt,
+                                  CurrentVel,
                                   DesiredRollDeg,
                                   DesiredPitchDeg,
                                   CurrentRateDeg,
@@ -1439,6 +1442,7 @@ void USimHUDTaskbarSubsystem::UpdateControlPlotData(UWorld* World,
                                                     UQuadDroneController* Ctrl,
                                                     float DeltaSeconds,
                                                     const FRotator& CurrentAttitude,
+                                                    const FVector& CurrentVel,
                                                     float DesiredRollDeg,
                                                     float DesiredPitchDeg,
                                                     const FVector& CurrentRateDeg,
@@ -1451,20 +1455,12 @@ void USimHUDTaskbarSubsystem::UpdateControlPlotData(UWorld* World,
     // Advance timeline
     Control_CumulativeTime += FMath::Max(0.f, DeltaSeconds);
     Control_Time.Add(Control_CumulativeTime);
-
-    // --- Velocity (Local Frame) ---
-    // Try to obtain local-frame current velocity. If your controller already exposes
-    // GetCurrentLocalVelocity(), you can swap in that call here.
-    FVector worldVel = Pawn->GetVelocity();
-    const FRotationMatrix rot(Pawn->GetActorRotation());
-    const FVector localVel = rot.GetTransposed().TransformVector(worldVel); // world->local
-
     // Desired velocity already in controller (assumed local or control frame)
     const FVector desVel = Ctrl->GetDesiredVelocity();
 
-    Control_CurrVelX.Add(static_cast<float>(localVel.X));
-    Control_CurrVelY.Add(static_cast<float>(localVel.Y));
-    Control_CurrVelZ.Add(static_cast<float>(localVel.Z));
+    Control_CurrVelX.Add(static_cast<float>(CurrentVel.X));
+    Control_CurrVelY.Add(static_cast<float>(CurrentVel.Y));
+    Control_CurrVelZ.Add(static_cast<float>(CurrentVel.Z));
     Control_DesVelX.Add(static_cast<float>(desVel.X));
     Control_DesVelY.Add(static_cast<float>(desVel.Y));
     Control_DesVelZ.Add(static_cast<float>(desVel.Z));

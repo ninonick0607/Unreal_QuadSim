@@ -1,4 +1,0 @@
-breathe
-myst-parser
-sphinxcontrib-video
-sphinx-rtd-theme

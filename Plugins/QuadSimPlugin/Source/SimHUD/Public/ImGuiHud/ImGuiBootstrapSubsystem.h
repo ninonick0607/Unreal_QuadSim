@@ -38,7 +38,7 @@ private:
     void DrawPIDSettingsPanel(UQuadDroneController* InController);
 
     // "Old RenderImPlot" plots (velocity/angles)
-    void UpdateControlPlotData(UWorld* World, AQuadPawn* Pawn, UQuadDroneController* Ctrl, float DeltaSeconds, const FRotator& CurrentAttitude, float DesiredRollDeg, float DesiredPitchDeg, const FVector& CurrentRateDeg, float DesiredRollRateDeg, float DesiredPitchRateDeg, float DesiredYawRateDeg);
+    void UpdateControlPlotData(UWorld* World, AQuadPawn* Pawn, UQuadDroneController* Ctrl, float DeltaSeconds, const FRotator& CurrentAttitude, const FVector& CurrentVel, float DesiredRollDeg, float DesiredPitchDeg, const FVector& CurrentRateDeg, float DesiredRollRateDeg, float DesiredPitchRateDeg, float DesiredYawRateDeg);
     void DrawControlPlotsWindow(float MaxAngleDeg);
 
 private:

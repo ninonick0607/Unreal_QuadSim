@@ -58,7 +58,7 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	// UE world ω (rad/s) -> body(FRU) ω (rad/s)
 	const FVector world_w_rad = AttachedBody->GetPhysicsAngularVelocityInRadians();
 	const FVector w_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(world_w_rad);
-	const FVector pqr_frd =  FVector(w_fru.X,-w_fru.Y,-w_fru.Z);
+	const FVector pqr_frd =  FVector(-w_fru.X,w_fru.Y,w_fru.Z);
 	return pqr_frd;  // X=roll rate, Y=pitch rate, Z=yaw rate (UE, FRD)
 }
 
@@ -96,7 +96,7 @@ FRotator UIMUSensor::SampleRawAttitude()
 	FRotator frd;
 	frd.Roll  =  fru.Roll;   // same
 	frd.Pitch = -fru.Pitch;  // nose up positive
-	frd.Yaw   = -fru.Yaw;    // right-turn positive in NED
+	frd.Yaw   = fru.Yaw;    // right-turn positive in NED
 	return frd;
 }
 

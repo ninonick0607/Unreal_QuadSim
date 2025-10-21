@@ -104,6 +104,9 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 	AltitudePID = new QuadPIDController();
 	AltitudePID->SetLimits(-maxPIDOutput, maxPIDOutput);
 	AltitudePID->SetGains(5.f, 1.f, 0.1f);
+
+	Rotor.Recalculate();          // compute MaxThrust/MaxTorque
+	HoverThrottle01 = 0.55f;  
 }
 
 //=========================== Initialization =========================== //
@@ -129,6 +132,12 @@ void UQuadDroneController::Initialize(AQuadPawn* InPawn)
 			}
 		}
 	}
+	if (dronePawn && dronePawn->DroneBody)
+	{
+		const float MassKg = dronePawn->DroneBody->GetMass(); 
+		HoverThrottle01 = Rotor.ComputeHoverThrottle01(MassKg, 4);
+	}
+
 }
 
 //=========================== Update =========================== //
@@ -300,11 +309,11 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	
 	/*-------- Velocity PID Control -------- */ 
     currentLocalVelocity = currVel;
-	const FVector desiredLocalVelocityFRD(desiredLocalVelocity.X, desiredLocalVelocity.Y, -desiredLocalVelocity.Z);
+	const FVector desiredLocalVelocityFRD(desiredLocalVelocity.X, desiredLocalVelocity.Y, desiredLocalVelocity.Z);
 
-	const double xOut = CurrentSet->XPID -> Calculate(desiredLocalVelocityFRD.X,currentLocalVelocity.X, DeltaTime);
-	const double yOut = CurrentSet->YPID -> Calculate(desiredLocalVelocityFRD.Y,currentLocalVelocity.Y, DeltaTime);
-	const double zOut = CurrentSet->ZPID -> Calculate(desiredLocalVelocityFRD.Z,currentLocalVelocity.Z, DeltaTime);
+	const double xOut = CurrentSet->XPID -> Calculate(currentLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
+	const double yOut = CurrentSet->YPID -> Calculate(currentLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
+	const double zOut = CurrentSet->ZPID -> Calculate(currentLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
 	
 	/*-------- Angle PID Control -------- */ 
 	desiredPitch = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewPitch: FMath::Clamp( xOut, -maxAngle,  maxAngle);
@@ -354,45 +363,116 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 
 //=========================== Thrusts =========================== //
 
-void UQuadDroneController::ThrustMixer(double xOut, double yOut, double zOut, double rollRateOut, double pitchRateOut, double yawOut)
+void UQuadDroneController::ThrustMixer(double xOut, double yOut, double zOut,
+									   double rollRateOut, double pitchRateOut, double yawOut)
 {
+	const float rollCmd   = FMath::Clamp((float)(rollRateOut  / maxAngleRate), -1.f, 1.f);
+	const float pitchCmd  = FMath::Clamp((float)(pitchRateOut / maxAngleRate), -1.f, 1.f);
+	const float yawCmd    = FMath::Clamp((float)(yawOut       / maxYawRate   ), -1.f, 1.f);
+
+	// Throttle around hover
+	static const float Kz_to_throttle = 0.10f;
+	float throttle01 = FMath::Clamp(HoverThrottle01 + Kz_to_throttle * (float)zOut, 0.f, 1.f);
+	UE_LOG(LogTemp, Warning, TEXT("Throttle Airsim: %f N"), throttle01);
+
+	
 	float droneMass = dronePawn->DroneBody->GetMass();
 	const float gravity = 980.f	;
 	const float hoverThrust = (droneMass * gravity) / 4.0f; 
  
 	float baseThrust = hoverThrust + (zOut*100) / 4.0f;
 	baseThrust /= FMath::Cos(FMath::DegreesToRadians(FMath::Sqrt(FMath::Pow(xOut, 2) + FMath::Pow(yOut, 2))));
+	UE_LOG(LogTemp, Warning, TEXT("Throttle Mine: %f N"), baseThrust);
 
-	const float roll  = (float)rollRateOut;
-	const float pitch = (float)pitchRateOut;
-	const float yaw   = (float)yawOut;
 	
-	Thrusts[0] = baseThrust + roll - pitch - yaw; // FL
-	Thrusts[1] = baseThrust - roll - pitch + yaw; // FR
-	Thrusts[2] = baseThrust + roll + pitch + yaw; // BL
-	Thrusts[3] = baseThrust - roll + pitch - yaw; // BR
-	
-	// Paper is FR, BL, FL, BR
-	for (int i = 0; i < Thrusts.Num(); i++)
-	{
-		Thrusts[i] = FMath::Clamp(Thrusts[i], 0.0f, maxThrust);
-		
-		if (!dronePawn || !dronePawn->Thrusters.IsValidIndex(i)) continue;
-		double force = Thrusts[i];
-		dronePawn->Thrusters[i]->ApplyForce(force);
-	}
-	// double YawTorqueForce = 2.0f;
-	// FVector upVector = dronePawn->GetActorUpVector();
-	// FVector virtualTorque = upVector * yaw * YawTorqueForce;
-	// for (UThrusterComponent* Thruster : dronePawn->Thrusters)
-	// {
-	// 	if (Thruster)
-	// 	{
-	// 		Thruster->ApplyTorque(virtualTorque, true);
-	// 	}
-	// }
+	// Mix -> 0..1
+	TArray<float> motor01;
+	ComputeMotorOutputs01(throttle01, /*pitch*/ pitchCmd, /*roll*/ rollCmd, /*yaw*/ yawCmd, motor01);
 
+	// Apply physical forces
+	ApplyMotorForces_From01(motor01);
+
+	// Keep your Thrusts[] array for HUD, if you want to show Newtons:
+	Thrusts.SetNum(4);
+	for (int i = 0; i < 4; ++i)
+		Thrusts[i] = (motor01[i] * Rotor.MaxThrust)*100;
 }
+
+
+void UQuadDroneController::ComputeMotorOutputs01(
+    float throttle01, float pitchCmd, float rollCmd, float yawCmd, TArray<float>& out) const
+{
+    out.SetNum(4);
+
+    // AirSim-like bounds
+    const float MinMotor = 0.0f;
+    const float MaxMotor = 1.0f;
+    const float MinAnglingThrottle = 0.15f; // tune if needed
+
+    if (throttle01 < MinAnglingThrottle) {
+        out[0] = out[1] = out[2] = out[3] = throttle01;
+        return;
+    }
+
+    auto mix = [&](const FMixRow& m) {
+        return throttle01*m.T + pitchCmd*m.P + rollCmd*m.R + yawCmd*m.Y;
+    };
+
+    // Your order: [FL, FR, BL, BR]
+    out[0] = mix(Mix_FL);
+    out[1] = mix(Mix_FR);
+    out[2] = mix(Mix_BL);
+    out[3] = mix(Mix_BR);
+
+    // Raise all if any below min (undershoot lift)
+    float minv = FMath::Min(FMath::Min(out[0], out[1]), FMath::Min(out[2], out[3]));
+    if (minv < MinMotor) {
+        const float undershoot = MinMotor - minv;
+        for (float& v : out) v += undershoot;
+    }
+
+    // Scale down if any above max
+    float maxv = FMath::Max(FMath::Max(out[0], out[1]), FMath::Max(out[2], out[3]));
+    if (maxv > MaxMotor) {
+        const float scale = maxv / MaxMotor;
+        for (float& v : out) v /= scale;
+    }
+
+    // Clamp
+    for (float& v : out) v = FMath::Clamp(v, MinMotor, MaxMotor);
+}
+
+void UQuadDroneController::ApplyMotorForces_From01(const TArray<float>& motor01)
+{
+    if (!dronePawn) return;
+
+    // If you later add density variation, scale here
+    const float AirDensityRatio = 1.0f;
+
+    // Turning direction array (per motor)
+    const int32 TurnDir[4] = { TurnDir_FL, TurnDir_FR, TurnDir_BL, TurnDir_BR };
+
+    for (int32 i = 0; i < 4; ++i)
+    {
+        if (!dronePawn->Thrusters.IsValidIndex(i) || !dronePawn->Thrusters[i]) continue;
+
+        const float cs = FMath::Clamp(motor01[i], 0.f, 1.f);
+        const float thrustN   = (cs * Rotor.MaxThrust * AirDensityRatio)*100;      // N
+        const float yawTorque = cs * Rotor.MaxTorque * (float)TurnDir[i] * AirDensityRatio; // N·m
+
+        UThrusterComponent* Thr = dronePawn->Thrusters[i];
+
+        // Your geometry: lift along +X local axis
+        // If your UThrusterComponent::ApplyForce(force) already applies along +X, use that:
+        Thr->ApplyForce(thrustN);
+
+        // Yaw torque: apply about +X local axis (per-rotor, like AirSim). Use radians.
+        const FTransform Xf = Thr->GetComponentTransform();
+        const FVector AxisX = Xf.GetUnitAxis(EAxis::X);
+        Thr->ApplyTorque(AxisX * yawTorque, /*bIsDegrees=*/ false);
+    }
+}
+
 
 float  UQuadDroneController::YawRateControl(double DeltaTime)
 {

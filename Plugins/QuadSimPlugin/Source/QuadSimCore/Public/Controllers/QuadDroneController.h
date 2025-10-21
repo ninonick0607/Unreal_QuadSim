@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "SensorData.h"
+#include "Core/RotorModel.h"
 #include "Utility/QuadPIDController.h"
 
 
@@ -20,6 +21,7 @@ enum class EFlightMode : uint8
     JoyStickAngleControl UMETA(DisplayName = "JoyStickAngleControl"),
     JoyStickAcroControl UMETA(DisplayName = "JoyStickAcroControl")
 };
+struct FMixRow { float T, R, P, Y; };
 
 struct FGamepadInputs;
 
@@ -148,7 +150,25 @@ private:
     EFlightMode currentFlightMode;
     FSensorData LastSensorData;
     bool bHasValidSensorData = false;
+
+    FRotorModel Rotor;      
+    float HoverThrottle01;  
+
+    static constexpr FMixRow Mix_FL = { +1.f, +1.f, -1.f, -1.f };
+    static constexpr FMixRow Mix_FR = { +1.f, -1.f, -1.f, +1.f };
+    static constexpr FMixRow Mix_BL = { +1.f, +1.f, +1.f, +1.f };
+    static constexpr FMixRow Mix_BR = { +1.f, -1.f, +1.f, -1.f };
+
+    // Motor turning direction (+1 = CCW, -1 = CW). Adjust to match your build.
+    static constexpr int32 TurnDir_FL = +1;
+    static constexpr int32 TurnDir_FR = -1;
+    static constexpr int32 TurnDir_BL = -1;
+    static constexpr int32 TurnDir_BR = +1;
     
+    // --- New helpers (AirSim-like pipeline) ---
+    void ComputeMotorOutputs01(float throttle01, float pitchCmd, float rollCmd, float yawCmd, TArray<float>& out) const;
+    void ApplyMotorForces_From01(const TArray<float>& motor01);
+
     //Global Drone Variables
     FVector currentLocalVelocity;
     bool bDebugVisualsEnabled = false;

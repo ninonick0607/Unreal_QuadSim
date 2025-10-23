@@ -30,9 +30,9 @@ void UThrusterComponent::ApplyForce(double Force)
         UE_LOG(LogTemp, Warning, TEXT("ThrusterComponent: Root is not simulating physics!"));
         return;
     }
-
+    double UE_Force = Force * 100;
     const FVector Direction = GetComponentTransform().GetUnitAxis(EAxis::X);
-    const FVector ForceVector = Direction * Force;
+    const FVector ForceVector = Direction * UE_Force;
 
     const FVector ForceLocation = GetComponentLocation();
     RootPrim->AddForceAtLocation(ForceVector, ForceLocation);

@@ -248,7 +248,7 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	const FVector  currPos = {GPSData.X, GPSData.Y, Altitude};     
 	const FVector  currVel = SensorData.IMUVelMS;          
 	const FRotator currRot = SensorData.IMUAttitude;
-	const FRotator yawOnlyRot(0.f, -currRot.Yaw, 0.f);
+	const FRotator yawOnlyRot(0.f, currRot.Yaw, 0.f);
 	FVector AngularRate = SensorData.IMUAngVelDEGS;
 	localAngularRateDeg = AngularRate;
 	
@@ -309,11 +309,10 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	
 	/*-------- Velocity PID Control -------- */ 
     currentLocalVelocity = currVel;
-	const FVector desiredLocalVelocityFRD(desiredLocalVelocity.X, desiredLocalVelocity.Y, desiredLocalVelocity.Z);
 
-	const double xOut = CurrentSet->XPID -> Calculate(currentLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
-	const double yOut = CurrentSet->YPID -> Calculate(currentLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
-	const double zOut = CurrentSet->ZPID -> Calculate(currentLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
+	const double xOut = CurrentSet->XPID -> Calculate(desiredLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
+	const double yOut = CurrentSet->YPID -> Calculate(desiredLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
+	const double zOut = CurrentSet->ZPID -> Calculate(desiredLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
 	
 	/*-------- Angle PID Control -------- */ 
 	desiredPitch = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewPitch: FMath::Clamp( xOut, -maxAngle,  maxAngle);
@@ -363,41 +362,45 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 
 //=========================== Thrusts =========================== //
 
-void UQuadDroneController::ThrustMixer(double xOut, double yOut, double zOut,
+void UQuadDroneController::ThrustMixer(double desiredPitchDeg, double desiredRollDeg, double zVelOut,
 									   double rollRateOut, double pitchRateOut, double yawOut)
 {
-	const float rollCmd   = FMath::Clamp((float)(rollRateOut  / maxAngleRate), -1.f, 1.f);
-	const float pitchCmd  = FMath::Clamp((float)(pitchRateOut / maxAngleRate), -1.f, 1.f);
-	const float yawCmd    = FMath::Clamp((float)(yawOut       / maxYawRate   ), -1.f, 1.f);
+	// Normalize rate commands to [-1,1]
+	const float rollCmd  = FMath::Clamp(float(rollRateOut  / maxAngleRate), -1.f, 1.f);
+	const float pitchCmd = FMath::Clamp(float(pitchRateOut / maxAngleRate), -1.f, 1.f);
+	const float yawCmd   = FMath::Clamp(float(yawOut       / maxYawRate  ), -1.f, 1.f);
 
-	// Throttle around hover
-	static const float Kz_to_throttle = 0.10f;
-	float throttle01 = FMath::Clamp(HoverThrottle01 + Kz_to_throttle * (float)zOut, 0.f, 1.f);
-	UE_LOG(LogTemp, Warning, TEXT("Throttle Airsim: %f N"), throttle01);
+	// ---- Z control: treat Z PID output as accel command (Option B) ----
+	// Convert your Z PID to output m/s^2 (do this in tuning: derivative on velocity, integral on position if you like).
+	// If today it outputs m/s, map zVelOut -> az_cmd with a gain:
+	const float Kvel_to_accel = 2.0f;           // tune: m/s -> m/s^2
+	const float az_cmd = Kvel_to_accel * float(zVelOut);
 
-	
-	float droneMass = dronePawn->DroneBody->GetMass();
-	const float gravity = 980.f	;
-	const float hoverThrust = (droneMass * gravity) / 4.0f; 
- 
-	float baseThrust = hoverThrust + (zOut*100) / 4.0f;
-	baseThrust /= FMath::Cos(FMath::DegreesToRadians(FMath::Sqrt(FMath::Pow(xOut, 2) + FMath::Pow(yOut, 2))));
-	UE_LOG(LogTemp, Warning, TEXT("Throttle Mine: %f N"), baseThrust);
+	const float g = 9.81f;
+	float throttle01 = HoverThrottle01 * (1.f + az_cmd / g);  // around hover
 
-	
-	// Mix -> 0..1
+	// Tilt compensation using desired angles (degrees)
+	const float tiltRad = FMath::DegreesToRadians( FMath::Sqrt(desiredPitchDeg*desiredPitchDeg +
+															   desiredRollDeg *desiredRollDeg) );
+	const float tiltComp = 1.f / FMath::Max(0.3f, FMath::Cos(tiltRad)); // keep denominator sane
+	throttle01 *= tiltComp;
+
+	// Keep motors alive for authority
+	const float MinAnglingThrottle = 0.15f;
+	throttle01 = FMath::Clamp(throttle01, MinAnglingThrottle, 1.f);
+
+	// Mix
 	TArray<float> motor01;
 	ComputeMotorOutputs01(throttle01, /*pitch*/ pitchCmd, /*roll*/ rollCmd, /*yaw*/ yawCmd, motor01);
 
-	// Apply physical forces
+	// Apply
 	ApplyMotorForces_From01(motor01);
 
-	// Keep your Thrusts[] array for HUD, if you want to show Newtons:
+	// HUD in Newtons
 	Thrusts.SetNum(4);
 	for (int i = 0; i < 4; ++i)
-		Thrusts[i] = (motor01[i] * Rotor.MaxThrust)*100;
+		Thrusts[i] = motor01[i] * Rotor.MaxThrust; // N
 }
-
 
 void UQuadDroneController::ComputeMotorOutputs01(
     float throttle01, float pitchCmd, float rollCmd, float yawCmd, TArray<float>& out) const
@@ -446,10 +449,8 @@ void UQuadDroneController::ApplyMotorForces_From01(const TArray<float>& motor01)
 {
     if (!dronePawn) return;
 
-    // If you later add density variation, scale here
     const float AirDensityRatio = 1.0f;
 
-    // Turning direction array (per motor)
     const int32 TurnDir[4] = { TurnDir_FL, TurnDir_FR, TurnDir_BL, TurnDir_BR };
 
     for (int32 i = 0; i < 4; ++i)
@@ -457,13 +458,10 @@ void UQuadDroneController::ApplyMotorForces_From01(const TArray<float>& motor01)
         if (!dronePawn->Thrusters.IsValidIndex(i) || !dronePawn->Thrusters[i]) continue;
 
         const float cs = FMath::Clamp(motor01[i], 0.f, 1.f);
-        const float thrustN   = (cs * Rotor.MaxThrust * AirDensityRatio)*100;      // N
+        const float thrustN   = (cs * Rotor.MaxThrust * AirDensityRatio);      // N
         const float yawTorque = cs * Rotor.MaxTorque * (float)TurnDir[i] * AirDensityRatio; // N·m
 
         UThrusterComponent* Thr = dronePawn->Thrusters[i];
-
-        // Your geometry: lift along +X local axis
-        // If your UThrusterComponent::ApplyForce(force) already applies along +X, use that:
         Thr->ApplyForce(thrustN);
 
         // Yaw torque: apply about +X local axis (per-rotor, like AirSim). Use radians.

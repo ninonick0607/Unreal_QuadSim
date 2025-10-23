@@ -281,10 +281,18 @@ void AQuadPawn::UpdatePropellerVisuals(float DeltaTime)
         if (Propellers[i] && QuadController)
         {
             float ThrustVal = QuadController->GetCurrentThrustOutput(i);
-            PropellerRPMs[i] = FMath::Abs(ThrustVal);
-            
+        	float ThrustCoef = Rotors.C_T;
+        	float AirDens = Rotors.AirDensity;
+        	float PropDiam = Rotors.PropDiameter;
+        	
+        	float denom = ThrustCoef * AirDens * FMath::Pow(PropDiam, 4);
+        	float RPM = 60*(FMath::Sqrt(ThrustVal/denom));
+            PropellerRPMs[i] = FMath::Abs(RPM);
+        	
+        	UE_LOG(LogTemp, Display, TEXT("RPM: %f"), PropellerRPMs[i]);
+
             float Direction = (MotorClockwiseDirections.IsValidIndex(i) && MotorClockwiseDirections[i]) ? -1.0f : 1.0f;
-            float DeltaRotation = PropellerRPMs[i] * 6.0f * DeltaTime * Direction;
+            float DeltaRotation = PropellerRPMs[i] * DeltaTime * Direction;
             
             Propellers[i]->AddLocalRotation(FRotator(0.f, DeltaRotation, 0.f));
         }

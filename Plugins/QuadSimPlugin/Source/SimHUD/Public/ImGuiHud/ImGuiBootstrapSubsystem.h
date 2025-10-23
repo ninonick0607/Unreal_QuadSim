@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Containers/Ticker.h"
+#include "Core/RotorModel.h"
 #include "ImGuiHud/Style/SimImGuiStyle.h"
 #include "ImGuiBootstrapSubsystem.generated.h"
 
@@ -60,6 +61,7 @@ private:
     static int32 SpeedMode;
     static float SpeedScale;
     static bool  bSpeedInit;
+    FRotorModel Rotor;      
 
     // ---------------- PID plots (RenderImPlot style) ----------------
     bool        bShowPIDPlots = false;   // single checkbox to open plots

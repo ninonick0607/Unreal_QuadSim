@@ -36,6 +36,7 @@ struct FRotorModel
 
     }
 
+    
     // Convenience: hover throttle 0..1 for a given vehicle mass (kg)
     float ComputeHoverThrottle01(float VehicleMassKg, int32 MotorCount = 4) const
     {
@@ -43,8 +44,8 @@ struct FRotorModel
         const float perMotorHoverN = (VehicleMassKg * 9.81f) / float(MotorCount);
         UE_LOG(LogTemp, Warning, TEXT("Per Hover: %f N"), perMotorHoverN);
 
-        float hoverThrust = FMath::Clamp(perMotorHoverN / float(perMotorHoverN),0.f,1.f);
-        UE_LOG(LogTemp, Warning, TEXT("Max Thrust: %f N"), hoverThrust);
+        float hoverThrust = FMath::Clamp(perMotorHoverN / float(MaxThrust),0.f,1.f);
+        UE_LOG(LogTemp, Warning, TEXT("Max Thrust: %f N"), perMotorHoverN/float(MaxThrust));
         return hoverThrust;
     }
 

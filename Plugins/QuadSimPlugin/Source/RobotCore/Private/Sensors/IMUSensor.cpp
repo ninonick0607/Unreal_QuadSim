@@ -62,31 +62,31 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	return pqr_frd;  // X=roll rate, Y=pitch rate, Z=yaw rate (UE, FRD)
 }
 
-FVector UIMUSensor::SampleRawVelocity()
-{
-	if (!bInitialized || !AttachedBody) return FVector::ZeroVector;
-
-	const FVector v_world_cms = AttachedBody->GetPhysicsLinearVelocity(); // cm/s
-	const FVector v_world     = v_world_cms / 100.f;                      // m/s
-
-	// Bring to body(FRU)
-	const FVector v_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(v_world);
-
-	// FRU -> FRD (X = X, Y = Y, Z = -Z)
-	return FVector(v_fru.X, v_fru.Y, -v_fru.Z);
-}
-
-
 // FVector UIMUSensor::SampleRawVelocity()
 // {
-// 	if (!bInitialized || !AttachedBody)
-// 		return FVector::ZeroVector;
+// 	if (!bInitialized || !AttachedBody) return FVector::ZeroVector;
 //
-// 	const FVector v_world = AttachedBody->GetPhysicsLinearVelocity() / 100.f; // m/s
-// 	const float   yaw_deg = AttachedBody->GetComponentRotation().Yaw;
-// 	const FRotator yawOnly(0.f, yaw_deg, 0.f);
-// 	return yawOnly.UnrotateVector(v_world); // X=fwd-in-heading, Y=lateral, Z=up
+// 	const FVector v_world_cms = AttachedBody->GetPhysicsLinearVelocity(); // cm/s
+// 	const FVector v_world     = v_world_cms / 100.f;                      // m/s
+//
+// 	// Bring to body(FRU)
+// 	const FVector v_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(v_world);
+//
+// 	// FRU -> FRD (X = X, Y = Y, Z = -Z)
+// 	return FVector(v_fru.X, v_fru.Y, v_fru.Z);
 // }
+
+
+FVector UIMUSensor::SampleRawVelocity()
+{
+	if (!bInitialized || !AttachedBody)
+		return FVector::ZeroVector;
+
+	const FVector v_world = AttachedBody->GetPhysicsLinearVelocity() / 100.f; // m/s
+	const float   yaw_deg = AttachedBody->GetComponentRotation().Yaw;
+	const FRotator yawOnly(0.f, yaw_deg, 0.f);
+	return yawOnly.UnrotateVector(v_world); // X=fwd-in-heading, Y=lateral, Z=up
+}
 
 FRotator UIMUSensor::SampleRawAttitude()
 {

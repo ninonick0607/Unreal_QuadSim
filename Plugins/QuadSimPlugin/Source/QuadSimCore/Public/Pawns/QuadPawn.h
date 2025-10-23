@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Utility/NavigationComponent.h"
+#include "Core/RotorModel.h"
 #include "QuadPawn.generated.h"
 
 class USensorManagerComponent;
@@ -168,6 +169,7 @@ protected:
     void UpdateGroundCameraTracking() {} // no-op; kept for compatibility
 
 private:
+    FRotorModel Rotors;
     float LastCollisionTime = 0.f;
     float CollisionTimeout = 0.2f;
     bool bWaypointModeSelected = false;

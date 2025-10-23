@@ -554,7 +554,7 @@ void USimHUDTaskbarSubsystem::HandleStateData(UWorld* World)
 
                         // Thruster Power (vertical bars at top) - normalized by MaxThrust
                         ImGui::Text("Thruster Power");
-                        const float MaxThrust = UDroneJSONConfig::Get().Config.FlightParams.MaxThrust;
+                        const float MaxThrust = Rotor.MaxThrust;
                         static const char* MotorLabels[] = { "FL", "FR", "BL", "BR" };
                         if (ImGui::BeginTable("##ThrustBars", Ctrl->Thrusts.Num(), ImGuiTableFlags_SizingFixedFit))
                         {

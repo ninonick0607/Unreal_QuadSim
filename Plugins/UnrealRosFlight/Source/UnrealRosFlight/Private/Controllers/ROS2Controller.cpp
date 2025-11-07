@@ -77,14 +77,6 @@ void AROS2Controller::BeginPlay()
 
     if (bNodeStarted) { return; }
     bNodeStarted = true;
-    
-    FPlatformMisc::SetEnvironmentVar(TEXT("ROS_DOMAIN_ID"), TEXT("0"));
-    FPlatformMisc::SetEnvironmentVar(TEXT("RMW_IMPLEMENTATION"), TEXT("rmw_cyclonedds_cpp"));
-
-    UE_LOG(LogTemp, Warning, TEXT("ROS_DOMAIN_ID=%s, RMW=%s"),
-        *FString(FPlatformMisc::GetEnvironmentVariable(TEXT("ROS_DOMAIN_ID"))),
-        *FString(FPlatformMisc::GetEnvironmentVariable(TEXT("RMW_IMPLEMENTATION"))));
-    
     // -- Node init --
     Node = Node ? Node : CreateDefaultSubobject<UROS2NodeComponent>(TEXT("ROS2Node"));
     Node->Name = TEXT("quadsim_node");
@@ -129,12 +121,19 @@ void AROS2Controller::BeginPlay()
         UROS2Publisher::StaticClass(), UROS2ImuMsg::StaticClass(),
         ImuHz, &AROS2Controller::UpdateImuMessage,
         UROS2QoS::SensorData, ImuPublisher);
+    
+    // /baseline/cmd_vel - Velocity PID output for ResNet enhancement
+    ROS2_CREATE_LOOP_PUBLISHER_WITH_QOS(
+        Node, this, TEXT("/baseline/cmd_vel"),
+        UROS2Publisher::StaticClass(), UROS2TwistStampedMsg::StaticClass(),
+        100.0f, &AROS2Controller::UpdateBaselineCommand,
+        UROS2QoS::Default, BaselineCmdPublisher);
 
-    // /ref/vel_local
+    // /ref/vel_local - Desired velocity reference/setpoint
     ROS2_CREATE_LOOP_PUBLISHER_WITH_QOS(
         Node, this, T_RefVel,
-        UROS2Publisher::StaticClass(), UROS2ImuMsg::StaticClass(),
-        ImuHz, &AROS2Controller::UpdateDesiredVel,
+        UROS2Publisher::StaticClass(), UROS2TwistStampedMsg::StaticClass(),
+        50.0f, &AROS2Controller::UpdateReferenceVelocity,
         UROS2QoS::Default, VelRef);
     
     // /tf
@@ -152,17 +151,12 @@ void AROS2Controller::BeginPlay()
         UROS2QoS::Default, ClockPublisher);
 
     // ---------- Subscribers ----------
-    // /resnet/cmd_rate (TwistStamped). Use the macro variant (avoids SetOnMessageCallback signature issues)
+    // /resnet/cmd_vel_residual - Receive enhanced commands from ResNet
     ROS2_CREATE_SUBSCRIBER(
-        Node, this, T_CmdRate,
+        Node, this, T_VelRes,
         UROS2TwistStampedMsg::StaticClass(),
-        &AROS2Controller::HandleCmdRateStamped);
-
-    // If you still want the 3-arg style, older rclUE usually exposes:
-    // CmdRateSubscriber = NewObject<UROS2Subscriber>(this, UROS2Subscriber::StaticClass());
-    // CmdRateSubscriber->Initialize(Node, T_CmdRate, UROS2TwistStampedMsg::StaticClass());
-    // CmdRateSubscriber->OnMessageDelegate.BindUFunction(this, FName("HandleCmdRateStamped"));
-
+        &AROS2Controller::HandleResNetCommand);
+    
     // ---------- Services (rclUE macro) ----------
     ROS2_CREATE_SERVICE_SERVER(
         Node, this,
@@ -211,7 +205,7 @@ void AROS2Controller::BeginPlay()
         }
     }
 
-    UE_LOG(LogTemp, Display, TEXT("[ROS2] Minimal map ready: /clock, /tf(/_static), /quadsim/odom, /quadsim/imu, srv(/pause,/reset,/step), sub /resnet/cmd_rate"));
+    UE_LOG(LogTemp, Display, TEXT("[ROS2] Minimal map ready: /clock, /tf(/_static), /quadsim/odom, /quadsim/imu, srv(/pause,/reset,/step), sub /resnet/cmd_vel_residual"));
 }
 
 
@@ -336,64 +330,67 @@ void AROS2Controller::UpdateImuMessage(UROS2GenericMsg* InMessage)
     Msg->SetMsg(I);
 }
 
-void AROS2Controller::UpdateDesiredVel(UROS2GenericMsg* InMessage)
+void AROS2Controller::UpdateBaselineCommand(UROS2GenericMsg* InMessage)
 {
-    auto* QP  = GetQuadPawn();
-    auto* Msg = Cast<UROS2ImuMsg>(InMessage);
-
-    if (!QP)
+    auto* QP = GetQuadPawn();
+    auto* Msg = Cast<UROS2TwistStampedMsg>(InMessage);
+    FVector CurrentVelPID;
+    if (QP)
     {
-        static bool bLoggedOnce = false;
-        if (!bLoggedOnce)
-        {
-            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: QuadPawn is NULL. Is ROS2Controller set up correctly?"));
-            bLoggedOnce = true;
-        }
-        return;
+        CurrentVelPID = QP->QuadController->GetVelPID();
     }
-    if (!QP->SensorManager)
-    {
-        static bool bLoggedOnce = false;
-        if (!bLoggedOnce)
-        {
-            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: SensorManager is NULL."));
-            bLoggedOnce = true;
-        }
-        return;
-    }
-    if (!QP->SensorManager->IMU)
-    {
-        static bool bLoggedOnce = false;
-        if (!bLoggedOnce)
-        {
-            UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: IMU sensor is NULL."));
-            bLoggedOnce = true;
-        }
-        return;
-    }
-    if (!Msg)
-    {
-        UE_LOG(LogTemp, Error, TEXT("UpdateImuMessage: Message is NULL."));
-        return;
-    }
+    if (!QP || !Msg || !QP->QuadController) return;
+    FROSTwistStamped TS{};
+    TS.Header.Stamp = GetSimTimeStamp();
+    TS.Header.FrameId = TEXT("base_link");
+    
+    FVector VelCmd = CurrentVelPID;
 
-    FROSImu I{};
-    I.Header.Stamp   = GetSimTimeStamp();
-    I.Header.FrameId = TEXT("imu_link");
+    TS.Twist.Linear.X = VelCmd.X;
+    TS.Twist.Linear.Y = VelCmd.Y;
+    TS .Twist.Linear.Z = VelCmd.Z;
 
-    // Orientation from your IMU (deg → quat done inside Quaternion())
-    const FRotator att_d = QP->SensorManager->IMU->GetLastAttitude();
-    I.Orientation = att_d.Quaternion();
-
-    // Angular velocity [rad/s]
-    I.AngularVelocity = QP->SensorManager->IMU->GetLastGyroscope();
-
-    // Linear acceleration [m/s^2]
-    I.LinearAcceleration = QP->SensorManager->IMU->GetLastAccelerometer();
-
-    Msg->SetMsg(I);
+    Msg->SetMsg(TS);
 }
 
+void AROS2Controller::UpdateReferenceVelocity(UROS2GenericMsg* InMessage)
+{
+    auto* QP = GetQuadPawn();
+    auto* Msg = Cast<UROS2TwistStampedMsg>(InMessage);
+    if (!QP || !Msg || !QP->QuadController) return;
+
+    FROSTwistStamped TS{};
+    TS.Header.Stamp = GetSimTimeStamp();
+    TS.Header.FrameId = TEXT("base_link");
+
+    FVector DesiredVel = QP->QuadController->GetDesiredVelocity(); 
+    TS.Twist.Linear.X = DesiredVel.X;
+    TS.Twist.Linear.Y = DesiredVel.Y;
+    TS.Twist.Linear.Z = DesiredVel.Z;
+
+    Msg->SetMsg(TS);
+}
+
+void AROS2Controller::HandleResNetCommand(const UROS2GenericMsg* InMessage)
+{
+    const UROS2TwistStampedMsg* Wrap = Cast<const
+    UROS2TwistStampedMsg>(InMessage);
+    if (!Wrap) return;
+
+    FROSTwistStamped TS{};
+    Wrap->GetMsg(TS);
+
+    // This contains: baseline_cmd + resnet_correction
+    const FVector EnhancedVelCmd(TS.Twist.Linear.X, TS.Twist.Linear.Y, TS.Twist.Linear.Z);
+
+    if (AQuadPawn* QP = GetQuadPawn())
+    {
+        if (QP->QuadController)
+        {
+            QP->QuadController->SetVelocityEnhanced(EnhancedVelCmd);
+        }
+    }
+}
 
 void AROS2Controller::HandleHoverCommand(const UROS2GenericMsg* InMsg)
 {
@@ -478,24 +475,6 @@ void AROS2Controller::HandleResetCommand(const UROS2GenericMsg* InMsg)
     if (QP->QuadController) QP->QuadController->ResetPID();
     UE_LOG(LogTemp, Warning, TEXT("AROS2Controller: Reset command processed (direct calls)."));
 }
-
-void AROS2Controller::HandleCmdRateStamped(const UROS2GenericMsg* InMessage)
-{
-    const UROS2TwistStampedMsg* Wrap = Cast<const UROS2TwistStampedMsg>(InMessage);
-    if (!Wrap) return;
-
-    FROSTwistStamped TS{};
-    Wrap->GetMsg(TS);
-
-    const FVector BodyRateRps(TS.Twist.Angular.X, TS.Twist.Angular.Y, TS.Twist.Angular.Z);
-    const float   ThrustCmd  = TS.Twist.Linear.Z; // define: 0–1 or Newtons
-
-    if (AQuadPawn* QP = GetQuadPawn())
-    {
-        // QP->ApplyExternalRateThrust(BodyRateRps, ThrustCmd);
-    }
-}
-
 
 void AROS2Controller::UpdateOdometryMessage(UROS2GenericMsg* InMessage)
 {

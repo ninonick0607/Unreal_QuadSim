@@ -1,0 +1,3 @@
+[console_scripts]
+adaptive_controller = ros2_adaptive_controller:main
+

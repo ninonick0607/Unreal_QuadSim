@@ -301,13 +301,13 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	/*-------- Velocity PID Control (FLU) -------- */ 
     currentLocalVelocity = currVel;
 	
-	const double xOut = CurrentSet->XPID -> Calculate(desiredLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
-	const double yOut = CurrentSet->YPID -> Calculate(desiredLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
-	const double zOut = CurrentSet->ZPID -> Calculate(desiredLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
+	VelPIDOut.X = CurrentSet->XPID -> Calculate(desiredLocalVelocity.X,currentLocalVelocity.X, DeltaTime);
+	VelPIDOut.Y = CurrentSet->YPID -> Calculate(desiredLocalVelocity.Y,currentLocalVelocity.Y, DeltaTime);
+	VelPIDOut.Z = CurrentSet->ZPID -> Calculate(desiredLocalVelocity.Z,currentLocalVelocity.Z, DeltaTime);
 	
-	/*-------- Angle P Control -------- */ 
-	desiredPitch = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewPitch: FMath::Clamp( xOut, -maxAngle,  maxAngle);
-	desiredRoll  = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewRoll: FMath::Clamp( yOut, -maxAngle,  maxAngle);
+    /*-------- Angle P Control -------- */ 
+    desiredPitch = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewPitch: FMath::Clamp( VelocityEnhanced.X, -maxAngle,  maxAngle);
+    desiredRoll  = (currentFlightMode == EFlightMode::AngleControl) ? desiredNewRoll: FMath::Clamp( VelocityEnhanced.Y, -maxAngle,  maxAngle);
 	
 	const double rollOut  = CurrentSet ->RollPID->Calculate(desiredRoll,currRot.Roll , DeltaTime);
 	const double pitchOut = CurrentSet ->PitchPID->Calculate(desiredPitch,currRot.Pitch, DeltaTime);
@@ -325,7 +325,7 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	const float yawOutput = YawRateControl(DeltaTime);
 
     //  Mix & apply motor thrusts / torques (use commanded tilt for compensation)
-    ThrustMixer(desiredPitch, desiredRoll, zOut, rollRateOut, pitchRateOut, yawOutput);
+    ThrustMixer(desiredPitch, desiredRoll, VelocityEnhanced.Z, rollRateOut, pitchRateOut, yawOutput);
 	//  Debug drawing and on-screen HUD (optional)
 	DrawDebugVisualsVel(FVector(desiredLocalVelocity.X, desiredLocalVelocity.Y, 0.f));
 	

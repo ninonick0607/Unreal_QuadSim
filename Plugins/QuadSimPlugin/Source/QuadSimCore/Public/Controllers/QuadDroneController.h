@@ -104,6 +104,7 @@ public:
 
     // Setters and Getters
     FVector GetDesiredVelocity() const { return desiredNewVelocity; }
+    FVector GetVelPID() const {return VelPIDOut;}
     bool GetDebugVisualsEnabled() const { return bDebugVisualsEnabled; }
     
     float GetDesiredRoll() const { return desiredRoll; }
@@ -112,9 +113,8 @@ public:
     double GetDesiredRollRate() const {return desiredRollRate;}
     double GetDesiredPitchRate() const {return desiredPitchRate;}
     float GetDesiredYawRate() const { return desiredYawRate; }
-
-    EFlightMode GetFlightMode() const { return currentFlightMode; }
     
+    EFlightMode GetFlightMode() const { return currentFlightMode; }
     FVector GetCurrentSetPoint() const { return setPoint; }
     
     void SetDebugVisualsEnabled(bool bEnabled) { bDebugVisualsEnabled = bEnabled; }
@@ -133,6 +133,8 @@ public:
     void SetDesiredRollRate(const float& NewRollRate){desiredNewRollRate = NewRollRate;};
     void SetDesiredYawRate(float NewYawRate) { desiredYawRate = NewYawRate; }
 
+    void SetVelocityEnhanced(FVector NewEnhancedUpdate){VelocityEnhanced = NewEnhancedUpdate;}
+    
     FFullPIDSet* GetPIDSet(EFlightMode Mode){return &PIDSet;}
 
     // External Control Support (PX4 integration)
@@ -195,4 +197,9 @@ private:
 
     // Debug-draw guard to avoid duplicate draws per frame from multiple callers
     bool bDrewMagDebugThisFrame = false;
+    // PID Variables
+    FVector VelPIDOut = FVector(0, 0, 0);
+
+    //Resnet
+    FVector VelocityEnhanced = FVector(0, 0, 0);
 };

@@ -103,34 +103,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Uproject.Unreal_QuadSim.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Uproject.Unreal_QuadSim.executor": "Run",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Unreal_QuadSim" type="Uproject" factoryName="rider.uproject">
       <configuration_1 setup="1">
         <option name="CONFIGURATION" value="DebugGame Editor" />
         <option name="PLATFORM" value="Linux" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
-        <option name="EXECUTABLE_PATH" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1/Engine/Binaries/Linux/UnrealEditor-Linux-DebugGame" />
+        <option name="EXECUTABLE_PATH" value="$USER_HOME$/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Linux-DebugGame" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value=" &quot;$PROJECT_DIR$/Unreal_QuadSim.uproject&quot;" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -140,10 +140,10 @@
         <option name="CONFIGURATION" value="DebugGame Editor" />
         <option name="PLATFORM" value="LinuxArm64" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
-        <option name="EXECUTABLE_PATH" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1/Engine/Binaries/LinuxArm64/UnrealEditor-LinuxArm64-DebugGame" />
+        <option name="EXECUTABLE_PATH" value="$USER_HOME$/UnrealEngine/Engine/Binaries/LinuxArm64/UnrealEditor-LinuxArm64-DebugGame" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value=" &quot;$PROJECT_DIR$/Unreal_QuadSim.uproject&quot;" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -156,7 +156,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/Linux/Unreal_QuadSim-Linux-DebugGame" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -169,7 +169,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/LinuxArm64/Unreal_QuadSim-LinuxArm64-DebugGame" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -179,10 +179,10 @@
         <option name="CONFIGURATION" value="Development Editor" />
         <option name="PLATFORM" value="Linux" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
-        <option name="EXECUTABLE_PATH" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1/Engine/Binaries/Linux/UnrealEditor" />
+        <option name="EXECUTABLE_PATH" value="$USER_HOME$/UnrealEngine/Engine/Binaries/Linux/UnrealEditor" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value=" &quot;$PROJECT_DIR$/Unreal_QuadSim.uproject&quot;" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -192,10 +192,10 @@
         <option name="CONFIGURATION" value="Development Editor" />
         <option name="PLATFORM" value="LinuxArm64" />
         <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
-        <option name="EXECUTABLE_PATH" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1/Engine/Binaries/LinuxArm64/UnrealEditor" />
+        <option name="EXECUTABLE_PATH" value="$USER_HOME$/UnrealEngine/Engine/Binaries/LinuxArm64/UnrealEditor" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value=" &quot;$PROJECT_DIR$/Unreal_QuadSim.uproject&quot;" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -208,7 +208,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/Linux/Unreal_QuadSim" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -221,7 +221,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/LinuxArm64/Unreal_QuadSim" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -234,7 +234,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/Linux/Unreal_QuadSim-Linux-Shipping" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -247,7 +247,7 @@
         <option name="EXECUTABLE_PATH" value="$PROJECT_DIR$/Binaries/LinuxArm64/Unreal_QuadSim-LinuxArm64-Shipping" />
         <option name="MANDATORY_PROGRAM_PARAMETERS" value="" />
         <option name="CUSTOM_PROGRAM_PARAMETERS" value="" />
-        <option name="WORKING_DIRECTORY" value="$USER_HOME$/Linux_Unreal_Engine_5.6.1" />
+        <option name="WORKING_DIRECTORY" value="$USER_HOME$/UnrealEngine" />
         <option name="PASS_PARENT_ENVS" value="1" />
         <option name="USE_EXTERNAL_CONSOLE" value="0" />
         <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
@@ -347,6 +347,8 @@
       <workItem from="1760578834991" duration="12229000" />
       <workItem from="1760627515814" duration="2087000" />
       <workItem from="1760721530524" duration="1912000" />
+      <workItem from="1761328459904" duration="3854000" />
+      <workItem from="1762478001204" duration="336000" />
     </task>
     <servers />
   </component>

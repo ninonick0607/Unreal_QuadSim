@@ -36,13 +36,14 @@ protected:
 
     // Loop pubs
     UFUNCTION() void UpdateOdometryMessage(class UROS2GenericMsg* InMessage);
-    UFUNCTION() void UpdateImuMessage(class UROS2GenericMsg* InMessage);       // NEW
+    UFUNCTION() void UpdateImuMessage(class UROS2GenericMsg* InMessage);       
     UFUNCTION() void UpdateTFMessage(class UROS2GenericMsg* InMessage);
-    UFUNCTION() void UpdateClockMessage(class UROS2GenericMsg* InMessage);     // NEW
-    UFUNCTION() void UpdateDesiredVel(class UROS2GenericMsg* InMessage);       // NEW
+    UFUNCTION() void UpdateClockMessage(class UROS2GenericMsg* InMessage);   
+    UFUNCTION() void UpdateBaselineCommand(class UROS2GenericMsg* InMessage);
+    UFUNCTION() void UpdateReferenceVelocity(class UROS2GenericMsg* InMessage);
 
     // Sub handlers
-    UFUNCTION() void HandleCmdRateStamped(const class UROS2GenericMsg* InMessage); // NEW TwistStamped
+    UFUNCTION() void HandleResNetCommand(const class UROS2GenericMsg* InMessage);
     UFUNCTION() void HandleResetCommand(const class UROS2GenericMsg* InMessage);
     UFUNCTION() void HandleHoverCommand(const class UROS2GenericMsg* InMessage);
     UFUNCTION() void HandleAttitudeEuler(const class UROS2GenericMsg* InMessage);
@@ -80,18 +81,19 @@ private:
     UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
     FString T_Imu    = TEXT("/quadsim/imu");
     UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
-    FString T_CmdRate= TEXT("/resnet/cmd_vel_residual");
+    FString T_VelRes= TEXT("/resnet/cmd_vel_residual");
     UPROPERTY(VisibleAnywhere, Category="ROS2|Topics")
     FString T_RefVel= TEXT("/ref/vel_local");
     
     // Node & Pubs
     UPROPERTY() UROS2NodeComponent* Node            = nullptr;
     UPROPERTY() UROS2Publisher*     OdomPublisher   = nullptr;
-    UPROPERTY() UROS2Publisher*     ImuPublisher    = nullptr; // NEW
+    UPROPERTY() UROS2Publisher*     ImuPublisher    = nullptr;
+    UPROPERTY() UROS2Publisher* BaselineCmdPublisher = nullptr; 
     UPROPERTY() UROS2Publisher*     VelRef    = nullptr;
     UPROPERTY() UROS2Publisher*     TfPublisher     = nullptr;
-    UPROPERTY() UROS2Publisher*     TfStaticPublisher = nullptr; // NEW (one-shot)
-    UPROPERTY() UROS2Publisher*     ClockPublisher  = nullptr; // NEW
+    UPROPERTY() UROS2Publisher*     TfStaticPublisher = nullptr; 
+    UPROPERTY() UROS2Publisher*     ClockPublisher  = nullptr; 
 
     // Sub
     UPROPERTY() UROS2Subscriber*    CmdRateSubscriber = nullptr;

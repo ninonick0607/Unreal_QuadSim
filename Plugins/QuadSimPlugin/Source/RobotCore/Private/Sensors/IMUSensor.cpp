@@ -42,12 +42,15 @@ FVector UIMUSensor::SampleRawAcceleration(float DeltaTime)
 	if (!bInitialized || !AttachedBody || DeltaTime <= 0.f)
 		return FVector::ZeroVector;
 
-	FVector CurrVel = AttachedBody->GetPhysicsLinearVelocity();
+	FVector CurrVel = AttachedBody->GetPhysicsLinearVelocity()/100.f; //cm/s -> m/s
 	FVector RawAccel = (CurrVel - PreviousVelocity) / DeltaTime;
 	PreviousVelocity = CurrVel;
 
+	const FVector Gravity(0.0f,0.0f,-9.81f);
+	const FVector BodyAccel = RawAccel - Gravity;
+	
 	// Convert to m/s^2 and transform to body frame
-	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAccel / 100.0f);
+	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(BodyAccel);
 }
 
 FVector UIMUSensor::SampleRawAngularVelocity()

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Simple wrapper to launch the adaptive controller via Python module
+exec python3 -c "import ros2_adaptive_controller as m; m.main()" "$@"

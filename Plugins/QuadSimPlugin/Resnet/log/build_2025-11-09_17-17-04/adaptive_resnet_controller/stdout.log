@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing adaptive_resnet_controller.egg-info/PKG-INFO
+writing dependency_links to adaptive_resnet_controller.egg-info/dependency_links.txt
+writing entry points to adaptive_resnet_controller.egg-info/entry_points.txt
+writing requirements to adaptive_resnet_controller.egg-info/requires.txt
+writing top-level names to adaptive_resnet_controller.egg-info/top_level.txt
+reading manifest file 'adaptive_resnet_controller.egg-info/SOURCES.txt'
+writing manifest file 'adaptive_resnet_controller.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/lib/python3.10/site-packages/adaptive-resnet-controller.egg-link (link to .)
+Installing adaptive_controller script to /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/bin
+
+Installed /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller
+running symlink_data

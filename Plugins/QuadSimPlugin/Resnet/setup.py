@@ -8,6 +8,10 @@ setup(
     name=package_name,
     version='0.1.0',
     packages=find_packages(),
+    py_modules=[
+        'ros2_adaptive_controller',
+        'resnet_plotter',
+    ],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -19,6 +23,7 @@ setup(
         # Ensure ROS 2 launch can find the executable under lib/<package>
         (os.path.join('lib', package_name), [
             'scripts/adaptive_controller',
+            'scripts/resnet_plotter',
         ]),
     ],
     install_requires=['setuptools'],
@@ -31,6 +36,7 @@ setup(
     entry_points={
         'console_scripts': [
             'adaptive_controller = ros2_adaptive_controller:main',
+            'resnet_plotter = resnet_plotter:main',
         ],
     },
 )

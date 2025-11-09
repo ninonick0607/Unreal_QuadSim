@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Simple wrapper to launch the ResNet plotter via Python module
+exec python3 -c "import resnet_plotter as m; m.main()" "$@"

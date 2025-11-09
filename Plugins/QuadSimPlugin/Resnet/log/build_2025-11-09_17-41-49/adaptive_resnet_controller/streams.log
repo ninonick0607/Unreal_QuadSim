@@ -1,0 +1,21 @@
+[0.340s] Invoking command in '/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet': PYTHONPATH=/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/adaptive_resnet_controller build --build-base /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/build install --record /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/install.log --single-version-externally-managed install_data
+[0.469s] running egg_info
+[0.469s] writing build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/PKG-INFO
+[0.470s] writing dependency_links to build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/dependency_links.txt
+[0.470s] writing entry points to build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/entry_points.txt
+[0.470s] writing requirements to build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/requires.txt
+[0.470s] writing top-level names to build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/top_level.txt
+[0.471s] reading manifest file 'build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/SOURCES.txt'
+[0.471s] writing manifest file 'build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info/SOURCES.txt'
+[0.471s] running build
+[0.471s] running build_py
+[0.472s] running install
+[0.472s] running install_lib
+[0.473s] running install_data
+[0.473s] running install_egg_info
+[0.474s] removing '/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/lib/python3.10/site-packages/adaptive_resnet_controller-0.1.0-py3.10.egg-info' (and everything under it)
+[0.474s] Copying build/adaptive_resnet_controller/adaptive_resnet_controller.egg-info to /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/lib/python3.10/site-packages/adaptive_resnet_controller-0.1.0-py3.10.egg-info
+[0.474s] running install_scripts
+[0.487s] Installing adaptive_controller script to /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/bin
+[0.488s] writing list of installed files to '/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/install.log'
+[0.504s] Invoked command in '/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet' returned '0': PYTHONPATH=/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/install/adaptive_resnet_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/adaptive_resnet_controller build --build-base /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/build install --record /home/ninonick0426/Documents/GitHub/Unreal_QuadSim/Plugins/QuadSimPlugin/Resnet/build/adaptive_resnet_controller/install.log --single-version-externally-managed install_data

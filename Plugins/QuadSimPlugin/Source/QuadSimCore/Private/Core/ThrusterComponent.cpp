@@ -53,7 +53,7 @@ void UThrusterComponent::ApplyTorque(const FVector& Torque, bool bIsDegrees /*= 
         UE_LOG(LogTemp, Warning, TEXT("ThrusterComponent: Root is not simulating physics!"));
         return;
     }
-    RootPrim->AddTorqueInDegrees(Torque, NAME_None, true);
+    RootPrim->AddTorqueInRadians(Torque, NAME_None, true);
     
 }
 

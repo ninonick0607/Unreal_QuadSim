@@ -685,7 +685,7 @@ void USimHUDTaskbarSubsystem::DrawPIDSettingsPanel(UQuadDroneController* InContr
     static float minAngleGain = 0.01f;
     static float maxAngleGain = 3.0f;
     static float minRateGain = 0.01f;
-    static float maxRateGain = 3.0f;
+    static float maxRateGain = .50f;
     static float minYawRateGain = 0.01f;
     static float maxYawRateGain = 2.0f;
 

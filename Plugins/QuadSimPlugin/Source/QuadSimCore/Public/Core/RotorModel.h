@@ -31,7 +31,6 @@ struct FRotorModel
 
         const float n2 = RevPerSec * RevPerSec;
         MaxThrust = C_T * AirDensity * n2 * FMath::Pow(PropDiameter, 4);
-        
         MaxTorque = C_P * AirDensity * n2 * FMath::Pow(PropDiameter, 5) / (2.f * PI);
 
     }

@@ -69,11 +69,11 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 
 	ControllerSet.XPID = new QuadPIDController();
 	ControllerSet.XPID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.XPID->SetGains(3.f, 0.f, 0.0f);
+	ControllerSet.XPID->SetGains(5.f, 0.f, 0.0f);
 
 	ControllerSet.YPID = new QuadPIDController();
 	ControllerSet.YPID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.YPID->SetGains(3.f, 0.0f, 0.0f);
+	ControllerSet.YPID->SetGains(5.f, 0.0f, 0.0f);
 
 	ControllerSet.ZPID = new QuadPIDController();
 	ControllerSet.ZPID->SetLimits(-maxPIDOutput, maxPIDOutput);
@@ -81,19 +81,19 @@ UQuadDroneController::UQuadDroneController(const FObjectInitializer& ObjectIniti
 
 	ControllerSet.RollPID = new QuadPIDController();
 	ControllerSet.RollPID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.RollPID->SetGains(0.9f, 0.2f, 0.34f);
+	ControllerSet.RollPID->SetGains(2.f, 0.f, 0.2f);
 
 	ControllerSet.PitchPID = new QuadPIDController();
 	ControllerSet.PitchPID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.PitchPID->SetGains(0.9f, 0.2f, 0.34f);
+	ControllerSet.PitchPID->SetGains(2.f, 0.f, 0.2f);
 
 	ControllerSet.RollRatePID = new QuadPIDController();
 	ControllerSet.RollRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.RollRatePID->SetGains(0.65f, 0.4f, 0.05f);
+	ControllerSet.RollRatePID->SetGains(0.1f, 0.06f, 0.f);
 	
 	ControllerSet.PitchRatePID = new QuadPIDController();
 	ControllerSet.PitchRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
-	ControllerSet.PitchRatePID->SetGains(0.65f, 0.4f, 0.05f);
+	ControllerSet.PitchRatePID->SetGains(0.1f, 0.06f, 0.f);
 	
 	ControllerSet.YawRatePID = new QuadPIDController();
 	ControllerSet.YawRatePID->SetLimits(-maxPIDOutput, maxPIDOutput);
@@ -252,9 +252,7 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	FVector AngularRate = SensorData.IMUAngVelDEGS;
 	localAngularRateDeg = AngularRate;
 	
-	
 	// Get world angular velocity and transform it to local frame using yaw-only rotation
-
 	if (bUseExternalController)
 	{
         
@@ -320,12 +318,10 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	
 	const double rollOut  = CurrentSet ->RollPID->Calculate(desiredRoll,currRot.Roll , DeltaTime);
 	const double pitchOut = CurrentSet ->PitchPID->Calculate(desiredPitch,currRot.Pitch, DeltaTime);
-
-
+	
 	/*-------- Angle Rate PID Control -------- */ 
-
-	desiredPitchRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewPitchRate: FMath::Clamp(pitchOut, -maxAngleRate, maxAngleRate); // Implement switch here for angle control using DesiredNewPitchRate
-	desiredRollRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewRollRate: FMath::Clamp(rollOut, -maxAngleRate,  maxAngleRate); // Implement switch here for angle control 
+	desiredPitchRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewPitchRate: FMath::Clamp(pitchOut, -maxAngleRate, maxAngleRate); 
+	desiredRollRate = (currentFlightMode == EFlightMode::RateControl) ? desiredNewRollRate: FMath::Clamp(rollOut, -maxAngleRate,  maxAngleRate);  
 	
 	const double rollRateOut  = CurrentSet->RollRatePID->Calculate(desiredRollRate,localAngularRateDeg.X,  DeltaTime);
 	const double pitchRateOut = CurrentSet->PitchRatePID->Calculate(desiredPitchRate,localAngularRateDeg.Y, DeltaTime);
@@ -368,7 +364,7 @@ void UQuadDroneController::ThrustMixer(double desiredPitchDeg, double desiredRol
 	// Normalize rate commands to [-1,1]
 	const float rollCmd  = FMath::Clamp(float(rollRateOut  / maxAngleRate), -1.f, 1.f);
 	const float pitchCmd = FMath::Clamp(float(pitchRateOut / maxAngleRate), -1.f, 1.f);
-	const float yawCmd   = FMath::Clamp(float(yawOut       / maxYawRate  ), -1.f, 1.f);
+	const float yawCmd   = FMath::Clamp(float(yawOut       / maxYawRate  ), -1.f, 1.f);		
 
 	// ---- Z control: treat Z PID output as accel command (Option B) ----
 	// Convert your Z PID to output m/s^2 (do this in tuning: derivative on velocity, integral on position if you like).
@@ -380,8 +376,7 @@ void UQuadDroneController::ThrustMixer(double desiredPitchDeg, double desiredRol
 	float throttle01 = HoverThrottle01 * (1.f + az_cmd / g);  // around hover
 
 	// Tilt compensation using desired angles (degrees)
-	const float tiltRad = FMath::DegreesToRadians( FMath::Sqrt(desiredPitchDeg*desiredPitchDeg +
-															   desiredRollDeg *desiredRollDeg) );
+	const float tiltRad = FMath::DegreesToRadians( FMath::Sqrt(desiredPitchDeg*desiredPitchDeg + desiredRollDeg *desiredRollDeg) );
 	const float tiltComp = 1.f / FMath::Max(0.3f, FMath::Cos(tiltRad)); // keep denominator sane
 	throttle01 *= tiltComp;
 
@@ -459,15 +454,16 @@ void UQuadDroneController::ApplyMotorForces_From01(const TArray<float>& motor01)
 
         const float cs = FMath::Clamp(motor01[i], 0.f, 1.f);
         const float thrustN   = (cs * Rotor.MaxThrust * AirDensityRatio);      // N
-        const float yawTorque = cs * Rotor.MaxTorque * (float)TurnDir[i] * AirDensityRatio; // N·m
+        const float yawTorque = cs * (float)TurnDir[i] * AirDensityRatio; // N·m
 
         UThrusterComponent* Thr = dronePawn->Thrusters[i];
         Thr->ApplyForce(thrustN);
-
-        // Yaw torque: apply about +X local axis (per-rotor, like AirSim). Use radians.
+    	
         const FTransform Xf = Thr->GetComponentTransform();
         const FVector AxisX = Xf.GetUnitAxis(EAxis::X);
-        Thr->ApplyTorque(AxisX * yawTorque, /*bIsDegrees=*/ false);
+    	UE_LOG(LogTemp, Warning, TEXT("PID Yaw Torque in O1: %f"),  yawTorque);
+
+        Thr->ApplyTorque(AxisX*yawTorque, /*bIsDegrees=*/ false);
     }
 }
 
@@ -479,12 +475,15 @@ float  UQuadDroneController::YawRateControl(double DeltaTime)
 	FFullPIDSet* CurrentSet = &PIDSet;
 	if (!CurrentSet) return 0.0f;
 	
-	FVector currentAngularVelocity = dronePawn->DroneBody->GetPhysicsAngularVelocityInDegrees();
+	FVector currentAngularVelocity = dronePawn->DroneBody->GetPhysicsAngularVelocityInRadians();
 	float currentYawRate = currentAngularVelocity.Z;
 
 	float currentdesiredYawRate = desiredYawRate;
 	float yawTorqueFeedback = CurrentSet->YawRatePID->Calculate(currentdesiredYawRate,currentYawRate, DeltaTime);
+	UE_LOG(LogTemp, Warning, TEXT("PID Yaw: %f"),  yawTorqueFeedback);
+
 	return yawTorqueFeedback;
+	
 }
 
 //=========================== Reset =========================== //

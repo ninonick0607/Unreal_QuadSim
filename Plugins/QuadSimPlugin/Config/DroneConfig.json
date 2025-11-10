@@ -6,7 +6,7 @@
 		"max_angle_bound": 180,
 		"max_angle": 45,
 		"max_angle_rate": 45,
-		"max_pid_output": 10000,
+		"max_pid_output": 700,
 		"max_thrust": 700,
 		"altitude_threshold": 0.60000002384185791,
 		"min_altitude_local": 2,

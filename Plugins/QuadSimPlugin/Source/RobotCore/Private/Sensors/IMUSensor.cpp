@@ -42,12 +42,11 @@ FVector UIMUSensor::SampleRawAcceleration(float DeltaTime)
 	if (!bInitialized || !AttachedBody || DeltaTime <= 0.f)
 		return FVector::ZeroVector;
 
-	FVector CurrVel = AttachedBody->GetPhysicsLinearVelocity();
+	FVector CurrVel = AttachedBody->GetPhysicsLinearVelocity()/100.f;
 	FVector RawAccel = (CurrVel - PreviousVelocity) / DeltaTime;
 	PreviousVelocity = CurrVel;
-
-	// Convert to m/s^2 and transform to body frame
-	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(RawAccel / 100.0f);
+	FVector Accel = FVector(RawAccel.X, RawAccel.Y,RawAccel.Z-9.81f );
+	return AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(Accel);
 }
 
 FVector UIMUSensor::SampleRawAngularVelocity()
@@ -55,27 +54,11 @@ FVector UIMUSensor::SampleRawAngularVelocity()
 	if (!bInitialized || !AttachedBody)
 		return FVector::ZeroVector;
 
-	// UE world ω (rad/s) -> body(FRU) ω (rad/s)
 	const FVector world_w_rad = AttachedBody->GetPhysicsAngularVelocityInRadians();
 	const FVector w_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(world_w_rad);
 	const FVector pqr_frd =  FVector(-w_fru.X,w_fru.Y,w_fru.Z);
-	return pqr_frd;  // X=roll rate, Y=pitch rate, Z=yaw rate (UE, FRD)
+	return pqr_frd; 
 }
-
-// FVector UIMUSensor::SampleRawVelocity()
-// {
-// 	if (!bInitialized || !AttachedBody) return FVector::ZeroVector;
-//
-// 	const FVector v_world_cms = AttachedBody->GetPhysicsLinearVelocity(); // cm/s
-// 	const FVector v_world     = v_world_cms / 100.f;                      // m/s
-//
-// 	// Bring to body(FRU)
-// 	const FVector v_fru = AttachedBody->GetComponentTransform().InverseTransformVectorNoScale(v_world);
-//
-// 	// FRU -> FRD (X = X, Y = Y, Z = -Z)
-// 	return FVector(v_fru.X, v_fru.Y, v_fru.Z);
-// }
-
 
 FVector UIMUSensor::SampleRawVelocity()
 {
@@ -99,14 +82,6 @@ FRotator UIMUSensor::SampleRawAttitude()
 	frd.Yaw   = fru.Yaw;    // right-turn positive in NED
 	return frd;
 }
-
-// FRotator UIMUSensor::SampleRawAttitude()
-// {
-// 	if (!bInitialized || !AttachedBody)
-// 		return FRotator::ZeroRotator;
-//
-// 	return AttachedBody->GetComponentRotation(); // UE: Pitch += nose down, Roll += right
-// }
 
 void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)
 {
@@ -161,6 +136,9 @@ void UIMUSensor::UpdateSensor(float DeltaTime, bool bNoise)
     LastGyroscope = Gyro;
     LastVelocity = Velocity;  // You'll need to add this member variable
     LastAttitude = Attitude;  // You'll need to add this member variable
+
+	LastQuatNB = AttachedBody->GetComponentQuat();
+
 }
 
 float UIMUSensor::SensorNoise()

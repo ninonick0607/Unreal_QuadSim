@@ -29,6 +29,7 @@ public:
 	FVector GetLastGyroscope() { return LastGyroscope; }
 	FVector GetLastGyroscopeDegrees() { return  FMath::RadiansToDegrees(LastGyroscope); }
 	FVector GetLastVelocity(){return LastVelocity;}
+	const FQuat&   GetLastQuatNB()       const { return LastQuatNB; }          // FRD->NED
 	FRotator GetLastAttitude(){return LastAttitude;}
 	void Initialize();
 	void BeginFrame() { bNeedsFirstAccelSample = true; }
@@ -42,6 +43,7 @@ private:
 	FVector LastGyroscope = FVector::ZeroVector;
     FVector LastVelocity = FVector::ZeroVector;
 	FRotator LastAttitude = FRotator::ZeroRotator;
+	FQuat LastQuatNB = FQuat::Identity; 
 	FVector PreviousVelocity;
 	bool bInitialized = false;
     

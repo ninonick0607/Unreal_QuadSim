@@ -1,309 +1,63 @@
-// CoordinateTransform.h
 #pragma once
-
 #include "CoreMinimal.h"
-#include "CoordinateTransform.generated.h"
 
-/**
- * Unified coordinate transformation class for QuadSim
- * Handles all coordinate system conversions, unit conversions, and frame transformations
- * 
- * Coordinate Systems:
- * - Unreal: Forward-Right-Up (FRU), centimeters (Unreal's native left-handed)
- * - NED: North-East-Down, meters (aerospace/PX4 standard)
- * - ENU: East-North-Up, meters (ROS standard)
- * - Body: Vehicle-fixed frame
- * - World: Global frame
- */
-UCLASS(BlueprintType)
-class ROBOTCORE_API UCoordinateTransform : public UObject
+namespace Frames
 {
-    GENERATED_BODY()
+    // ENU(x=East, y=North, z=Up)  <->  NED(x=North, y=East, z=Down)
+    FORCEINLINE FVector ENU_to_NED(const FVector& v_enu)
+    {
+        return FVector(v_enu.Y, v_enu.X, -v_enu.Z);
+    }
+    FORCEINLINE FVector NED_to_ENU(const FVector& v_ned)
+    {
+        return FVector(v_ned.Y, v_ned.X, -v_ned.Z);
+    }
 
-public:
-    UCoordinateTransform();
+    // Body FRU(x=Fwd, y=Right, z=Up)  <->  FRD(x=Fwd, y=Right, z=Down)
+    FORCEINLINE FVector FRU_to_FRD(const FVector& v_fru)
+    {
+        return FVector(v_fru.X, v_fru.Y, -v_fru.Z);
+    }
+    FORCEINLINE FVector FRD_to_FRU(const FVector& v_frd)
+    {
+        return FVector(v_frd.X, v_frd.Y, -v_frd.Z);
+    }
 
-    // ==================== POSITION TRANSFORMS ====================
-    
-    /**
-     * Convert position from Unreal (FLU, cm) to NED (m)
-     * @param UnrealPos Position in Unreal coordinates (cm)
-     * @return Position in NED coordinates (m)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealToNED(const FVector& UnrealPos);
-    
-    /**
-     * Convert position from NED (m) to Unreal (FLU, cm)
-     * @param NEDPos Position in NED coordinates (m)
-     * @return Position in Unreal coordinates (cm)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector NEDToUnreal(const FVector& NEDPos);
+    // World vector UE ENU to core NED
+    FORCEINLINE FVector UEWorldVec_to_NED(const FVector& v_world_enu)
+    {
+        // UE units are cm by default, convert to meters and swap axes
+        return ENU_to_NED(v_world_enu / 100.f);
+    }
 
-    /**
-     * Convert position from Unreal (FRU, meters) to NED (m)
-     * Use when your input is already meters (e.g., GPS sensor which returns m)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealMetersToNED(const FVector& UnrealPosMeters);
-    
-    /**
-     * Convert position from Unreal (FLU, cm) to ENU (m)
-     * @param UnrealPos Position in Unreal coordinates (cm)
-     * @return Position in ENU coordinates (m)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealToENU(const FVector& UnrealPos);
-    
-    /**
-     * Convert position from ENU (m) to Unreal (FLU, cm)
-     * @param ENUPos Position in ENU coordinates (m)
-     * @return Position in Unreal coordinates (cm)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector ENUToUnreal(const FVector& ENUPos);
+    // World angular velocity is already rad/s, only axis swap ENU->NED is needed if you ever express as world
+    // Body transform helpers using component transform
+    FORCEINLINE FVector WorldToBody_FRU(const FTransform& T_wb, const FVector& v_world)
+    {
+        return T_wb.InverseTransformVectorNoScale(v_world);
+    }
+    FORCEINLINE FVector Body_FRU_to_FRD(const FVector& v_fru)
+    {
+        return FRU_to_FRD(v_fru);
+    }
 
-    // ==================== VELOCITY TRANSFORMS ====================
-    
-    /**
-     * Convert velocity from Unreal (FLU, cm/s) to NED (m/s)
-     * @param UnrealVel Velocity in Unreal coordinates (cm/s)
-     * @return Velocity in NED coordinates (m/s)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealVelocityToNED(const FVector& UnrealVel);
-    
-    /**
-     * Convert velocity from Unreal (FLU, cm/s) to ENU (m/s)
-     * @param UnrealVel Velocity in Unreal coordinates (cm/s)
-     * @return Velocity in ENU coordinates (m/s)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealVelocityToENU(const FVector& UnrealVel);
+    // Quaternion ENU->NED. Build from rotation matrix P that permutes axes.
+    FORCEINLINE FQuat Q_ENU_to_NED()
+    {
+        // P = [[0,1,0],[1,0,0],[0,0,-1]]
+        const FMatrix P(
+            FPlane(0, 1,  0, 0),
+            FPlane(1, 0,  0, 0),
+            FPlane(0, 0, -1, 0),
+            FPlane(0, 0,  0, 1));
+        return FQuat(P);
+    }
 
-    /**
-     * Convert velocity from Unreal (FRU, m/s) to NED (m/s)
-     * Use when your input is already m/s (e.g., IMU velocity)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealMetersVelocityToNED(const FVector& UnrealVelMS);
-
-    // ==================== ROTATION TRANSFORMS ====================
-    
-    /**
-     * Convert rotation from Unreal to NED frame
-     * @param UnrealRot Rotation in Unreal frame
-     * @return Rotation in NED frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FRotator UnrealRotationToNED(const FRotator& UnrealRot);
-    
-    /**
-     * Convert rotation from Unreal to ENU frame
-     * @param UnrealRot Rotation in Unreal frame
-     * @return Rotation in ENU frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FRotator UnrealRotationToENU(const FRotator& UnrealRot);
-    
-    /**
-     * Convert quaternion from Unreal to NED frame
-     * @param UnrealQuat Quaternion in Unreal frame
-     * @return Quaternion in NED frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FQuat UnrealQuaternionToNED(const FQuat& UnrealQuat);
-    
-    /**
-     * Convert quaternion from Unreal to ENU frame
-     * @param UnrealQuat Quaternion in Unreal frame
-     * @return Quaternion in ENU frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FQuat UnrealQuaternionToENU(const FQuat& UnrealQuat);
-
-    // ==================== ANGULAR VELOCITY TRANSFORMS ====================
-    
-    /**
-     * Convert angular velocity from Unreal (deg/s) to NED (rad/s)
-     * @param UnrealAngVel Angular velocity in Unreal frame (deg/s)
-     * @return Angular velocity in NED frame (rad/s)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealAngularVelocityToNED(const FVector& UnrealAngVel);
-    
-    /**
-     * Convert angular velocity from Unreal (deg/s) to ENU (rad/s)
-     * @param UnrealAngVel Angular velocity in Unreal frame (deg/s)
-     * @return Angular velocity in ENU frame (rad/s)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealAngularVelocityToENU(const FVector& UnrealAngVel);
-
-    // ==================== FRAME TRANSFORMS ====================
-
-    /**
-     * Transform accelerometer data from Unreal body frame (FLU) to PX4 body frame (FRD)
-     * This is critical for PX4 integration - gravity must appear as negative Z in FRD frame
-     * @param UnrealBodyAccel Acceleration in Unreal body frame (FLU, m/s²)
-     * @return Acceleration in PX4 body frame (FRD, m/s²)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealBodyAccelToFRD(const FVector& UnrealBodyAccel);
-
-    /**
-     * Transform angular velocity from Unreal body frame (FLU) to PX4 body frame (FRD)
-     * @param UnrealBodyAngVel Angular velocity in Unreal body frame (FLU, deg/s)
-     * @return Angular velocity in PX4 body frame (FRD, rad/s)
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealBodyAngVelToFRD(const FVector& UnrealBodyAngVel);
-
-    /**
-     * Generic body-frame vector transform from Unreal body (FRU) to PX4 body (FRD)
-     * Use for vectors like magnetometer that are already in body frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector UnrealBodyToFRD(const FVector& UnrealBodyVec);
-
-    /**
-     * Transform vector from world frame to body frame
-     * @param WorldVector Vector in world frame
-     * @param BodyRotation Current body rotation in world frame
-     * @return Vector in body frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector WorldToBodyFrame(const FVector& WorldVector, const FRotator& BodyRotation);
-    
-    /**
-     * Transform vector from world frame to body frame using quaternion
-     * @param WorldVector Vector in world frame
-     * @param BodyQuat Current body quaternion in world frame
-     * @return Vector in body frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector WorldToBodyFrameQuat(const FVector& WorldVector, const FQuat& BodyQuat);
-    
-    /**
-     * Transform vector from body frame to world frame
-     * @param BodyVector Vector in body frame
-     * @param BodyRotation Current body rotation in world frame
-     * @return Vector in world frame
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FVector BodyToWorldFrame(const FVector& BodyVector, const FRotator& BodyRotation);
-
-    // ==================== UNIT CONVERSIONS ====================
-    
-    /**
-     * Convert centimeters to meters
-     * @param Centimeters Value in centimeters
-     * @return Value in meters
-     */
-    UFUNCTION(BlueprintPure, Category = "Unit Conversion")
-    static FORCEINLINE float CentimetersToMeters(float Centimeters) { return Centimeters * 0.01f; }
-    
-    /**
-     * Convert meters to centimeters
-     * @param Meters Value in meters
-     * @return Value in centimeters
-     */
-    UFUNCTION(BlueprintPure, Category = "Unit Conversion")
-    static FORCEINLINE float MetersToCentimeters(float Meters) { return Meters * 100.0f; }
-    
-    /**
-     * Convert degrees to radians
-     * @param Degrees Angle in degrees
-     * @return Angle in radians
-     */
-    UFUNCTION(BlueprintPure, Category = "Unit Conversion")
-    static FORCEINLINE float DegreesToRadians(float Degrees) { return FMath::DegreesToRadians(Degrees); }
-    
-    /**
-     * Convert radians to degrees
-     * @param Radians Angle in radians
-     * @return Angle in degrees
-     */
-    UFUNCTION(BlueprintPure, Category = "Unit Conversion")
-    static FORCEINLINE float RadiansToDegrees(float Radians) { return FMath::RadiansToDegrees(Radians); }
-
-    // ==================== BATCH OPERATIONS ====================
-    
-    /**
-     * Convert array of positions from Unreal to NED
-     * @param UnrealPositions Array of positions in Unreal coordinates
-     * @param OutNEDPositions Output array of positions in NED coordinates
-     */
-    static void BatchUnrealToNED(const TArray<FVector>& UnrealPositions, TArray<FVector>& OutNEDPositions);
-    
-    /**
-     * Convert array of positions from Unreal to ENU
-     * @param UnrealPositions Array of positions in Unreal coordinates
-     * @param OutENUPositions Output array of positions in ENU coordinates
-     */
-    static void BatchUnrealToENU(const TArray<FVector>& UnrealPositions, TArray<FVector>& OutENUPositions);
-
-    // ==================== GEOGRAPHIC CONVERSIONS ====================
-    
-    /**
-     * Convert geographic coordinates to local Unreal coordinates
-     * @param Latitude Latitude in degrees
-     * @param Longitude Longitude in degrees
-     * @param Altitude Altitude in meters
-     * @param GeoRef GeoReferencing system (optional, will find in world if null)
-     * @return Position in Unreal coordinates (cm)
-     */
-    UFUNCTION(BlueprintPure, Category = "Geographic Transform", meta=(WorldContext="WorldContextObject"))
-    static FVector GeographicToUnreal(float Latitude, float Longitude, float Altitude, 
-                                      UObject* WorldContextObject, class AGeoReferencingSystem* GeoRef = nullptr);
-    
-    /**
-     * Convert Unreal coordinates to geographic coordinates
-     * @param UnrealPos Position in Unreal coordinates (cm)
-     * @param OutLatitude Output latitude in degrees
-     * @param OutLongitude Output longitude in degrees
-     * @param OutAltitude Output altitude in meters
-     * @param GeoRef GeoReferencing system (optional, will find in world if null)
-     */
-    UFUNCTION(BlueprintPure, Category = "Geographic Transform", meta=(WorldContext="WorldContextObject"))
-    static void UnrealToGeographic(const FVector& UnrealPos, float& OutLatitude, float& OutLongitude, float& OutAltitude,
-                                   UObject* WorldContextObject, class AGeoReferencingSystem* GeoRef = nullptr);
-
-    // ==================== UTILITY FUNCTIONS ====================
-    
-    /**
-     * Get a combined transformation matrix for Unreal to NED
-     * Useful for batch transformations
-     */
-    static FMatrix GetUnrealToNEDMatrix();
-    
-    /**
-     * Get a combined transformation matrix for Unreal to ENU
-     * Useful for batch transformations
-     */
-    static FMatrix GetUnrealToENUMatrix();
-    
-    /**
-     * Normalize a quaternion (ensures unit length)
-     * @param Quat Quaternion to normalize
-     * @return Normalized quaternion
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FQuat NormalizeQuaternion(const FQuat& Quat);
-    
-    /**
-     * Validate Euler angles are within valid ranges
-     * @param Euler Euler angles to validate
-     * @return Clamped Euler angles
-     */
-    UFUNCTION(BlueprintPure, Category = "Coordinate Transform")
-    static FRotator ValidateEulerAngles(const FRotator& Euler);
-
-private:
-    // Conversion matrices (cached for performance)
-    static const FMatrix UnrealToNEDMat;
-    static const FMatrix UnrealToENUMat;
-    static const FMatrix NEDToUnrealMat;
-    static const FMatrix ENUToUnrealMat;
-};
+    FORCEINLINE FMatrix S_FRD_to_FRU() {
+        return FMatrix(
+            FPlane( 1, 0,  0, 0),
+            FPlane( 0, 1,  0, 0),
+            FPlane( 0, 0, -1, 0),
+            FPlane( 0, 0,  0, 1));
+    }
+}

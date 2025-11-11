@@ -1,54 +1,61 @@
-// SensorManagerComponent.h
+// SensorAdapterComponent.h
 #pragma once
-
 #include "CoreMinimal.h"
-#include "SensorData.h"
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
+#include "Messages/SensorBus.h"
 #include "SensorManagerComponent.generated.h"
 
-// Forward declarations
-class UGPSSensor;
 class UIMUSensor;
-class UMagSensor;
+class UGPSSensor;
 class UBaroSensor;
+class UMagSensor;
+
+USTRUCT()
+struct FSimpleState {
+	GENERATED_BODY()
+	FVector pos_ned_m      = FVector::ZeroVector;
+	FVector vel_ned_mps    = FVector::ZeroVector;
+	FQuat   q_nb           = FQuat::Identity;
+	FRotator euler_frd_deg = FRotator::ZeroRotator;
+	FVector gyro_frd_rps   = FVector::ZeroVector;
+	FVector accel_frd_mps2 = FVector::ZeroVector;
+	float   baro_alt_msl_m = NAN;
+};
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class ROBOTCORE_API USensorManagerComponent : public USceneComponent
+class USensorManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
 public:
-	
 	USensorManagerComponent();
-	void BeginPlay() override;
-	UFUNCTION(BlueprintCallable, Category = "Sensors")
-	void InitializeSensors();
-    
-	UFUNCTION(BlueprintCallable, Category = "Sensors")
-	void UpdateAllSensors(float DeltaTime, bool bAddNoise = true);
-    
-	UFUNCTION(BlueprintPure, Category = "Sensors")
-	bool AreSensorsInitialized() const { return bSensorsInitialized; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Sensors")
-	FSensorData GetCurrentSensorData() const;
+    bool GetLatestSimpleState(FSimpleState& out) const;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
-	UGPSSensor* GPS;
-    
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
-	UIMUSensor* IMU;
+	UPROPERTY(EditAnywhere) float ImuRateHz  = 200.f;
+	UPROPERTY(EditAnywhere) float GpsRateHz  = 10.f;
+	UPROPERTY(EditAnywhere) float BaroRateHz = 50.f;
+	UPROPERTY(EditAnywhere) float MagRateHz  = 50.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
-	UMagSensor* Magnetometer; 
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sensors")
-	UBaroSensor* Barometer;
-
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float dt, ELevelTick, FActorComponentTickFunction*) override;
 
 private:
-	// Cache the latest sensor data
-	FSensorData CachedSensorData;
-	bool bSensorsInitialized;
-    
+	// sources
+	UIMUSensor*  Imu = nullptr;
+	UGPSSensor*  Gps = nullptr;
+	UBaroSensor* Baro = nullptr;
+	UMagSensor*  Mag = nullptr;
+
+	// bus
+	USensorBus* Bus = nullptr;
+
+	// period accumulators
+	double accImu=0, accGps=0, accBaro=0, accMag=0;
+	uint32 seqImu=0, seqGps=0, seqBaro=0, seqMag=0;
+
+	// helpers
+	double NowSec() const;
+	void PublishImu(double period);
+	void PublishGps(double period);
+	void PublishBaro(double period);
+	void PublishMag(double period);
 };

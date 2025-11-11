@@ -1,199 +1,157 @@
-// SensorManagerComponent.cpp
+// SensorAdapterComponent.cpp
 #include "Sensors/SensorManagerComponent.h"
-#include "Sensors/GPSSensor.h"
 #include "Sensors/IMUSensor.h"
-#include "Sensors/MagSensor.h"
+#include "Sensors/GPSSensor.h"
 #include "Sensors/BaroSensor.h"
-#include "Components/PrimitiveComponent.h"
-#include "GameFramework/Actor.h"
+#include "Sensors/MagSensor.h"
+#include "CoordinateTransform.h"
 
 USensorManagerComponent::USensorManagerComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false; 
-    bSensorsInitialized = false;
-    
-    GPS = CreateDefaultSubobject<UGPSSensor>(TEXT("GPSSensor"));
-    IMU = CreateDefaultSubobject<UIMUSensor>(TEXT("IMUSensor"));
-	Magnetometer = CreateDefaultSubobject<UMagSensor>(TEXT("MagnetometerSensor"));
-	Barometer = CreateDefaultSubobject<UBaroSensor>(TEXT("BarometerSensor"));
+    PrimaryComponentTick.bCanEverTick = true;
 }
 
 void USensorManagerComponent::BeginPlay()
 {
-	Super::BeginPlay();
-	
-	if (GPS && !GPS->GetAttachParent())
-	{
-		GPS->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Attached GPS to SensorManager"));
-	}
-	if (IMU && !IMU->GetAttachParent())
-	{
-		IMU->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Attached IMU to SensorManager"));
-	}
-	if (Magnetometer && !Magnetometer->GetAttachParent())
-	{
-		Magnetometer->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Attached Magnetometer to SensorManager"));
-	}
-	if (Barometer && !Barometer->GetAttachParent())
-	{
-		Barometer->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Attached Barometer to SensorManager"));
-	}
+    Super::BeginPlay();
+    Bus = USensorBus::Get(GetWorld());
+
+    // find sensors on the same actor
+    AActor* A = GetOwner();
+    Imu  = A->FindComponentByClass<UIMUSensor>();
+    Gps  = A->FindComponentByClass<UGPSSensor>();
+    Baro = A->FindComponentByClass<UBaroSensor>();
+    Mag  = A->FindComponentByClass<UMagSensor>();
 }
 
-void USensorManagerComponent::InitializeSensors()
+double USensorManagerComponent::NowSec() const
 {
-	if (bSensorsInitialized)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("SensorManager: Sensors already initialized"));
-		return;
-	}
-    
-	if (IMU)
-	{
-		IMU->Initialize();
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: IMU initialized"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("SensorManager: IMU component is null!"));
-	}
-	if (GPS)
-	{
-		GPS->Initialize();  // Add this line
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: GPS initialized"));
-	}
-	if (GPS)
-	{
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: GPS ready"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("SensorManager: GPS component is null!"));
-	}
-    
-	if (Magnetometer)
-	{
-		Magnetometer->Initialize();
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Magnetometer initialized"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("SensorManager: Magnetometer component is null!"));
-	}
-    
-	if (Barometer)
-	{
-		Barometer->Initialize();
-		UE_LOG(LogTemp, Display, TEXT("SensorManager: Barometer initialized"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("SensorManager: Barometer component is null!"));
-	}
-    
-	bSensorsInitialized = true;
-	UE_LOG(LogTemp, Display, TEXT("SensorManager: All sensors initialized"));
+    const UWorld* W = GetWorld();
+    return W ? W->GetTimeSeconds() : 0.0;
 }
 
-void USensorManagerComponent::UpdateAllSensors(float DeltaTime, bool bAddNoise)
+void USensorManagerComponent::TickComponent(float dt, ELevelTick, FActorComponentTickFunction*)
 {
-    if (!bSensorsInitialized)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SensorManager: Attempting to update uninitialized sensors"));
-        return;
+    accImu  += dt;
+    accGps  += dt;
+    accBaro += dt;
+    accMag  += dt;
+
+    const double pImu  = 1.0 / FMath::Max(1e-6f, ImuRateHz);
+    const double pGps  = 1.0 / FMath::Max(1e-6f, GpsRateHz);
+    const double pBaro = 1.0 / FMath::Max(1e-6f, BaroRateHz);
+    const double pMag  = 1.0 / FMath::Max(1e-6f, MagRateHz);
+
+    while (accImu  >= pImu)  { PublishImu(pImu);   accImu  -= pImu;  }
+    while (accGps  >= pGps)  { PublishGps(pGps);   accGps  -= pGps;  }
+    while (accBaro >= pBaro) { PublishBaro(pBaro); accBaro -= pBaro; }
+    while (accMag  >= pMag)  { PublishMag(pMag);   accMag  -= pMag;  }
+}
+
+bool USensorManagerComponent::GetLatestSimpleState(FSimpleState& out) const
+{
+    bool any=false;
+    FImuMsg imu; FGpsFixMsg gps; FBaroMsg baro;
+
+    if (Bus->ImuQ.PeekLatest(imu)) {
+        out.vel_ned_mps    = imu.vel_ned_mps;
+        out.q_nb           = imu.q_nb;
+        out.euler_frd_deg  = imu.euler_frd_deg;
+        out.gyro_frd_rps   = imu.gyro_rps_b_frd;
+        out.accel_frd_mps2 = imu.accel_mps2_b_frd;
+        any = true;
     }
-    
-    // GPS updates normally (10Hz)
-    if (GPS)
-    {
-        GPS->UpdateSensor(DeltaTime, bAddNoise);
+    if (Bus->GpsQ.PeekLatest(gps)) {
+        out.pos_ned_m = gps.pos_ned_m;
+        any = true;
     }
-    
-    // IMU needs to update at 250Hz, so we may need multiple updates per frame
-	if (IMU)
-	{
-		// reset our “first sample” marker
-		IMU->BeginFrame();
-
-		const float IMUPeriod = 1.0f / 250.0f;
-		float RemainingTime = DeltaTime;
-		while (RemainingTime > 0.0f)
-		{
-			float StepTime = FMath::Min(RemainingTime, IMUPeriod);
-			IMU->UpdateSensor(StepTime, bAddNoise);
-			RemainingTime -= IMUPeriod;
-		}
-	}
-	if (Magnetometer)
-	{
-		const float MagPeriod = 1.0f / 100.0f; // 0.01 seconds (10ms)
-		float RemainingTime = DeltaTime;
-
-		while (RemainingTime > 0.0f)
-		{
-			float StepTime = FMath::Min(RemainingTime, MagPeriod);
-			Magnetometer->UpdateSensor(StepTime, bAddNoise);
-			RemainingTime -= StepTime;
-		}
-	}
-	if (Barometer)
-	{
-		const float BaroPeriod = 1.0f / 20.0f; // 0.05 seconds (50ms)
-		float RemainingTime = DeltaTime;
-
-		while (RemainingTime > 0.0f)
-		{
-			float StepTime = FMath::Min(RemainingTime, BaroPeriod);
-			Barometer->UpdateSensor(StepTime, bAddNoise);
-			RemainingTime -= StepTime;
-		}
-	}
-	CachedSensorData = GetCurrentSensorData();
-
+    if (Bus->BaroQ.PeekLatest(baro)) {
+        out.baro_alt_msl_m = baro.alt_msl_m;
+        any = true;
+    }
+    return any;
 }
 
-FSensorData USensorManagerComponent::GetCurrentSensorData() const
+// IMU: publish specific force and gyro in FRD, no attitude, no velocity
+void USensorManagerComponent::PublishImu(double /*period*/)
 {
-	FSensorData Data;
+    if (!Imu || !GetOwner()) return;
+
+    // Raw samples from your IMUSensor are UE world-based, already removing g in world and transforming to body FRU
+    // We will enforce final body FRD and SI units here
+    const FTransform T_wb = GetOwner()->GetRootComponent()->GetComponentTransform();
+
+    // Accel: your SampleRawAcceleration returns body frame already, but confirm FRU vs FRD
+    // If your LastAccelerometer is in FRU, convert to FRD here. If it is already FRD, remove the conversion.
+    const FVector a_b_fru = Imu->GetLastAccelerometer();       // m/s^2, body FRU
+    //const FVector a_b_frd = Frames::FRU_to_FRD(a_b_fru);
+
+    // Gyro: you built pqr_frd in SampleRawAngularVelocity, but to be robust, convert FRU->FRD at edge
+    const FVector w_b_fru = Imu->GetLastGyroscope();//Frames::FRD_to_FRU(Imu->GetLastGyroscope()); // if LastGyroscope was FRD, invert to FRU then convert back next line
+    //const FVector w_b_frd = Frames::FRU_to_FRD(w_b_fru);
+
+    FImuMsg msg;
+    msg.header.stamp_sec = NowSec();
+    msg.header.seq = ++seqImu;
+    msg.header.frame_id = FName(TEXT("base_link_frd"));
+
+    msg.accel_mps2_b_frd = a_b_fru;
+    msg.gyro_rps_b_frd   = Imu->GetLastGyroscope();   // already FRD
+    msg.vel_ned_mps      = Imu->GetLastVelocity(); // world NED
+    msg.q_nb             = Imu->GetLastQuatNB();      // FRD->NED
+    msg.euler_frd_deg    = Imu->GetLastAttitude();    // for legacy PIDs
+
+    Bus->ImuQ.Push(msg);
+}
+
+// GPS: publish NED position and Doppler velocity in NED if available
+void USensorManagerComponent::PublishGps(double /*period*/)
+{
+    if (!Gps || !GetOwner()) return;
+
+    const FVector pos_world_cm = GetOwner()->GetActorLocation();
+    const FVector pos_ned_m = Frames::UEWorldVec_to_NED(pos_world_cm);
+
+    FVector vel_ned_mps = Imu->GetLastVelocity();
     
-	if (IMU && IMU->IsInitialized())
-	{
-		Data.IMUAngVelRADS = IMU->GetLastGyroscope();
-		Data.IMUAngVelDEGS = IMU->GetLastGyroscopeDegrees();
-		Data.IMULinearAccelMS2 = IMU->GetLastAccelerometer();
-		Data.IMUAttitude = IMU->GetLastAttitude();
-		Data.IMUVelMS = IMU->GetLastVelocity();
-		Data.IMUTimestamp = IMU->GetLastUpdateTime();
-		Data.bIMUValid = true;
-	}
-    
-	if (GPS && GPS->IsInitialized())
-	{
-		Data.GPSPosMeters = GPS->GetLastGPS();
-		Data.GPSLatLong = GPS->GetGeographicCoordinates();
-		Data.GPSTimestamp = GPS->GetLastUpdateTime();
-		Data.bGPSValid = GPS->HasFix();
-	}
-    
-	if (Barometer && Barometer->IsInitialized())
-	{
-		Data.BaroAltitudeM = Barometer->GetEstimatedAltitude();
-		Data.BaroTemp = Barometer->GetLastTemperature();
-		Data.BaroLastPressureHPa = Barometer->GetLastPressureHPa();
-		Data.bBaroValid = true;
-	}
-    
-	if (Magnetometer && Magnetometer->IsInitialized())
-	{
-		Data.MagFieldGauss = Magnetometer->GetLastMagField();
-		Data.MagHeadingDeg = Magnetometer->GetHeading();
-		Data.MagDeclinationDeg = Magnetometer->GetDeclination();
-		Data.bMagValid = !Magnetometer->IsCalibrating();
-	}
-    
-	return Data;
+    FGpsFixMsg msg;
+    msg.header.stamp_sec = NowSec();
+    msg.header.seq = ++seqGps;
+    msg.header.frame_id = FName(TEXT("world_ned"));
+    msg.pos_ned_m   = pos_ned_m;
+    msg.vel_ned_mps = vel_ned_mps;
+    msg.fix_type    = EGpsFixType::FIX_3D; // replace with your fix state
+    Bus->GpsQ.Push(msg);
+}
+
+// Baro: publish pressure Pa and temperature C, optional altitude for debugging
+void USensorManagerComponent::PublishBaro(double /*period*/)
+{
+    if (!Baro) return;
+    FBaroMsg msg;
+    msg.header.stamp_sec = NowSec();
+    msg.header.seq = ++seqBaro;
+    msg.header.frame_id = FName(TEXT("base_link_frd"));
+    msg.pressure_Pa   = Baro->GetLastPressure();
+    msg.temperature_C = Baro->GetLastTemperature();
+    msg.alt_msl_m     = Baro->GetEstimatedAltitude(); // optional
+    Bus->BaroQ.Push(msg);
+}
+
+// Mag: publish mag field in body FRD Tesla, plus declination
+void USensorManagerComponent::PublishMag(double /*period*/)
+{
+    if (!Mag || !GetOwner()) return;
+
+    // Your Mag sensor stores body field likely in FRU, confirm and convert
+    const FVector b_fru_T = Mag->GetLastMagField();         // Tesla, body FRU
+    const FVector b_frd_T = Frames::FRU_to_FRD(b_fru_T);
+
+    FMagMsg msg;
+    msg.header.stamp_sec = NowSec();
+    msg.header.seq = ++seqMag;
+    msg.header.frame_id = FName(TEXT("base_link_frd"));
+    msg.mag_T_b_frd      = b_frd_T;
+    msg.declination_deg  = Mag->GetDeclination();
+    Bus->MagQ.Push(msg);
 }

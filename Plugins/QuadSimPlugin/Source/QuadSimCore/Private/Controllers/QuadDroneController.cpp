@@ -229,7 +229,7 @@ void UQuadDroneController::GamepadController(const FSensorData& SensorData,doubl
 	desiredYawRate = GP.Yaw*maxAngleRate;
 	const float  yawOut   = YawRateControl(DeltaTime);   // uses desiredYawRate
 
-	/* no XY position		 hold in this simple ANGLE mode */
+	/* no XY position hold in this simple ANGLE mode */
 	ThrustMixer(desiredRoll, desiredPitch, zEffort,
 				rollOut,   pitchOut,      yawOut);
 
@@ -244,18 +244,20 @@ void UQuadDroneController::FlightController(const FSensorData& SensorData,double
 	
 	/* ───── World-space state ───── */
 	FVector GPSData = SensorData.GPSPosMeters;
-	float altitude = SensorData.BaroAltitudeM;
-	const FVector  currPos = {GPSData.X, GPSData.Y, altitude};     
+	float Altitude = SensorData.BaroAltitudeM;
+	const FVector  currPos = {GPSData.X, GPSData.Y, Altitude};     
 	const FVector  currVel = SensorData.IMUVelMS;          
 	const FRotator currRot = SensorData.IMUAttitude;
 	const FRotator yawOnlyRot(0.f, currRot.Yaw, 0.f);
-	FVector angularRate = SensorData.IMUAngVelDEGS;
-	localAngularRateDeg = angularRate;
+	FVector AngularRate = SensorData.IMUAngVelDEGS;
+	localAngularRateDeg = AngularRate;
 	
 	// Get world angular velocity and transform it to local frame using yaw-only rotation
 	if (bUseExternalController)
 	{
+        
 		DrawDebugVisualsVel(FVector::ZeroVector);
+        
 		return; 
 	}
 	
@@ -363,7 +365,10 @@ void UQuadDroneController::ThrustMixer(double desiredPitchDeg, double desiredRol
 	const float rollCmd  = FMath::Clamp(float(rollRateOut  / maxAngleRate), -1.f, 1.f);
 	const float pitchCmd = FMath::Clamp(float(pitchRateOut / maxAngleRate), -1.f, 1.f);
 	const float yawCmd   = FMath::Clamp(float(yawOut       / maxYawRate  ), -1.f, 1.f);		
-	
+
+	// ---- Z control: treat Z PID output as accel command (Option B) ----
+	// Convert your Z PID to output m/s^2 (do this in tuning: derivative on velocity, integral on position if you like).
+	// If today it outputs m/s, map zVelOut -> az_cmd with a gain:
 	const float Kvel_to_accel = 2.0f;           // tune: m/s -> m/s^2
 	const float az_cmd = Kvel_to_accel * float(zVelOut);
 
@@ -396,9 +401,11 @@ void UQuadDroneController::ComputeMotorOutputs01(
     float throttle01, float pitchCmd, float rollCmd, float yawCmd, TArray<float>& out) const
 {
     out.SetNum(4);
-	const float MinMotor = 0.0f;
+
+    // AirSim-like bounds
+    const float MinMotor = 0.0f;
     const float MaxMotor = 1.0f;
-    const float MinAnglingThrottle = 0.15f;
+    const float MinAnglingThrottle = 0.15f; // tune if needed
 
     if (throttle01 < MinAnglingThrottle) {
         out[0] = out[1] = out[2] = out[3] = throttle01;
@@ -516,7 +523,7 @@ void UQuadDroneController::ResetControllerState()
     hoverTargetAltitude = 0.0f;
     bUseExternalController = false;
     bGamepadModeUI = false;
-    currentFlightMode = EFlightMode::None; 
+    currentFlightMode = EFlightMode::None;
 
     // Clear thrusts cache for HUD
     if (Thrusts.Num() == 4)
